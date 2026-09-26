@@ -216,6 +216,11 @@ str. %, Td %) indicam zero tentativas, tratados como NaN (não 0%).
 17. `arbitros_finalizacoes.png` — 10 árbitros com mais lutas, % das lutas
     encerradas antes da decisão (KO/TKO, TKO médico, submission), uma linha
     por luta; aviso no rodapé: reflete as lutas recebidas, não o árbitro
+18. `finalizacoes_por_categoria.png` — barras empilhadas por categoria de
+    peso: % de lutas encerradas por nocaute (azul, inclui TKO médico) e por
+    finalização (vermelho), uma linha por luta, total na ponta, média geral
+    tracejada (50%); fora peso casado e categorias com < 20 lutas (pena
+    feminino). Meio-pesado lidera (68%), pesado só 53%, mosca fem. 31%
 
 ## Workflow de Git
 Usamos Git Flow: `main` (estável) + `develop` (integração) + `feature/*`
