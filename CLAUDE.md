@@ -150,6 +150,9 @@ str. %, Td %) indicam zero tentativas, tratados como NaN (não 0%).
 15. `origem_dos_golpes.png` — mesmo formato do 14, para distância/clinch/
     chão; resumo no topo com todos, vencedores (W) e perdedores (L) —
     vencedores acertam 13% no chão vs 3,5% dos perdedores
+16. `top10_precisao_quedas.png` — Td_landed / Td_attempted, mín. 15
+    tentativas E 3 lutas (sem o 2º filtro entra quem tentou muito numa luta
+    só); "X de Y" na ponta da barra; linha tracejada na média geral (36%)
 
 ## Workflow de Git
 Usamos Git Flow: `main` (estável) + `develop` (integração) + `feature/*`
