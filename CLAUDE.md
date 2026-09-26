@@ -147,6 +147,9 @@ str. %, Td %) indicam zero tentativas, tratados como NaN (não 0%).
 14. `alvo_dos_golpes.png` — barras 100% empilhadas cabeça/corpo/perna
     (vermelho/azul/amarelo): média geral + 3 lutadores mais especializados
     em cada alvo (mín. 150 golpes sig. acertados no período)
+15. `origem_dos_golpes.png` — mesmo formato do 14, para distância/clinch/
+    chão; resumo no topo com todos, vencedores (W) e perdedores (L) —
+    vencedores acertam 13% no chão vs 3,5% dos perdedores
 
 ## Workflow de Git
 Usamos Git Flow: `main` (estável) + `develop` (integração) + `feature/*`
