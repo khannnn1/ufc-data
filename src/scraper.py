@@ -2,6 +2,8 @@
 
 import time
 import os
+from datetime import datetime
+
 import pandas as pd
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -186,8 +188,25 @@ def extrair_varios_eventos(eventos, driver, limite=None,
     return pd.read_csv(arquivo_resumo), pd.read_csv(arquivo_round)
 
 
+def extrair_eventos_da_pagina(html_pagina):
+    """Eventos (nome, URL e data 'AAAA-MM-DD') de uma página da listagem, na ordem do site (mais recente primeiro)."""
+    soup_pagina = BeautifulSoup(html_pagina, "html.parser")
+    eventos = []
+    for linha in soup_pagina.find_all("tr", class_="b-statistics__table-row"):
+        link = linha.find("a", class_="b-link b-link_style_black")
+        if not link:
+            continue  # linhas vazias/estruturais da tabela
+        span_data = linha.find("span", class_="b-statistics__date")
+        data = None
+        if span_data:
+            # ex.: "September 19, 2026"
+            data = datetime.strptime(span_data.get_text(strip=True), "%B %d, %Y").date().isoformat()
+        eventos.append({"nome": link.text.strip(), "url": link["href"], "data": data})
+    return eventos
+
+
 def extrair_eventos_multiplas_paginas(driver, num_paginas):
-    """Coleta a lista de eventos (nome + URL) percorrendo múltiplas páginas da listagem."""
+    """Coleta a lista de eventos (nome, URL e data) percorrendo múltiplas páginas da listagem."""
     todos_eventos = []
 
     for pagina in range(1, num_paginas + 1):
@@ -196,15 +215,7 @@ def extrair_eventos_multiplas_paginas(driver, num_paginas):
 
         driver.get(url_pagina)
         time.sleep(5)
-
-        html_pagina = driver.page_source
-        soup_pagina = BeautifulSoup(html_pagina, "html.parser")
-
-        links_evento = soup_pagina.find_all("a", class_="b-link b-link_style_black")
-
-        for link in links_evento:
-            todos_eventos.append({"nome": link.text.strip(), "url": link["href"]})
-
+        todos_eventos.extend(extrair_eventos_da_pagina(driver.page_source))
         time.sleep(2)
 
     return todos_eventos

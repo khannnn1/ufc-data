@@ -642,8 +642,14 @@ async function iniciar() {
 
   lutadores = dados.lutadores;
   porNome = new Map(lutadores.map((l) => [l.nome.toLowerCase(), l]));
+  // "2023-04-08" -> "abr/2023" (sem new Date(): evita mudar o dia por fuso horário)
+  const mesAno = (iso) => {
+    const [ano, mes] = iso.split("-");
+    return `${["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"][mes - 1]}/${ano}`;
+  };
+  const periodo = dados.periodo ? ` (${mesAno(dados.periodo.inicio)} a ${mesAno(dados.periodo.fim)})` : "";
   document.getElementById("resumo-dados").textContent =
-    `${fmt0.format(dados.lutas)} lutas de ${dados.eventos} eventos do UFC, ${fmt0.format(lutadores.length)} lutadores. `
+    `${fmt0.format(dados.lutas)} lutas de ${dados.eventos} eventos do UFC${periodo}, ${fmt0.format(lutadores.length)} lutadores. `
     + "Compare dois lutadores quaisquer ou monte o seu próprio ranking.";
 
   const lista = document.getElementById("lista-lutadores");

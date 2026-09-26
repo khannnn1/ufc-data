@@ -11,6 +11,7 @@ from src.limpeza import tempo_para_segundos
 RAIZ = Path(__file__).resolve().parent.parent
 ARQUIVO_RESUMO = RAIZ / "data" / "processed" / "dataset_final_resumo_limpo.csv"
 ARQUIVO_ROUND = RAIZ / "data" / "processed" / "dataset_final_round_limpo.csv"
+ARQUIVO_EVENTOS = RAIZ / "data" / "processed" / "eventos.csv"
 ARQUIVO_SAIDA = RAIZ / "dados" / "lutadores.json"
 
 # Totais somados por lutador. Nomes curtos para o JSON ficar pequeno; o navegador calcula
@@ -70,8 +71,10 @@ def exportar_lutadores(caminho_csv=ARQUIVO_RESUMO, caminho_round=ARQUIVO_ROUND, 
     agregado = agregar_lutadores(df)
     rounds = agregar_rounds(pd.read_csv(caminho_round))
 
+    datas = pd.read_csv(ARQUIVO_EVENTOS)["Event_Date"]
     saida = {
         "gerado_em": date.today().isoformat(),
+        "periodo": {"inicio": datas.min(), "fim": datas.max()},
         "eventos": int(df["Event_URL"].nunique()),
         "lutas": int(df["Fight_URL"].nunique()),
         "lutadores": [

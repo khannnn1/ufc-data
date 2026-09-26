@@ -8,7 +8,7 @@ Projeto de ponta a ponta com dados de lutas do UFC: **coleta** por web scraping,
 
 ## Destaques da análise
 
-Recorte de **149 eventos recentes do UFC: 1.837 lutas e 963 lutadores**.
+Recorte de **149 eventos recentes do UFC, de abril de 2023 (UFC 287) a setembro de 2026 (UFC 331): 1.837 lutas e 963 lutadores**.
 
 - **Metade das lutas termina antes da decisão dos juízes:** 32% por nocaute e 17% por finalização.
 - **Knockdown é o que mais separa vencedores de perdedores:** quem vence derruba o adversário 8,4× mais. Nos golpes significativos a diferença é bem menor (1,5×): quem perde também troca bastante.
@@ -31,7 +31,7 @@ Recorte de **149 eventos recentes do UFC: 1.837 lutas e 963 lutadores**.
 
 ```
 ufcstats.com
-   │  scraper.py (Selenium + BeautifulSoup)
+   │  scraper.py (Selenium + BeautifulSoup); atualizar.py busca só os eventos novos
    ▼
 data/raw/*.csv
    │  limpeza.py
@@ -46,7 +46,7 @@ data/processed/*.csv
 2. **Limpeza** (`src/limpeza.py`): converte `"181 of 305"` em duas colunas numéricas (acertados/tentados), percentuais em número e tempos `M:SS` em segundos. `"---"` (nenhuma tentativa) vira ausente, e não 0%.
 3. **Análise e gráficos** (`notebooks/02_visualizacao.ipynb` + `src/visualizacao.py`): padrão visual único (fundo escuro, barras com o valor escrito na ponta, sem eixo quando ele não acrescenta).
 4. **Exportação** (`src/exportar.py`): agrega os totais por lutador (no geral e por round) em um JSON pequeno (≈280 KB); médias e percentuais são calculados no navegador.
-5. **SQL** (`src/banco.py`, `sql/`, `notebooks/03_sql.ipynb`): os CSVs, com uma linha por lutador em cada luta e os dados da luta repetidos, viram um banco SQLite com quatro tabelas relacionadas — `eventos` → `lutas` → `desempenho` → `desempenho_round` —, com chaves primárias e estrangeiras. As perguntas dos gráficos são respondidas de novo em SQL (JOINs, `GROUP BY`/`HAVING` para as amostras mínimas, CTEs e funções de janela como `RANK`, `ROW_NUMBER` e `SUM() OVER (PARTITION BY ...)`), e o notebook **confere cada resposta com o resultado em Pandas**. Duas consultas só existem em SQL: o destaque de cada evento e a maior sequência de vitórias de cada lutador (*gaps and islands*).
+5. **SQL** (`src/banco.py`, `sql/`, `notebooks/03_sql.ipynb`): os CSVs, com uma linha por lutador em cada luta e os dados da luta repetidos, viram um banco SQLite com quatro tabelas relacionadas — `eventos` → `lutas` → `desempenho` → `desempenho_round` —, com chaves primárias e estrangeiras. As perguntas dos gráficos são respondidas de novo em SQL (JOINs, `GROUP BY`/`HAVING` para as amostras mínimas, CTEs e funções de janela como `RANK`, `ROW_NUMBER` e `SUM() OVER (PARTITION BY ...)`), e o notebook **confere cada resposta com o resultado em Pandas**. Três consultas só existem em SQL: o destaque de cada evento, a maior sequência de vitórias de cada lutador (*gaps and islands*) e como as lutas terminam ano a ano — onde aparece, por exemplo, a taxa de nocaute subindo de 28% (2024) para 37,5% (2026, parcial).
 
 ## Decisões de análise
 
@@ -92,6 +92,7 @@ Todas as imagens estão em [`figures/`](figures/), e o código de cada uma em [`
 │   └── consultas.sql      # consultas SQL
 ├── src/
 │   ├── scraper.py         # coleta (Selenium + BeautifulSoup)
+│   ├── atualizar.py       # busca eventos novos e regenera tudo
 │   ├── limpeza.py         # tratamento dos dados
 │   ├── visualizacao.py    # padrão visual e funções de plotagem
 │   ├── exportar.py        # gera dados/lutadores.json
@@ -112,6 +113,7 @@ pip install -r requirements.txt
 ```
 
 - **Coleta e limpeza:** `notebooks/01_scrapper_test_luta.ipynb` (precisa do Google Chrome instalado para o Selenium).
+- **Atualizar com eventos novos:** `python -m src.atualizar` busca só os eventos mais recentes que o último da base, limpa os dados e regenera o JSON do site e o banco SQL; com `--graficos`, também reexecuta os notebooks de gráficos e SQL.
 - **Gráficos:** `notebooks/02_visualizacao.ipynb`.
 - **SQL:** `notebooks/03_sql.ipynb` recria o banco (`data/ufc.db`) e roda as consultas. Para só gerar o banco: `python -m src.banco`.
 - **Dados do site interativo:** `python -m src.exportar` (na raiz do projeto) regenera `dados/lutadores.json`.
@@ -119,4 +121,4 @@ pip install -r requirements.txt
 
 ## Próximos passos
 
-- Atualizar a base com os eventos mais recentes.
+- Rodar `python -m src.atualizar --graficos` a cada novo evento do UFC.

@@ -174,15 +174,16 @@ LIMIT 10;
 -- nome: sequencia_vitorias
 -- Maior sequência de vitórias seguidas de cada lutador no período ("gaps and islands"):
 -- a diferença entre dois ROW_NUMBER() é constante dentro de uma sequência de mesmo resultado.
--- A ordem das lutas vem do evento: evento_id segue a ordem da coleta (1 = mais recente).
+-- As lutas de cada lutador são ordenadas pela data do evento.
 WITH ordenado AS (
     SELECT
         d.lutador,
         d.resultado,
-        ROW_NUMBER() OVER (PARTITION BY d.lutador ORDER BY l.evento_id DESC)
-          - ROW_NUMBER() OVER (PARTITION BY d.lutador, d.resultado ORDER BY l.evento_id DESC) AS grupo
+        ROW_NUMBER() OVER (PARTITION BY d.lutador ORDER BY e.data)
+          - ROW_NUMBER() OVER (PARTITION BY d.lutador, d.resultado ORDER BY e.data) AS grupo
     FROM desempenho AS d
-    JOIN lutas AS l USING (luta_id)
+    JOIN lutas   AS l USING (luta_id)
+    JOIN eventos AS e USING (evento_id)
 ),
 sequencias AS (
     SELECT lutador, COUNT(*) AS vitorias_seguidas
@@ -195,3 +196,19 @@ FROM sequencias
 GROUP BY lutador
 ORDER BY maior_sequencia DESC, lutador
 LIMIT 10;
+
+
+-- nome: lutas_por_ano
+-- Como as lutas terminam a cada ano do período (strftime extrai o ano da data do evento).
+-- 2023 e o ano corrente são parciais: o recorte começa em abril de 2023.
+SELECT
+    strftime('%Y', e.data)                                                          AS ano,
+    COUNT(DISTINCT e.evento_id)                                                     AS eventos,
+    COUNT(*)                                                                        AS lutas,
+    ROUND(100.0 * SUM(l.metodo LIKE '%KO/TKO%' OR l.metodo LIKE 'TKO - Doctor%') / COUNT(*), 1) AS nocaute_pct,
+    ROUND(100.0 * SUM(l.metodo LIKE '%Submission%') / COUNT(*), 1)                  AS finalizacao_pct,
+    ROUND(100.0 * SUM(l.metodo LIKE 'Decision%') / COUNT(*), 1)                     AS decisao_pct
+FROM lutas AS l
+JOIN eventos AS e USING (evento_id)
+GROUP BY ano
+ORDER BY ano;

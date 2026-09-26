@@ -7,10 +7,12 @@ DROP TABLE IF EXISTS desempenho;
 DROP TABLE IF EXISTS lutas;
 DROP TABLE IF EXISTS eventos;
 
+-- evento_id em ordem cronológica inversa: 1 = evento mais recente
 CREATE TABLE eventos (
     evento_id   INTEGER PRIMARY KEY,
     url         TEXT NOT NULL UNIQUE,
-    nome        TEXT NOT NULL
+    nome        TEXT NOT NULL,
+    data        TEXT NOT NULL CHECK (data GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]')  -- 'AAAA-MM-DD'
 );
 
 CREATE TABLE lutas (

@@ -2,6 +2,8 @@
 
 import pandas as pd
 
+from src.config import COLUNAS_OF, COLUNAS_PCT
+
 
 def separar_landed_attempted(df, coluna):
     """Separa uma coluna no formato 'X of Y' em duas colunas numéricas: landed e attempted."""
@@ -33,3 +35,13 @@ def tempo_para_segundos(df, coluna):
 
     df[coluna + "_seconds"] = df[coluna].apply(converter)
     return df.drop(columns=[coluna])
+
+
+def limpar_dataset(df):
+    """Aplica toda a limpeza a um dataset bruto (resumo ou por round): 'X of Y', percentuais e Ctrl."""
+    df = df.copy()
+    for coluna in COLUNAS_OF:
+        df = separar_landed_attempted(df, coluna)
+    for coluna in COLUNAS_PCT:
+        df = limpar_percentual(df, coluna)
+    return tempo_para_segundos(df, "Ctrl")

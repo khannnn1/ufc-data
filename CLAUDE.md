@@ -28,6 +28,7 @@ ProjetoUFC/
 │   └── consultas.sql    # consultas nomeadas ("-- nome: x")
 ├── src/
 │   ├── scraper.py       # coleta (Selenium + BeautifulSoup)
+│   ├── atualizar.py      # `python -m src.atualizar`: busca eventos novos e regenera tudo
 │   ├── limpeza.py        # tratamento de dados
 │   ├── visualizacao.py   # estilo e funções de plotagem
 │   ├── exportar.py       # gera dados/lutadores.json para o site interativo
@@ -84,10 +85,13 @@ Definido em `src/visualizacao.py`:
 - **scraper.py**: `criar_driver`, `extrair_tabela_por_lutador`,
   `extrair_dados_luta(url, driver)`, `extrair_urls_evento`, `extrair_evento`,
   `extrair_varios_eventos(eventos, driver, limite)`,
-  `extrair_eventos_multiplas_paginas(driver, num_paginas)`
+  `extrair_eventos_multiplas_paginas(driver, num_paginas)`,
+  `extrair_eventos_da_pagina(html)` — eventos da listagem já com a data
+  (`{"nome", "url", "data": "AAAA-MM-DD"}`)
 - **limpeza.py**: `separar_landed_attempted` (split "X of Y" em
   landed/attempted), `limpar_percentual` (remove %, trata "---" como NaN),
-  `tempo_para_segundos` (formato "M:SS" -> segundos)
+  `tempo_para_segundos` (formato "M:SS" -> segundos), `limpar_dataset(df)`
+  (aplica as três a um CSV bruto; reproduz exatamente os processados)
 - **visualizacao.py**: `aplicar_estilo_dark`, `estilizar_grafico`,
   `adicionar_valores_barras`, `COR_VERMELHO`, `COR_AZUL`, `COR_AMARELO`
 - **config.py**: `COLUNAS_OF`, `COLUNAS_PCT`
@@ -106,8 +110,9 @@ evento_id, metodo, round_final, tempo_final, duracao_seg, arbitro) →
 sig_tentados, total_*, quedas, quedas_tentadas, tent_finalizacao,
 reversoes, controle_seg, cabeca/corpo/perna, distancia/clinch/chao) →
 `desempenho_round` (mesmas estatísticas + round, sem resultado).
-`evento_id` segue a ordem da coleta: 1 = mais recente (UFC 331), 149 = mais
-antigo (UFC 287) — usado para ordenar lutas no tempo (não há coluna de data).
+`eventos.data` ('AAAA-MM-DD', vinda de `data/processed/eventos.csv`) é a
+referência de tempo: ordenar lutas por `e.data`. `evento_id` é atribuído em
+ordem de data decrescente (1 = mais recente, UFC 331; 149 = UFC 287).
 Consultas novas vão em `sql/consultas.sql` com `-- nome: x` na linha acima.
 
 Os notebooks importam esses módulos via:
@@ -122,7 +127,20 @@ from src.config import COLUNAS_OF, COLUNAS_PCT
 
 ## Dados
 Escopo definido: recorte de ~149 eventos recentes do UFC (não o histórico
-completo de 600+), priorizando qualidade de análise sobre volume.
+completo de 600+), priorizando qualidade de análise sobre volume. Período:
+UFC 287 (2023-04-08) a UFC 331 (2026-09-19). Ampliar para eventos mais
+antigos foi considerado e descartado (muda o sentido de "no período").
+
+## Atualização da base
+`python -m src.atualizar` (na raiz, com o venv; ~15 s sem eventos novos):
+lê a listagem do ufcstats até achar a base, coleta só eventos MAIS NOVOS
+que o último (data <= hoje) com `extrair_varios_eventos` (append nos CSVs
+brutos), refaz os processados com `limpar_dataset`, grava
+`data/processed/eventos.csv` (Event_URL, Event_Name, Event_Date) e regenera
+`dados/lutadores.json` e `data/ufc.db`. `--graficos` também reexecuta os
+notebooks 02 e 03. Textos com números fixos (badges/legendas do
+`index.html`, README) NÃO se atualizam sozinhos. Testado de ponta a ponta
+numa cópia da base sem o UFC 331: recoletou o evento idêntico ao original.
 
 Datasets finais processados:
 - `data/processed/dataset_final_resumo_limpo.csv` — (3674, 24), uma linha

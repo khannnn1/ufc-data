@@ -10,6 +10,7 @@ from src.limpeza import tempo_para_segundos
 RAIZ = Path(__file__).resolve().parent.parent
 ARQUIVO_RESUMO = RAIZ / "data" / "processed" / "dataset_final_resumo_limpo.csv"
 ARQUIVO_ROUND = RAIZ / "data" / "processed" / "dataset_final_round_limpo.csv"
+ARQUIVO_EVENTOS = RAIZ / "data" / "processed" / "eventos.csv"  # datas; gerado por src/atualizar.py
 ARQUIVO_SCHEMA = RAIZ / "sql" / "schema.sql"
 ARQUIVO_BANCO = RAIZ / "data" / "ufc.db"
 
@@ -26,9 +27,13 @@ ESTATISTICAS = {
 }
 
 
-def montar_tabelas(resumo, por_round):
+def montar_tabelas(resumo, por_round, datas_eventos):
     """Separa os CSVs (uma linha por lutador-luta) em eventos, lutas, desempenho e desempenho_round."""
-    eventos = resumo[["Event_URL", "Event_Name"]].drop_duplicates("Event_URL").reset_index(drop=True)
+    eventos = resumo[["Event_URL", "Event_Name"]].drop_duplicates("Event_URL")
+    eventos["data"] = eventos["Event_URL"].map(datas_eventos.set_index("Event_URL")["Event_Date"])
+    if eventos["data"].isna().any():
+        raise ValueError("Há eventos sem data em eventos.csv; rode `python -m src.atualizar`.")
+    eventos = eventos.sort_values("data", ascending=False).reset_index(drop=True)
     eventos.insert(0, "evento_id", range(1, len(eventos) + 1))
     eventos = eventos.rename(columns={"Event_URL": "url", "Event_Name": "nome"})
 
@@ -56,7 +61,7 @@ def montar_tabelas(resumo, por_round):
 
 def criar_banco(caminho_banco=ARQUIVO_BANCO):
     """Recria o banco do zero: executa o schema e insere as quatro tabelas."""
-    tabelas = montar_tabelas(pd.read_csv(ARQUIVO_RESUMO), pd.read_csv(ARQUIVO_ROUND))
+    tabelas = montar_tabelas(pd.read_csv(ARQUIVO_RESUMO), pd.read_csv(ARQUIVO_ROUND), pd.read_csv(ARQUIVO_EVENTOS))
 
     with sqlite3.connect(caminho_banco) as conexao:
         conexao.execute("PRAGMA foreign_keys = ON")
