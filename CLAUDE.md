@@ -137,6 +137,10 @@ str. %, Td %) indicam zero tentativas, tratados como NaN (não 0%).
 12. `top10_taxa_vitoria.png` — top 10 por taxa de vitória, W / (W+L+D), NC
     excluído, mín. 6 lutas (com menos o top 10 vira só invictos), desempate
     pelo nº de vitórias; cartel "V-D" escrito na ponta da barra
+13. `round_final_por_metodo.png` — barras agrupadas: % de nocautes (azul,
+    inclui "TKO - Doctor's Stoppage") e de finalizações (vermelho) por round
+    final, uma linha por luta (drop_duplicates em Fight_URL), rounds 4 e 5
+    agrupados; percentual dentro de cada método
 
 ## Workflow de Git
 Usamos Git Flow: `main` (estável) + `develop` (integração) + `feature/*`
