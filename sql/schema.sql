@@ -6,6 +6,7 @@ DROP TABLE IF EXISTS desempenho_round;
 DROP TABLE IF EXISTS desempenho;
 DROP TABLE IF EXISTS lutas;
 DROP TABLE IF EXISTS eventos;
+DROP TABLE IF EXISTS lutadores;
 
 -- evento_id em ordem cronológica inversa: 1 = evento mais recente
 CREATE TABLE eventos (
@@ -30,10 +31,21 @@ CREATE TABLE lutas (
     bonus_performance   INTEGER CHECK (bonus_performance IN (0, 1))     -- Performance da Noite (do vencedor)
 );
 
+-- Dados de cada lutador (página dele no ufcstats); a url é o identificador único (nomes se repetem)
+CREATE TABLE lutadores (
+    url             TEXT PRIMARY KEY,
+    nome            TEXT NOT NULL,
+    altura_cm       REAL,
+    envergadura_cm  REAL,
+    base            TEXT,              -- 'Orthodox', 'Southpaw', 'Switch'...
+    nascimento      TEXT               -- 'AAAA-MM-DD'
+);
+
 -- Uma linha por lutador em cada luta
 CREATE TABLE desempenho (
     luta_id           INTEGER NOT NULL REFERENCES lutas (luta_id),
     lutador           TEXT    NOT NULL,
+    lutador_url       TEXT    NOT NULL REFERENCES lutadores (url),
     resultado         TEXT    NOT NULL CHECK (resultado IN ('W', 'L', 'D', 'NC')),
     kd                INTEGER NOT NULL,  -- knockdowns
     sig_acertados     INTEGER NOT NULL,  -- golpes significativos

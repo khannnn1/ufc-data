@@ -45,3 +45,25 @@ def limpar_dataset(df):
     for coluna in COLUNAS_PCT:
         df = limpar_percentual(df, coluna)
     return tempo_para_segundos(df, "Ctrl")
+
+
+def medida_para_cm(valor):
+    """Converte altura/envergadura do ufcstats para cm: 5' 11" (pés e polegadas) ou 72" (polegadas)."""
+    if pd.isna(valor) or valor.strip() in ("--", ""):
+        return None
+    valor = valor.replace('"', "").strip()
+    pes, _, polegadas = valor.rpartition("'")
+    total = int(pes or 0) * 12 + float(polegadas or 0)
+    return round(total * 2.54, 1)
+
+
+def limpar_lutadores(df):
+    """Dados brutos das páginas de lutador -> altura e envergadura em cm, base e nascimento 'AAAA-MM-DD'."""
+    return pd.DataFrame({
+        "Fighter_URL": df["Fighter_URL"],
+        "Name": df["Name"],
+        "Height_cm": df["Height"].apply(medida_para_cm),
+        "Reach_cm": df["Reach"].apply(medida_para_cm),
+        "Stance": df["Stance"].replace("--", None),
+        "DOB": pd.to_datetime(df["DOB"].replace("--", None), format="%b %d, %Y").dt.strftime("%Y-%m-%d"),
+    })

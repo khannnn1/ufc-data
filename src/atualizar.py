@@ -5,9 +5,10 @@ Uso (na raiz do projeto, com o venv):
     python -m src.atualizar --graficos   # idem + roda os notebooks 02 e 03 (PNGs e SQL)
 
 Só entram eventos MAIS NOVOS que o último da base (o recorte continua sendo "os mais recentes").
-Também mantém data/processed/eventos.csv com a data de cada evento e data/raw/lutas_evento.csv com
-categoria de peso, cinturão e bônus de cada luta (lidos da página do evento; eventos da base que
-ainda não estão nele são completados aqui, então a primeira execução depois de criá-lo é mais longa).
+Também mantém data/processed/eventos.csv com a data de cada evento, data/raw/lutas_evento.csv com
+lutadores (nome e link), categoria de peso, cinturão e bônus de cada luta (lidos da página do evento)
+e data/raw/lutadores.csv com altura, envergadura, base e nascimento (página de cada lutador). Os dois
+são completados com o que faltar da base, então a primeira execução depois de criá-los é mais longa.
 """
 
 import argparse
@@ -17,8 +18,9 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.limpeza import limpar_dataset
-from src.scraper import criar_driver, extrair_eventos_da_pagina, extrair_lutas_evento, extrair_varios_eventos
+from src.limpeza import limpar_dataset, limpar_lutadores
+from src.scraper import (criar_driver, extrair_eventos_da_pagina, extrair_lutador, extrair_lutas_evento,
+                         extrair_varios_eventos)
 
 RAIZ = Path(__file__).resolve().parent.parent
 URL_LISTAGEM = "http://ufcstats.com/statistics/events/completed?page={}"
@@ -31,6 +33,8 @@ def caminhos(pasta_dados):
         "bruto_resumo": pasta / "raw" / "eventos_resumo.csv",
         "bruto_round": pasta / "raw" / "eventos_round.csv",
         "lutas_evento": pasta / "raw" / "lutas_evento.csv",
+        "bruto_lutadores": pasta / "raw" / "lutadores.csv",
+        "lutadores": pasta / "processed" / "lutadores.csv",
         "resumo": pasta / "processed" / "dataset_final_resumo_limpo.csv",
         "round": pasta / "processed" / "dataset_final_round_limpo.csv",
         "eventos": pasta / "processed" / "eventos.csv",
@@ -77,14 +81,52 @@ def completar_lutas_evento(urls_eventos, driver, arquivo):
         time.sleep(2)
 
 
+def completar_lutadores(urls_lutadores, driver, arquivo):
+    """Coleta as páginas dos lutadores que ainda não estão no arquivo (append a cada 25 lutadores)."""
+    arquivo = Path(arquivo)
+    ja_tem = set(pd.read_csv(arquivo)["Fighter_URL"]) if arquivo.exists() else set()
+    faltam = [u for u in urls_lutadores if u not in ja_tem]
+    if faltam:
+        print(f"Páginas de lutador: {len(faltam)} a ler.")
+    lote = []
+    for i, url in enumerate(faltam, start=1):
+        try:
+            lote.append(extrair_lutador(url, driver))
+        except Exception as e:
+            print(f"  ({i}/{len(faltam)}) Erro em {url}: {e}")
+        if lote and (len(lote) == 25 or i == len(faltam)):
+            pd.DataFrame(lote).to_csv(arquivo, mode="a", header=not arquivo.exists(), index=False)
+            print(f"  ({i}/{len(faltam)}) salvos")
+            lote = []
+        time.sleep(1)
+
+
 def adicionar_dados_das_lutas(resumo, lutas_evento):
-    """Junta categoria, cinturão e bônus (uma linha por luta) ao dataset resumo (uma linha por lutador-luta)."""
+    """Junta categoria, cinturão, bônus (uma linha por luta) e o link do lutador ao dataset resumo.
+
+    O link vem da página do evento, casado pelo par (luta, nome): é o identificador único do
+    lutador (nomes se repetem entre pessoas diferentes).
+    """
     colunas = ["Fight_URL", "Weight_Class", "Title_Bout", "Fight_Bonus", "Perf_Bonus"]
     resultado = resumo.merge(lutas_evento[colunas].drop_duplicates("Fight_URL"), on="Fight_URL", how="left")
     sem_dados = resultado.loc[resultado["Weight_Class"].isna(), "Fight_URL"].nunique()
     if sem_dados:
         print(f"Atenção: {sem_dados} lutas sem categoria de peso (rode de novo para tentar coletar).")
+
+    links = pd.concat([
+        lutas_evento[["Fight_URL", f"Fighter_{n}", f"Fighter_{n}_URL"]].set_axis(["Fight_URL", "Fighter", "Fighter_URL"], axis=1)
+        for n in (1, 2)
+    ]).drop_duplicates(["Fight_URL", "Fighter"])
+    resultado = resultado.merge(links, on=["Fight_URL", "Fighter"], how="left")
+    sem_link = resultado["Fighter_URL"].isna().sum()
+    if sem_link:
+        print(f"Atenção: {sem_link} linhas sem link do lutador (nome diferente entre página da luta e do evento).")
     return resultado
+
+
+def urls_de_lutadores(lutas_evento):
+    """Links únicos dos lutadores da base, na ordem em que aparecem (mais recentes primeiro)."""
+    return list(dict.fromkeys(pd.concat([lutas_evento["Fighter_1_URL"], lutas_evento["Fighter_2_URL"]])))
 
 
 def atualizar(pasta_dados=RAIZ / "data", exportar_site=True, max_paginas=10, driver=None):
@@ -120,6 +162,7 @@ def atualizar(pasta_dados=RAIZ / "data", exportar_site=True, max_paginas=10, dri
             extrair_varios_eventos(novos, driver, arquivo_resumo=arq["bruto_resumo"], arquivo_round=arq["bruto_round"])
         urls_atuais = list(dict.fromkeys(pd.read_csv(arq["bruto_resumo"])["Event_URL"]))
         completar_lutas_evento(urls_atuais, driver, arq["lutas_evento"])
+        completar_lutadores(urls_de_lutadores(pd.read_csv(arq["lutas_evento"])), driver, arq["bruto_lutadores"])
     finally:
         if driver_proprio:
             driver.quit()
@@ -130,6 +173,8 @@ def atualizar(pasta_dados=RAIZ / "data", exportar_site=True, max_paginas=10, dri
     if arq["lutas_evento"].exists():
         resumo = adicionar_dados_das_lutas(resumo, pd.read_csv(arq["lutas_evento"]))
     resumo.to_csv(arq["resumo"], index=False)
+    if arq["bruto_lutadores"].exists():
+        limpar_lutadores(pd.read_csv(arq["bruto_lutadores"]).drop_duplicates("Fighter_URL"))             .to_csv(arq["lutadores"], index=False)
     limpar_dataset(pd.read_csv(arq["bruto_round"])).to_csv(arq["round"], index=False)
 
     eventos = bruto_resumo[["Event_URL", "Event_Name"]].drop_duplicates("Event_URL")

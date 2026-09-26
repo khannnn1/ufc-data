@@ -11,6 +11,7 @@ RAIZ = Path(__file__).resolve().parent.parent
 ARQUIVO_RESUMO = RAIZ / "data" / "processed" / "dataset_final_resumo_limpo.csv"
 ARQUIVO_ROUND = RAIZ / "data" / "processed" / "dataset_final_round_limpo.csv"
 ARQUIVO_EVENTOS = RAIZ / "data" / "processed" / "eventos.csv"  # datas; gerado por src/atualizar.py
+ARQUIVO_LUTADORES = RAIZ / "data" / "processed" / "lutadores.csv"  # idem
 ARQUIVO_SCHEMA = RAIZ / "sql" / "schema.sql"
 ARQUIVO_BANCO = RAIZ / "data" / "ufc.db"
 
@@ -33,8 +34,8 @@ DADOS_DA_LUTA = {
 }
 
 
-def montar_tabelas(resumo, por_round, datas_eventos):
-    """Separa os CSVs (uma linha por lutador-luta) em eventos, lutas, desempenho e desempenho_round."""
+def montar_tabelas(resumo, por_round, datas_eventos, dados_lutadores):
+    """Separa os CSVs (uma linha por lutador-luta) em eventos, lutas, lutadores, desempenho e desempenho_round."""
     eventos = resumo[["Event_URL", "Event_Name"]].drop_duplicates("Event_URL")
     eventos["data"] = eventos["Event_URL"].map(datas_eventos.set_index("Event_URL")["Event_Date"])
     if eventos["data"].isna().any():
@@ -56,26 +57,35 @@ def montar_tabelas(resumo, por_round, datas_eventos):
 
     id_da_luta = lutas.set_index("url")["luta_id"]
 
-    desempenho = resumo.rename(columns={"Fighter": "lutador", "Resultado": "resultado", **ESTATISTICAS})
+    # Lutador cuja página não foi coletada entra só com o nome (dados físicos vazios)
+    lutadores = resumo[["Fighter_URL", "Fighter"]].drop_duplicates("Fighter_URL").merge(
+        dados_lutadores.drop(columns="Name"), on="Fighter_URL", how="left")
+    lutadores = lutadores.rename(columns={"Fighter_URL": "url", "Fighter": "nome", "Height_cm": "altura_cm",
+                                          "Reach_cm": "envergadura_cm", "Stance": "base", "DOB": "nascimento"})
+
+    desempenho = resumo.rename(columns={"Fighter": "lutador", "Fighter_URL": "lutador_url",
+                                        "Resultado": "resultado", **ESTATISTICAS})
     desempenho["luta_id"] = desempenho["Fight_URL"].map(id_da_luta)
-    desempenho = desempenho[["luta_id", "lutador", "resultado", *ESTATISTICAS.values()]]
+    desempenho = desempenho[["luta_id", "lutador", "lutador_url", "resultado", *ESTATISTICAS.values()]]
 
     desempenho_round = por_round.rename(columns={"Fighter": "lutador", "Round": "round", **ESTATISTICAS})
     desempenho_round["luta_id"] = desempenho_round["Fight_URL"].map(id_da_luta)
     desempenho_round = desempenho_round[["luta_id", "lutador", "round", *ESTATISTICAS.values()]]
 
-    return {"eventos": eventos, "lutas": lutas, "desempenho": desempenho, "desempenho_round": desempenho_round}
+    return {"eventos": eventos, "lutas": lutas, "lutadores": lutadores, "desempenho": desempenho,
+            "desempenho_round": desempenho_round}
 
 
 def criar_banco(caminho_banco=ARQUIVO_BANCO):
-    """Recria o banco do zero: executa o schema e insere as quatro tabelas."""
-    tabelas = montar_tabelas(pd.read_csv(ARQUIVO_RESUMO), pd.read_csv(ARQUIVO_ROUND), pd.read_csv(ARQUIVO_EVENTOS))
+    """Recria o banco do zero: executa o schema e insere as cinco tabelas."""
+    tabelas = montar_tabelas(pd.read_csv(ARQUIVO_RESUMO), pd.read_csv(ARQUIVO_ROUND), pd.read_csv(ARQUIVO_EVENTOS),
+                             pd.read_csv(ARQUIVO_LUTADORES))
 
     with sqlite3.connect(caminho_banco) as conexao:
         conexao.execute("PRAGMA foreign_keys = ON")
         conexao.executescript(ARQUIVO_SCHEMA.read_text(encoding="utf-8"))
         # Ordem importa por causa das chaves estrangeiras
-        for nome in ["eventos", "lutas", "desempenho", "desempenho_round"]:
+        for nome in ["eventos", "lutas", "lutadores", "desempenho", "desempenho_round"]:
             tabelas[nome].to_sql(nome, conexao, if_exists="append", index=False)
 
     return {nome: len(tabela) for nome, tabela in tabelas.items()}

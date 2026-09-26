@@ -8,6 +8,9 @@ import pandas as pd
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 def criar_driver(headless=True):
@@ -135,14 +138,16 @@ ICONES_PERFORMANCE = {"perf.png", "sub.png", "ko.png"}  # sub/ko: nomes antigos 
 
 
 def extrair_lutas_da_pagina_evento(html_evento):
-    """Categoria de peso, disputa de cinturão e bônus de cada luta, lidos da tabela da página do evento.
+    """Lutadores, categoria de peso, disputa de cinturão e bônus de cada luta, lidos da página do evento.
 
-    Os três ficam na célula "Weight class": o texto é a categoria e os ícones marcam cinturão
+    A célula "Fighter" tem os dois lutadores (nome e link da página de cada um). Categoria, cinturão
+    e bônus ficam na célula "Weight class": o texto é a categoria e os ícones marcam cinturão
     (belt.png), Luta da Noite (fight.png) e Performance da Noite (perf.png).
     """
     soup = BeautifulSoup(html_evento, "html.parser")
     cabecalho = [th.get_text(strip=True) for th in soup.select("thead th")]
     coluna = cabecalho.index("Weight class")
+    coluna_lutadores = cabecalho.index("Fighter")
 
     lutas = []
     for linha in soup.find_all("tr", class_="b-fight-details__table-row"):
@@ -150,8 +155,11 @@ def extrair_lutas_da_pagina_evento(html_evento):
             continue
         celula = linha.find_all("td")[coluna]
         icones = {img["src"].rsplit("/", 1)[-1] for img in celula.find_all("img")}
+        lutador_1, lutador_2 = linha.find_all("td")[coluna_lutadores].find_all("a")
         lutas.append({
             "Fight_URL": linha["data-link"],
+            "Fighter_1": lutador_1.get_text(strip=True), "Fighter_1_URL": lutador_1["href"],
+            "Fighter_2": lutador_2.get_text(strip=True), "Fighter_2_URL": lutador_2["href"],
             "Weight_Class": celula.get_text(strip=True),
             "Title_Bout": int("belt.png" in icones),
             "Fight_Bonus": int("fight.png" in icones),
@@ -167,6 +175,32 @@ def extrair_lutas_evento(url_evento, driver):
     df = pd.DataFrame(extrair_lutas_da_pagina_evento(driver.page_source))
     df.insert(0, "Event_URL", url_evento)
     return df
+
+
+def extrair_lutador(url_lutador, driver, espera_max=20):
+    """Altura, envergadura, base e data de nascimento da página de um lutador (textos como no site).
+
+    Espera o bloco de dados aparecer em vez de um sleep fixo: só o primeiro acesso da sessão
+    passa pela verificação anti-bot; depois a página carrega em menos de 1 s.
+    """
+    driver.get(url_lutador)
+    WebDriverWait(driver, espera_max).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "ul.b-list__box-list li")))
+    soup = BeautifulSoup(driver.page_source, "html.parser")
+
+    campos = {}
+    for item in soup.select("ul.b-list__box-list li"):
+        rotulo = item.find("i", class_="b-list__box-item-title")
+        if rotulo:
+            campos[rotulo.get_text(strip=True).rstrip(":").upper()] =                 item.get_text(" ", strip=True).replace(rotulo.get_text(strip=True), "", 1).strip()
+    return {
+        "Fighter_URL": url_lutador,
+        "Name": soup.select_one("span.b-content__title-highlight").get_text(strip=True),
+        "Height": campos.get("HEIGHT"),  # ex.: 5' 5"
+        "Reach": campos.get("REACH"),    # ex.: 65"
+        "Stance": campos.get("STANCE"),  # ex.: Orthodox
+        "DOB": campos.get("DOB"),        # ex.: Oct 10, 2001
+    }
 
 
 def extrair_evento(url_evento, driver):
