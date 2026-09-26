@@ -134,6 +134,9 @@ str. %, Td %) indicam zero tentativas, tratados como NaN (não 0%).
     de luta (duração = (Final_Round-1)*300 + Time em segundos) × precisão,
     lutadores com >= 4 lutas, medianas tracejadas como quadrantes, extremos
     rotulados em vermelho. Único gráfico com eixos numéricos visíveis
+12. `top10_taxa_vitoria.png` — top 10 por taxa de vitória, W / (W+L+D), NC
+    excluído, mín. 6 lutas (com menos o top 10 vira só invictos), desempate
+    pelo nº de vitórias; cartel "V-D" escrito na ponta da barra
 
 ## Workflow de Git
 Usamos Git Flow: `main` (estável) + `develop` (integração) + `feature/*`
