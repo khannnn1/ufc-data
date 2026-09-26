@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 
 COR_VERMELHO = "#e63946"
 COR_AZUL = "#457b9d"
+COR_AMARELO = "#c08a1e"  # terceira cor categórica, para gráficos com 3 grupos
 
 
 def aplicar_estilo_dark():

@@ -35,7 +35,9 @@ ProjetoUFC/
 ## Padrão visual (dark mode / editorial)
 Definido em `src/visualizacao.py`:
 - Fundo `#0d0d0d`, texto `#f5f5f5`, bordas removidas, grid sutil `#2a2a2a`
-- Cores de destaque: `COR_VERMELHO = "#e63946"`, `COR_AZUL = "#457b9d"`
+- Cores de destaque: `COR_VERMELHO = "#e63946"`, `COR_AZUL = "#457b9d"`;
+  `COR_AMARELO = "#c08a1e"` como terceira cor quando há 3 grupos (validada
+  para dark mode e daltonismo; cinza e amarelos mais claros não passaram)
 - Gráficos de barra horizontal, sem eixo numérico, valores escritos na ponta
   da barra (funções `estilizar_grafico` e `adicionar_valores_barras`)
 - `aplicar_estilo_dark()` deve ser chamado ANTES de `plt.subplots()` —
@@ -75,7 +77,7 @@ Definido em `src/visualizacao.py`:
   landed/attempted), `limpar_percentual` (remove %, trata "---" como NaN),
   `tempo_para_segundos` (formato "M:SS" -> segundos)
 - **visualizacao.py**: `aplicar_estilo_dark`, `estilizar_grafico`,
-  `adicionar_valores_barras`, `COR_VERMELHO`, `COR_AZUL`
+  `adicionar_valores_barras`, `COR_VERMELHO`, `COR_AZUL`, `COR_AMARELO`
 - **config.py**: `COLUNAS_OF`, `COLUNAS_PCT`
 
 Os notebooks importam esses módulos via:
@@ -142,6 +144,9 @@ str. %, Td %) indicam zero tentativas, tratados como NaN (não 0%).
     inclui "TKO - Doctor's Stoppage") e de finalizações (vermelho) por round
     final, uma linha por luta (drop_duplicates em Fight_URL), rounds 4 e 5
     agrupados; percentual dentro de cada método
+14. `alvo_dos_golpes.png` — barras 100% empilhadas cabeça/corpo/perna
+    (vermelho/azul/amarelo): média geral + 3 lutadores mais especializados
+    em cada alvo (mín. 150 golpes sig. acertados no período)
 
 ## Workflow de Git
 Usamos Git Flow: `main` (estável) + `develop` (integração) + `feature/*`
