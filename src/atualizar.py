@@ -124,6 +124,32 @@ def adicionar_dados_das_lutas(resumo, lutas_evento):
     return resultado
 
 
+def desambiguar_homonimos(resumo, por_round, lutadores):
+    """Nomes iguais de pessoas diferentes ganham o ano de nascimento: "Bruno Silva (1989)".
+
+    Tudo o que agrupa por Fighter (gráficos, JSON do site, consultas SQL) passa a separá-los.
+    O ano não muda com o tempo, então links do site com o nome continuam valendo.
+    """
+    pessoas = resumo[["Fighter_URL", "Fighter"]].drop_duplicates("Fighter_URL")
+    repetidos = pessoas[pessoas["Fighter"].duplicated(keep=False)]
+    if repetidos.empty:
+        return resumo, por_round
+    ano = repetidos["Fighter_URL"].map(lutadores.set_index("Fighter_URL")["DOB"]).str[:4]
+    novo_nome = dict(zip(repetidos["Fighter_URL"], repetidos["Fighter"] + " (" + ano.fillna("?") + ")"))
+    if len(set(novo_nome.values())) < len(novo_nome):
+        raise ValueError(f"Homônimos com o mesmo ano de nascimento: {novo_nome}")
+    print("Homônimos separados:", ", ".join(sorted(novo_nome.values())))
+
+    resumo = resumo.copy()
+    trocar = resumo["Fighter_URL"].isin(novo_nome)
+    # O dataset por round não tem o link: o par (luta, nome antigo) identifica a pessoa
+    por_luta = {(f, n): novo_nome[u] for f, n, u in resumo.loc[trocar, ["Fight_URL", "Fighter", "Fighter_URL"]].itertuples(index=False)}
+    resumo.loc[trocar, "Fighter"] = resumo.loc[trocar, "Fighter_URL"].map(novo_nome)
+    por_round = por_round.copy()
+    por_round["Fighter"] = [por_luta.get((f, n), n) for f, n in zip(por_round["Fight_URL"], por_round["Fighter"])]
+    return resumo, por_round
+
+
 def urls_de_lutadores(lutas_evento):
     """Links únicos dos lutadores da base, na ordem em que aparecem (mais recentes primeiro)."""
     return list(dict.fromkeys(pd.concat([lutas_evento["Fighter_1_URL"], lutas_evento["Fighter_2_URL"]])))
@@ -170,12 +196,15 @@ def atualizar(pasta_dados=RAIZ / "data", exportar_site=True, max_paginas=10, dri
     # Limpeza completa a partir dos brutos (mesmo resultado dos notebooks, conferido em limpar_dataset)
     bruto_resumo = pd.read_csv(arq["bruto_resumo"])
     resumo = limpar_dataset(bruto_resumo)
+    por_round = limpar_dataset(pd.read_csv(arq["bruto_round"]))
     if arq["lutas_evento"].exists():
         resumo = adicionar_dados_das_lutas(resumo, pd.read_csv(arq["lutas_evento"]))
-    resumo.to_csv(arq["resumo"], index=False)
     if arq["bruto_lutadores"].exists():
-        limpar_lutadores(pd.read_csv(arq["bruto_lutadores"]).drop_duplicates("Fighter_URL"))             .to_csv(arq["lutadores"], index=False)
-    limpar_dataset(pd.read_csv(arq["bruto_round"])).to_csv(arq["round"], index=False)
+        lutadores = limpar_lutadores(pd.read_csv(arq["bruto_lutadores"]).drop_duplicates("Fighter_URL"))
+        lutadores.to_csv(arq["lutadores"], index=False)
+        resumo, por_round = desambiguar_homonimos(resumo, por_round, lutadores)
+    resumo.to_csv(arq["resumo"], index=False)
+    por_round.to_csv(arq["round"], index=False)
 
     eventos = bruto_resumo[["Event_URL", "Event_Name"]].drop_duplicates("Event_URL")
     eventos["Event_Date"] = eventos["Event_URL"].map(datas)

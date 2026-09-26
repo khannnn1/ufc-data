@@ -102,7 +102,8 @@ Definido em `src/visualizacao.py`:
   (aplica as três a um CSV bruto; reproduz exatamente os processados),
   `medida_para_cm` (5' 11" ou 72" -> cm), `limpar_lutadores(df)`
 - **visualizacao.py**: `aplicar_estilo_dark`, `estilizar_grafico`,
-  `adicionar_valores_barras`, `COR_VERMELHO`, `COR_AZUL`, `COR_AMARELO`
+  `adicionar_valores_barras`, `top_com_desempate(valores, lutas, n)`,
+  `COR_VERMELHO`, `COR_AZUL`, `COR_AMARELO`
 - **config.py**: `COLUNAS_OF`, `COLUNAS_PCT`
 - **exportar.py**: `agregar_lutadores(df)`, `exportar_lutadores()` — gera
   `dados/lutadores.json` para o site interativo
@@ -179,8 +180,17 @@ Dados da luta vindos da página do evento: `Weight_Class` (ex: "Lightweight",
 Featherweight" só tem 4), `Title_Bout`, `Fight_Bonus`, `Perf_Bonus` (0/1;
 76 disputas de cinturão, 101 Lutas da Noite, 408 Performances no período).
 `Fighter_URL` é o identificador único do lutador: 964 pessoas para 963
-nomes (há dois "Bruno Silva" diferentes). O JSON do site, os gráficos e o
-PK de `desempenho` ainda agrupam por NOME, juntando os dois Bruno Silva.
+nomes. Homônimos ganham o ano de nascimento no `Fighter` dos processados
+(resumo e por round), via `desambiguar_homonimos` no `src.atualizar`:
+"Bruno Silva (1989)" (médio) e "Bruno Silva (1990)" (mosca). Assim tudo
+que agrupa por nome (gráficos, JSON do site, SQL) os separa; `Name` em
+`lutadores.csv` continua o nome do site.
+
+Desempate nos top 10: rankings de TOTAIS usam `top_com_desempate` (valor,
+depois MENOS lutas, depois nome); precisão desempata por MAIS tentativas.
+Sem isso, com muitos empatados no corte (15 lutadores com 7 vitórias para
+8 vagas), quem aparecia mudava a cada atualização. O site interativo
+desempata por valor, MAIS lutas, nome (`elegiveis.sort` no JS).
 O dataset por round tem as mesmas colunas + `Round` (1-5), sem as colunas
 de metadados da luta (Method, Time, Referee etc, que só existem no resumo).
 

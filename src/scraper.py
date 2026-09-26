@@ -192,7 +192,9 @@ def extrair_lutador(url_lutador, driver, espera_max=20):
     for item in soup.select("ul.b-list__box-list li"):
         rotulo = item.find("i", class_="b-list__box-item-title")
         if rotulo:
-            campos[rotulo.get_text(strip=True).rstrip(":").upper()] =                 item.get_text(" ", strip=True).replace(rotulo.get_text(strip=True), "", 1).strip()
+            texto_rotulo = rotulo.get_text(strip=True)
+            valor = item.get_text(" ", strip=True).replace(texto_rotulo, "", 1).strip()
+            campos[texto_rotulo.rstrip(":").upper()] = valor
     return {
         "Fighter_URL": url_lutador,
         "Name": soup.select_one("span.b-content__title-highlight").get_text(strip=True),
