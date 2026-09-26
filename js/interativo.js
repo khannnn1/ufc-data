@@ -29,18 +29,19 @@ const formatos = {
 // ---------- Métricas ----------
 // valor(l): calcula a métrica a partir dos totais do lutador l.
 // requisito(l): amostra mínima além do mínimo de lutas (ex.: precisão só com tentativas suficientes).
+// total: soma no período (não média nem taxa); muda o desempate do ranking.
 
 const lutasComResultado = (l) => l.w + l.l + l.d;
 
 const METRICAS = {
-  vitorias: { rotulo: "Vitórias (total)", valor: (l) => l.w, formato: "inteiro" },
+  vitorias: { rotulo: "Vitórias (total)", valor: (l) => l.w, formato: "inteiro", total: true },
   taxa_vitoria: {
     rotulo: "Taxa de vitória (%)", valor: (l) => (l.w / lutasComResultado(l)) * 100, formato: "pct",
     requisito: (l) => lutasComResultado(l) > 0,
   },
-  ko: { rotulo: "Vitórias por nocaute (total)", valor: (l) => l.ko, formato: "inteiro" },
-  subw: { rotulo: "Vitórias por finalização (total)", valor: (l) => l.subw, formato: "inteiro" },
-  kd: { rotulo: "Knockdowns (total)", valor: (l) => l.kd, formato: "inteiro" },
+  ko: { rotulo: "Vitórias por nocaute (total)", valor: (l) => l.ko, formato: "inteiro", total: true },
+  subw: { rotulo: "Vitórias por finalização (total)", valor: (l) => l.subw, formato: "inteiro", total: true },
+  kd: { rotulo: "Knockdowns (total)", valor: (l) => l.kd, formato: "inteiro", total: true },
   sig_luta: { rotulo: "Golpes significativos acertados por luta", valor: (l) => l.sl / l.n, formato: "decimal" },
   volume_min: {
     rotulo: "Golpes significativos tentados por minuto", valor: (l) => l.sa / (l.dur / 60), formato: "decimal",
@@ -113,6 +114,8 @@ const CATEGORIAS = {
   "Women's Featherweight": "Peso-pena feminino", "Women's Bantamweight": "Peso-galo feminino",
   "Women's Flyweight": "Peso-mosca feminino", "Women's Strawweight": "Peso-palha feminino",
 };
+// Filtro do ranking: divisões do mais pesado ao mais leve, masculinas e depois femininas (sem peso casado)
+const CATEGORIAS_RANKING = Object.keys(CATEGORIAS).filter((c) => c !== "Catch Weight");
 const BASES = { Orthodox: "ortodoxo", Southpaw: "canhoto", Switch: "troca de base" };
 
 function idade(nasc) {
@@ -236,17 +239,23 @@ function desenharRanking() {
   const minLutas = Math.min(12, Math.max(1, parseInt(campoMin.value, 10) || 1));
   campoMin.value = minLutas; // corrige no campo o que foi digitado fora do intervalo
   const tamanho = parseInt(document.getElementById("tamanho").value, 10);
+  const categoria = document.getElementById("categoria").value;
 
   const elegiveis = lutadores
-    .filter((l) => l.n >= minLutas && (!metrica.requisito || metrica.requisito(l)))
+    .filter((l) => l.n >= minLutas && (!categoria || l.cat === categoria))
+    .filter((l) => !metrica.requisito || metrica.requisito(l))
     .map((l) => ({ l, v: calcular(metrica, l) }))
     .filter((x) => x.v !== null);
 
-  // Desempate: mais lutas primeiro (amostra maior), depois nome
-  elegiveis.sort((x, y) => y.v - x.v || y.l.n - x.l.n || x.l.nome.localeCompare(y.l.nome));
+  // Desempate, depois do valor: em totais, quem chegou nele com MENOS lutas (como nos PNGs do index);
+  // em médias e taxas, quem tem MAIS lutas (amostra maior). Por último, o nome.
+  const sinal = metrica.total ? 1 : -1;
+  elegiveis.sort((x, y) => y.v - x.v || sinal * (x.l.n - y.l.n) || x.l.nome.localeCompare(y.l.nome));
   const top = elegiveis.slice(0, tamanho);
 
-  const nota = `${elegiveis.length} lutadores com pelo menos ${minLutas} ${minLutas === 1 ? "luta" : "lutas"} no período.`
+  const doPeso = categoria ? ` do ${CATEGORIAS[categoria].toLowerCase()}` : "";
+  const nota = `${elegiveis.length} lutadores${doPeso} com pelo menos ${minLutas} ${minLutas === 1 ? "luta" : "lutas"} no período.`
+    + (categoria ? " Categoria = a da luta mais recente de cada um; quem mudou de divisão entra com todas as lutas." : "")
     + (metrica.nota ? " " + metrica.nota : "");
   document.getElementById("nota-ranking").textContent = nota;
 
@@ -598,10 +607,10 @@ function desenharDispersao() {
 }
 
 // ---------- Link compartilhável ----------
-// O estado da página fica na URL (?a=...&b=...&m=...&min=...&top=...): quem abre o link vê a mesma
+// O estado da página fica na URL (?a=...&b=...&m=...&min=...&top=...&cat=...): quem abre o link vê a mesma
 // comparação e o mesmo ranking. Valores inválidos na URL são ignorados e ficam os padrões.
 
-const PADROES = { a: "Islam Makhachev", b: "Merab Dvalishvili", m: "taxa_vitoria", min: 4, top: 10, rm: "sig" };
+const PADROES = { a: "Islam Makhachev", b: "Merab Dvalishvili", m: "taxa_vitoria", min: 4, top: 10, rm: "sig", cat: "" };
 const TAMANHOS_TOP = [10, 15, 20];
 let urlPronta = false; // só escreve na URL depois de aplicar o estado inicial
 
@@ -622,6 +631,7 @@ function lerEstadoDaUrl() {
     m: m in METRICAS && m !== "kd_luta" ? m : PADROES.m,
     min: inteiro(p.get("min"), 1, 12, PADROES.min),
     top: TAMANHOS_TOP.includes(top) ? top : PADROES.top,
+    cat: CATEGORIAS_RANKING.includes(p.get("cat")) ? p.get("cat") : PADROES.cat,
   };
 }
 
@@ -638,6 +648,8 @@ function atualizarUrl() {
   p.set("min", document.getElementById("min-lutas").value);
   p.set("top", document.getElementById("tamanho").value);
   p.set("rm", document.getElementById("metrica-round").value);
+  const cat = document.getElementById("categoria").value;
+  if (cat) p.set("cat", cat);
   // replaceState: atualiza o endereço sem criar uma entrada nova no histórico a cada mudança
   history.replaceState(null, "", `${location.pathname}?${p}${location.hash}`);
 
@@ -710,7 +722,16 @@ async function iniciar() {
     seletorRound.appendChild(opcao);
   }
 
+  const seletorCategoria = document.getElementById("categoria");
+  CATEGORIAS_RANKING.forEach((cat) => {
+    const opcao = document.createElement("option");
+    opcao.value = cat;
+    opcao.textContent = CATEGORIAS[cat];
+    seletorCategoria.appendChild(opcao);
+  });
+
   const estado = lerEstadoDaUrl();
+  seletorCategoria.value = estado.cat;
   seletorRound.value = estado.rm;
   seletor.value = estado.m;
   document.getElementById("min-lutas").value = estado.min;
@@ -719,7 +740,7 @@ async function iniciar() {
   document.getElementById("lutador-b").value = estado.b;
 
   ["lutador-a", "lutador-b"].forEach((id) => configurarCampoLutador(document.getElementById(id)));
-  ["metrica", "min-lutas", "tamanho"].forEach((id) => document.getElementById(id).addEventListener("change", desenharRanking));
+  ["metrica", "min-lutas", "tamanho", "categoria"].forEach((id) => document.getElementById(id).addEventListener("change", desenharRanking));
   prepararDispersao();
   prepararRounds();
   seletorRound.addEventListener("change", () => { desenharRounds(); atualizarUrl(); });

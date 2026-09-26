@@ -189,8 +189,8 @@ que agrupa por nome (gráficos, JSON do site, SQL) os separa; `Name` em
 Desempate nos top 10: rankings de TOTAIS usam `top_com_desempate` (valor,
 depois MENOS lutas, depois nome); precisão desempata por MAIS tentativas.
 Sem isso, com muitos empatados no corte (15 lutadores com 7 vitórias para
-8 vagas), quem aparecia mudava a cada atualização. O site interativo
-desempata por valor, MAIS lutas, nome (`elegiveis.sort` no JS).
+8 vagas), quem aparecia mudava a cada atualização. O site interativo usa
+a mesma regra nos totais (ver Rankings abaixo).
 O dataset por round tem as mesmas colunas + `Round` (1-5), sem as colunas
 de metadados da luta (Method, Time, Referee etc, que só existem no resumo).
 
@@ -293,9 +293,13 @@ atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
   Redesenha no evento `input` quando o texto bate com um nome. Cartões:
   categoria em PT (`CATEGORIAS`), cartel, e linha física (idade, altura,
   envergadura, base em PT via `BASES`; `linhaFisico`).
-- Rankings: métrica + mín. de lutas + top N; clique na barra leva o lutador
+- Rankings: métrica + categoria + mín. de lutas + top N; clique na barra leva o lutador
   ao comparador; tabela equivalente em `<details>`. Precisões exigem
-  amostra mínima de tentativas (`requisito` em cada métrica).
+  amostra mínima de tentativas (`requisito` em cada métrica). Filtro de
+  categoria (`CATEGORIAS_RANKING`, sem peso casado) usa `l.cat`, a categoria
+  da luta mais recente: quem mudou de divisão entra com todas as lutas.
+  Desempate: métricas com `total: true` (vitórias, KO, sub, KD) por MENOS
+  lutas, como nos PNGs; médias/taxas por MAIS lutas; depois nome.
 - Round a round (`#rounds`): cada lutador no JSON tem `r` =
   `[[round, rounds, sl, sa, tdl, tda, ctrl, kd], ...]` (lista compacta,
   ordem fixa em `COLUNAS_ROUND` de `src/exportar.py` e em `roundsDe` no JS —
@@ -308,7 +312,7 @@ atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
   `desenharDispersao`, então link compartilhável também destaca. Plugin
   `guiasDispersao` desenha medianas, quadrantes e nomes. Clique leva ao
   comparador; destacado com <4 lutas aparece com aviso na nota.
-- Link compartilhável: o estado vai para a URL (`?a=&b=&m=&min=&top=&rm=`, via
+- Link compartilhável: o estado vai para a URL (`?a=&b=&m=&min=&top=&rm=&cat=`; `cat` só se filtrado, via
   `history.replaceState`, sem poluir o histórico) e é lido na abertura por
   `lerEstadoDaUrl` (valores inválidos caem em `PADROES`). Botões "Copiar
   link" por seção (âncora `#comparador` / `#ranking`); título da aba mostra
