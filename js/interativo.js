@@ -628,7 +628,9 @@ async function copiarLink(secao, aviso) {
 async function iniciar() {
   let dados;
   try {
-    const resposta = await fetch("dados/lutadores.json");
+    // no-cache: o navegador sempre confere com o servidor se o JSON mudou (resposta 304 rápida
+    // quando não mudou). Sem isso, depois de regenerar o JSON, quem já visitou via o antigo.
+    const resposta = await fetch("dados/lutadores.json", { cache: "no-cache" });
     if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
     dados = await resposta.json();
   } catch (erro) {

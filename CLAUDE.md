@@ -243,7 +243,8 @@ atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
   "A × B". Se entrar um parâmetro novo, atualizar ler/atualizar juntos.
 - **Cache**: o GitHub Pages guarda arquivos por ~10 min. A tag do script em
   `interativo.html` tem `?v=N`: AUMENTAR o N a cada mudança em
-  `js/interativo.js`.
+  `js/interativo.js`. O JSON é buscado com `cache: "no-cache"` (sempre
+  revalida), então regenerá-lo não exige mudar versão.
 - Testes no Chrome em segundo plano: animações e eventos do Chart.js ficam
   pausados (barras com largura 0, cliques ignorados) e a área de
   transferência é negada — não é bug do site; testar a lógica chamando
