@@ -130,6 +130,10 @@ str. %, Td %) indicam zero tentativas, tratados como NaN (não 0%).
     quedas, controle, tent. de finalização, KD), um painel por métrica
     (escalas diferentes), com a razão "N× mais" no título de cada painel;
     exclui empates (D) e NC
+11. `volume_vs_precisao.png` — dispersão: golpes sig. TENTADOS por minuto
+    de luta (duração = (Final_Round-1)*300 + Time em segundos) × precisão,
+    lutadores com >= 4 lutas, medianas tracejadas como quadrantes, extremos
+    rotulados em vermelho. Único gráfico com eixos numéricos visíveis
 
 ## Workflow de Git
 Usamos Git Flow: `main` (estável) + `develop` (integração) + `feature/*`
