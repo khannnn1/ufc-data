@@ -106,6 +106,37 @@ function cartel(l) {
   return `${l.w}-${l.l}` + (l.d ? `-${l.d}` : "") + (l.nc ? ` (${l.nc} NC)` : "");
 }
 
+const CATEGORIAS = {
+  "Heavyweight": "Peso-pesado", "Light Heavyweight": "Meio-pesado", "Middleweight": "Peso-médio",
+  "Welterweight": "Meio-médio", "Lightweight": "Peso-leve", "Featherweight": "Peso-pena",
+  "Bantamweight": "Peso-galo", "Flyweight": "Peso-mosca", "Catch Weight": "Peso casado",
+  "Women's Featherweight": "Peso-pena feminino", "Women's Bantamweight": "Peso-galo feminino",
+  "Women's Flyweight": "Peso-mosca feminino", "Women's Strawweight": "Peso-palha feminino",
+};
+const BASES = { Orthodox: "ortodoxo", Southpaw: "canhoto", Switch: "troca de base" };
+
+function idade(nasc) {
+  const n = new Date(nasc + "T00:00:00");
+  const hoje = new Date();
+  const fezAniversario = hoje.getMonth() > n.getMonth() ||
+    (hoje.getMonth() === n.getMonth() && hoje.getDate() >= n.getDate());
+  return hoje.getFullYear() - n.getFullYear() - (fezAniversario ? 0 : 1);
+}
+
+function metros(cm) {
+  return (cm / 100).toFixed(2).replace(".", ",") + " m";
+}
+
+// Categoria da luta mais recente, idade, altura, envergadura e base (o que houver no JSON)
+function linhaFisico(l) {
+  const partes = [];
+  if (l.nasc) partes.push(`${idade(l.nasc)} anos`);
+  if (l.alt) partes.push(metros(l.alt));
+  if (l.env) partes.push(`envergadura ${metros(l.env)}`);
+  if (l.base) partes.push(BASES[l.base] || l.base.toLowerCase());
+  return partes.join(" · ");
+}
+
 function preencherCartao(elemento, l) {
   if (!l) {
     elemento.innerHTML = '<div class="detalhe">Escolha um lutador</div>';
@@ -113,10 +144,14 @@ function preencherCartao(elemento, l) {
   }
   elemento.innerHTML = `
     <div class="nome"></div>
+    <div class="categoria"></div>
     <div class="cartel">${cartel(l)}</div>
     <div class="detalhe">${l.n} ${l.n === 1 ? "luta" : "lutas"} no período ·
-      ${l.ko} por nocaute · ${l.subw} por finalização</div>`;
+      ${l.ko} por nocaute · ${l.subw} por finalização</div>
+    <div class="detalhe fisico"></div>`;
   elemento.querySelector(".nome").textContent = l.nome; // nome via textContent: nunca como HTML
+  elemento.querySelector(".categoria").textContent = l.cat ? (CATEGORIAS[l.cat] || l.cat) : "";
+  elemento.querySelector(".fisico").textContent = linhaFisico(l);
 }
 
 function desenharComparador() {

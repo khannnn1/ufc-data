@@ -279,7 +279,10 @@ atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
 - `python -m src.exportar` (na raiz, com o venv) regenera
   `dados/lutadores.json` a partir dos datasets limpos (resumo e por round). O JSON guarda
   TOTAIS por lutador (chaves curtas: n, w, l, d, nc, ko, subw, kd, sl, sa,
-  tl, ta, tdl, tda, sub, ctrl, head, body, leg, dist, clinch, ground, dur);
+  tl, ta, tdl, tda, sub, ctrl, head, body, leg, dist, clinch, ground, dur)
+  e, quando houver, dados para os cartões (`dados_fisicos`): cat (categoria
+  da luta mais recente, ignorando peso casado), alt/env (cm inteiros), base,
+  nasc ('AAAA-MM-DD'; a idade é calculada no navegador, na data de hoje);
   médias e percentuais são calculados no JS (`METRICAS` em
   `js/interativo.js`). Rodar de novo sempre que o dataset mudar.
 - Comparador: 2 lutadores (datalist com autocomplete), cartões com cartel e
@@ -287,7 +290,9 @@ atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
   O `<datalist>` filtra pelo texto do campo, então com um nome preenchido
   só ele aparece na lista: por isso `configurarCampoLutador` esvazia o
   campo no foco (nome vira placeholder) e restaura ao sair sem escolher.
-  Redesenha no evento `input` quando o texto bate com um nome.
+  Redesenha no evento `input` quando o texto bate com um nome. Cartões:
+  categoria em PT (`CATEGORIAS`), cartel, e linha física (idade, altura,
+  envergadura, base em PT via `BASES`; `linhaFisico`).
 - Rankings: métrica + mín. de lutas + top N; clique na barra leva o lutador
   ao comparador; tabela equivalente em `<details>`. Precisões exigem
   amostra mínima de tentativas (`requisito` em cada métrica).

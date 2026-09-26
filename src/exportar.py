@@ -12,6 +12,7 @@ RAIZ = Path(__file__).resolve().parent.parent
 ARQUIVO_RESUMO = RAIZ / "data" / "processed" / "dataset_final_resumo_limpo.csv"
 ARQUIVO_ROUND = RAIZ / "data" / "processed" / "dataset_final_round_limpo.csv"
 ARQUIVO_EVENTOS = RAIZ / "data" / "processed" / "eventos.csv"
+ARQUIVO_LUTADORES = RAIZ / "data" / "processed" / "lutadores.csv"
 ARQUIVO_SAIDA = RAIZ / "dados" / "lutadores.json"
 
 # Totais somados por lutador. Nomes curtos para o JSON ficar pequeno; o navegador calcula
@@ -65,13 +66,40 @@ def agregar_rounds(df_round):
     return por_lutador
 
 
+def dados_fisicos(df, lutadores, datas_eventos):
+    """{nome: {cat, alt, env, base, nasc}} para os cartões do comparador (campos ausentes ficam de fora).
+
+    cat = categoria da luta mais recente, ignorando peso casado (não é divisão); só se o lutador
+    nunca lutou fora dele fica "Catch Weight". alt/env em cm inteiros, nasc em 'AAAA-MM-DD'.
+    """
+    lutas = df.merge(datas_eventos[["Event_URL", "Event_Date"]], on="Event_URL")
+    lutas["peso_casado"] = lutas["Weight_Class"] == "Catch Weight"
+    # Mais recente primeiro, com as lutas de peso casado depois de todas as outras
+    lutas = lutas.sort_values(["peso_casado", "Event_Date"], ascending=[True, False])
+    base = lutas.drop_duplicates("Fighter")[["Fighter", "Weight_Class", "Fighter_URL"]]
+    base = base.merge(lutadores, on="Fighter_URL", how="left")
+
+    fisico = {}
+    for linha in base.itertuples(index=False):
+        campos = {"cat": linha.Weight_Class, "alt": linha.Height_cm, "env": linha.Reach_cm,
+                  "base": linha.Stance, "nasc": linha.DOB}
+        campos = {k: v for k, v in campos.items() if pd.notna(v)}
+        for k in ("alt", "env"):
+            if k in campos:
+                campos[k] = int(round(campos[k]))
+        fisico[linha.Fighter] = campos
+    return fisico
+
+
 def exportar_lutadores(caminho_csv=ARQUIVO_RESUMO, caminho_round=ARQUIVO_ROUND, caminho_saida=ARQUIVO_SAIDA):
     """Lê os datasets limpos (resumo e por round) e grava o JSON consumido pela página interativa."""
     df = pd.read_csv(caminho_csv)
     agregado = agregar_lutadores(df)
     rounds = agregar_rounds(pd.read_csv(caminho_round))
 
-    datas = pd.read_csv(ARQUIVO_EVENTOS)["Event_Date"]
+    datas_eventos = pd.read_csv(ARQUIVO_EVENTOS)
+    datas = datas_eventos["Event_Date"]
+    fisico = dados_fisicos(df, pd.read_csv(ARQUIVO_LUTADORES), datas_eventos)
     saida = {
         "gerado_em": date.today().isoformat(),
         "periodo": {"inicio": datas.min(), "fim": datas.max()},
@@ -79,7 +107,7 @@ def exportar_lutadores(caminho_csv=ARQUIVO_RESUMO, caminho_round=ARQUIVO_ROUND, 
         "lutas": int(df["Fight_URL"].nunique()),
         "lutadores": [
             {**{k: (int(v) if isinstance(v, (int, float)) and k != "nome" else v) for k, v in linha.items()},
-             "r": rounds.get(linha["nome"], [])}
+             **fisico.get(linha["nome"], {}), "r": rounds.get(linha["nome"], [])}
             for linha in agregado.to_dict(orient="records")
         ],
     }

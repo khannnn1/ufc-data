@@ -95,6 +95,9 @@
   .cartao .nome { font-weight: 700; font-size: 1.05rem; }
   .cartao .cartel { font-size: 1.6rem; font-weight: 700; margin: 2px 0; }
   .cartao .detalhe { color: var(--muted); font-size: 0.85rem; }
+  .cartao .categoria { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .cartao .fisico { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--grid-line); }
+  .cartao .fisico:empty { display: none; }
 
   .paineis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .painel {
@@ -256,6 +259,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <!-- ?v=N: aumente a cada mudança no JS, para o navegador não usar a versão antiga em cache -->
-<script src="js/interativo.js?v=7"></script>
+<script src="js/interativo.js?v=8"></script>
 </body>
 </html>
