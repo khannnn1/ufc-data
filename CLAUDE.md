@@ -21,12 +21,18 @@ ProjetoUFC/
 ├── notebooks/
 │   ├── 00_teste_ambiente.ipynb
 │   ├── 01_scrapper_test_luta.ipynb   # coleta e limpeza
-│   └── 02_visualizacao.ipynb          # geração dos gráficos
+│   ├── 02_visualizacao.ipynb          # geração dos gráficos
+│   └── 03_sql.ipynb                   # mesmas perguntas em SQL + conferência com Pandas
+├── sql/
+│   ├── schema.sql       # esquema do banco SQLite (4 tabelas)
+│   └── consultas.sql    # consultas nomeadas ("-- nome: x")
 ├── src/
 │   ├── scraper.py       # coleta (Selenium + BeautifulSoup)
 │   ├── limpeza.py        # tratamento de dados
 │   ├── visualizacao.py   # estilo e funções de plotagem
 │   ├── exportar.py       # gera dados/lutadores.json para o site interativo
+│   ├── banco.py          # monta data/ufc.db (SQLite) a partir dos CSVs limpos
+│   ├── consultas.py      # lê e executa as consultas de sql/consultas.sql
 │   └── config.py         # constantes (COLUNAS_OF, COLUNAS_PCT)
 ├── dados/
 │   └── lutadores.json  # totais por lutador (VERSIONADO: o site lê daqui)
@@ -87,6 +93,22 @@ Definido em `src/visualizacao.py`:
 - **config.py**: `COLUNAS_OF`, `COLUNAS_PCT`
 - **exportar.py**: `agregar_lutadores(df)`, `exportar_lutadores()` — gera
   `dados/lutadores.json` para o site interativo
+- **banco.py**: `montar_tabelas(resumo, por_round)`, `criar_banco()` —
+  recria `data/ufc.db` (não versionado, `data/*.db` no .gitignore);
+  `python -m src.banco` na raiz
+- **consultas.py**: `carregar_consultas()` ({nome: sql}),
+  `consultar(nome)` (DataFrame)
+
+## Banco SQL (SQLite)
+Tabelas: `eventos` (evento_id, url, nome) → `lutas` (luta_id, url,
+evento_id, metodo, round_final, tempo_final, duracao_seg, arbitro) →
+`desempenho` (PK luta_id+lutador; resultado W/L/D/NC; kd, sig_acertados,
+sig_tentados, total_*, quedas, quedas_tentadas, tent_finalizacao,
+reversoes, controle_seg, cabeca/corpo/perna, distancia/clinch/chao) →
+`desempenho_round` (mesmas estatísticas + round, sem resultado).
+`evento_id` segue a ordem da coleta: 1 = mais recente (UFC 331), 149 = mais
+antigo (UFC 287) — usado para ordenar lutas no tempo (não há coluna de data).
+Consultas novas vão em `sql/consultas.sql` com `-- nome: x` na linha acima.
 
 Os notebooks importam esses módulos via:
 ```python

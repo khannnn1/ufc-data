@@ -221,6 +221,7 @@ __marimo__/
 # Dados brutos do projeto (gerados pelo scraper, não versionados)
 data/raw/*.csv
 data/processed/*.csv
+data/*.db
 
 # Arquivo temporário do Code Runner (evitar reincidência do erro anterior)
 tempCodeRunnerFile.ipynb

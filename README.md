@@ -2,7 +2,7 @@
 
 🔗 **[Ver os gráficos](https://khannnn1.github.io/ufc-data/)** · **[Explorar os dados (interativo)](https://khannnn1.github.io/ufc-data/interativo.html)**
 
-Projeto de ponta a ponta com dados de lutas do UFC: **coleta** por web scraping, **limpeza** e **análise** em Python, **visualização** em estilo editorial (inspirado em contas de dados esportivos como @DataFut) e um **site interativo** em JavaScript, onde o visitante compara lutadores e monta os próprios rankings.
+Projeto de ponta a ponta com dados de lutas do UFC: **coleta** por web scraping, **limpeza** e **análise** em Python e **SQL**, **visualização** em estilo editorial (inspirado em contas de dados esportivos como @DataFut) e um **site interativo** em JavaScript, onde o visitante compara lutadores e monta os próprios rankings.
 
 ![O que separa vencedores de perdedores](figures/vencedores_vs_perdedores.png)
 
@@ -35,13 +35,15 @@ data/raw/*.csv
    ▼
 data/processed/*.csv
    ├──► notebooks (Matplotlib) ──► figures/*.png ──► index.html
-   └──► exportar.py ──► dados/lutadores.json ──► interativo.html (Chart.js)
+   ├──► exportar.py ──► dados/lutadores.json ──► interativo.html (Chart.js)
+   └──► banco.py ──► data/ufc.db (SQLite) ──► sql/consultas.sql
 ```
 
 1. **Coleta** (`src/scraper.py`): o ufcstats.com bloqueia requisições simples com uma verificação anti-bot que exige JavaScript, então a coleta usa Selenium em modo headless e lê o HTML depois que a página carrega. As tabelas de estatísticas trazem os dois lutadores na mesma célula, e o `pandas.read_html` não separa isso, por isso o parsing é feito manualmente com BeautifulSoup. A coleta em lote salva cada evento no CSV assim que termina, para não perder o progresso se a conexão cair.
 2. **Limpeza** (`src/limpeza.py`): converte `"181 of 305"` em duas colunas numéricas (acertados/tentados), percentuais em número e tempos `M:SS` em segundos. `"---"` (nenhuma tentativa) vira ausente, e não 0%.
 3. **Análise e gráficos** (`notebooks/02_visualizacao.ipynb` + `src/visualizacao.py`): padrão visual único (fundo escuro, barras com o valor escrito na ponta, sem eixo quando ele não acrescenta).
 4. **Exportação** (`src/exportar.py`): agrega os totais por lutador em um JSON pequeno (≈210 KB); médias e percentuais são calculados no navegador.
+5. **SQL** (`src/banco.py`, `sql/`, `notebooks/03_sql.ipynb`): os CSVs, com uma linha por lutador em cada luta e os dados da luta repetidos, viram um banco SQLite com quatro tabelas relacionadas — `eventos` → `lutas` → `desempenho` → `desempenho_round` —, com chaves primárias e estrangeiras. As perguntas dos gráficos são respondidas de novo em SQL (JOINs, `GROUP BY`/`HAVING` para as amostras mínimas, CTEs e funções de janela como `RANK`, `ROW_NUMBER` e `SUM() OVER (PARTITION BY ...)`), e o notebook **confere cada resposta com o resultado em Pandas**. Duas consultas só existem em SQL: o destaque de cada evento e a maior sequência de vitórias de cada lutador (*gaps and islands*).
 
 ## Decisões de análise
 
@@ -68,7 +70,7 @@ Todas as imagens estão em [`figures/`](figures/), e o código de cada uma em [`
 
 ## Stack
 
-**Python** (Pandas, NumPy, Matplotlib, Selenium, BeautifulSoup, Jupyter) · **JavaScript** (Chart.js) · **HTML/CSS** · **Git** (Git Flow) · **GitHub Pages**
+**Python** (Pandas, NumPy, Matplotlib, Selenium, BeautifulSoup, Jupyter) · **SQL** (SQLite) · **JavaScript** (Chart.js) · **HTML/CSS** · **Git** (Git Flow) · **GitHub Pages**
 
 ## Estrutura do projeto
 
@@ -80,12 +82,18 @@ Todas as imagens estão em [`figures/`](figures/), e o código de cada uma em [`
 ├── notebooks/
 │   ├── 00_teste_ambiente.ipynb
 │   ├── 01_scrapper_test_luta.ipynb   # coleta e limpeza
-│   └── 02_visualizacao.ipynb         # análise e gráficos
+│   ├── 02_visualizacao.ipynb         # análise e gráficos
+│   └── 03_sql.ipynb                  # as mesmas perguntas em SQL
+├── sql/
+│   ├── schema.sql         # esquema do banco (4 tabelas)
+│   └── consultas.sql      # consultas SQL
 ├── src/
 │   ├── scraper.py         # coleta (Selenium + BeautifulSoup)
 │   ├── limpeza.py         # tratamento dos dados
 │   ├── visualizacao.py    # padrão visual e funções de plotagem
 │   ├── exportar.py        # gera dados/lutadores.json
+│   ├── banco.py           # monta o banco SQLite
+│   ├── consultas.py       # executa as consultas de sql/consultas.sql
 │   └── config.py          # constantes
 ├── index.html             # página com os gráficos
 ├── interativo.html        # comparador e rankings
@@ -102,11 +110,11 @@ pip install -r requirements.txt
 
 - **Coleta e limpeza:** `notebooks/01_scrapper_test_luta.ipynb` (precisa do Google Chrome instalado para o Selenium).
 - **Gráficos:** `notebooks/02_visualizacao.ipynb`.
+- **SQL:** `notebooks/03_sql.ipynb` recria o banco (`data/ufc.db`) e roda as consultas. Para só gerar o banco: `python -m src.banco`.
 - **Dados do site interativo:** `python -m src.exportar` (na raiz do projeto) regenera `dados/lutadores.json`.
 - **Ver o site localmente:** `python -m http.server` e abrir `http://localhost:8000`. Abrir o HTML direto do disco não funciona, porque o navegador bloqueia a leitura do JSON.
 
 ## Próximos passos
 
-- Consultas em **SQL** sobre os mesmos dados (SQLite), respondendo às perguntas dos gráficos.
 - Link compartilhável no site interativo (a comparação escolhida fica no endereço da página).
 - Atualizar a base com os eventos mais recentes.
