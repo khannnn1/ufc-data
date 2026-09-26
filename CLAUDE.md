@@ -113,7 +113,8 @@ str. %, Td %) indicam zero tentativas, tratados como NaN (não 0%).
 ## Gráficos já criados (figures/)
 1. `top10_kd.png` — top 10 por Knockdowns
 2. `top10_ctrl.png` — top 10 por tempo de controle (minutos)
-3. `metodos_vitoria.png` — distribuição de métodos de vitória
+3. `metodos_vitoria.png` — distribuição de métodos de vitória, uma linha
+   por luta (`drop_duplicates("Fight_URL")`; antes contava cada luta 2×)
 4. `top10_precisao.png` — top 10 por precisão de golpes (filtro mín. 50 tentativas)
 5. `comparacao_*.png` — comparação "cara a cara" entre 2 lutadores (função
    `comparar_lutadores(nome1, nome2, df)`), usando MÉDIAS por luta (não somas,
