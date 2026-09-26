@@ -236,6 +236,13 @@ str. %, Td %) indicam zero tentativas, tratados como NaN (não 0%).
     finalização (vermelho), uma linha por luta, total na ponta, média geral
     tracejada (50%); fora peso casado e categorias com < 20 lutas (pena
     feminino). Meio-pesado lidera (68%), pesado só 53%, mosca fem. 31%
+19. `idade_vs_envergadura.png` — 2 painéis de barras verticais: % de
+    vitória de quem é mais novo (vermelho) por faixa de diferença de idade
+    (até 2 / 2–5 / 5–8 / 8+ anos) e de quem tem mais envergadura (azul) por
+    diferença em polegadas (1/2/3/4+), lutas com vencedor, junção por
+    `Fighter_URL` com `data/processed/lutadores.csv`; idade na data do
+    evento; envergadura igual fica de fora. Mais novo vence 60% (73% com 8+
+    anos), envergadura 51% (55% com 4"+); tracejado em 50%
 
 ## Workflow de Git
 Usamos Git Flow: `main` (estável) + `develop` (integração) + `feature/*`
