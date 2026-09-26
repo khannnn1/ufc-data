@@ -126,6 +126,10 @@ str. %, Td %) indicam zero tentativas, tratados como NaN (não 0%).
    quem lutou mais vezes no recorte, não necessariamente taxa de vitória)
 8. `top10_finalizacoes.png` — top 10 por finalizações via submission
 9. `top10_nocautes.png` — top 10 por vitórias via KO/TKO (barras em azul)
+10. `vencedores_vs_perdedores.png` — médias por luta de W vs L (golpes sig.,
+    quedas, controle, tent. de finalização, KD), um painel por métrica
+    (escalas diferentes), com a razão "N× mais" no título de cada painel;
+    exclui empates (D) e NC
 
 ## Workflow de Git
 Usamos Git Flow: `main` (estável) + `develop` (integração) + `feature/*`
