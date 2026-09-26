@@ -153,6 +153,9 @@ str. %, Td %) indicam zero tentativas, tratados como NaN (não 0%).
 16. `top10_precisao_quedas.png` — Td_landed / Td_attempted, mín. 15
     tentativas E 3 lutas (sem o 2º filtro entra quem tentou muito numa luta
     só); "X de Y" na ponta da barra; linha tracejada na média geral (36%)
+17. `arbitros_finalizacoes.png` — 10 árbitros com mais lutas, % das lutas
+    encerradas antes da decisão (KO/TKO, TKO médico, submission), uma linha
+    por luta; aviso no rodapé: reflete as lutas recebidas, não o árbitro
 
 ## Workflow de Git
 Usamos Git Flow: `main` (estável) + `develop` (integração) + `feature/*`
