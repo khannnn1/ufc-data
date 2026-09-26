@@ -98,7 +98,7 @@ const valoresNaPonta = {
 
 let lutadores = [];
 let porNome = new Map();
-const graficos = { paineis: [], ranking: null };
+const graficos = { paineis: [], ranking: null, dispersao: null };
 
 // ---------- Comparador ----------
 
@@ -137,8 +137,14 @@ function desenharComparador() {
   const container = document.getElementById("paineis");
   container.innerHTML = "";
 
+  // A dispersão destaca os lutadores do comparador, então acompanha cada mudança
+  desenharDispersao();
+
   const selecionados = [a, b].filter(Boolean);
-  if (!selecionados.length) return;
+  if (!selecionados.length) {
+    atualizarUrl();
+    return;
+  }
 
   for (const chave of METRICAS_COMPARADOR) {
     const metrica = METRICAS[chave];
@@ -306,6 +312,154 @@ function configurarCampoLutador(campo) {
   });
 }
 
+// ---------- Dispersão volume × precisão ----------
+// Mesmo recorte do gráfico estático: lutadores com 4+ lutas; volume por minuto de luta.
+
+const MIN_LUTAS_DISPERSAO = 4;
+let baseDispersao = { pontos: [], medianaX: 0, medianaY: 0 };
+
+function pontoDe(l) {
+  if (!l || !l.sa || !l.dur) return null;
+  return { x: l.sa / (l.dur / 60), y: (l.sl / l.sa) * 100, l };
+}
+
+function mediana(valores) {
+  const v = [...valores].sort((p, q) => p - q);
+  const meio = Math.floor(v.length / 2);
+  return v.length % 2 ? v[meio] : (v[meio - 1] + v[meio]) / 2;
+}
+
+function prepararDispersao() {
+  const pontos = lutadores.filter((l) => l.n >= MIN_LUTAS_DISPERSAO).map(pontoDe).filter(Boolean);
+  baseDispersao = {
+    pontos,
+    medianaX: mediana(pontos.map((p) => p.x)),
+    medianaY: mediana(pontos.map((p) => p.y)),
+  };
+}
+
+// Linhas das medianas, nomes dos quadrantes e nomes dos lutadores destacados
+const guiasDispersao = {
+  id: "guiasDispersao",
+  beforeDatasetsDraw(chart) {
+    const { ctx, chartArea: area, scales: { x, y } } = chart;
+    ctx.save();
+    ctx.strokeStyle = "#555555";
+    ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    ctx.moveTo(x.getPixelForValue(baseDispersao.medianaX), area.top);
+    ctx.lineTo(x.getPixelForValue(baseDispersao.medianaX), area.bottom);
+    ctx.moveTo(area.left, y.getPixelForValue(baseDispersao.medianaY));
+    ctx.lineTo(area.right, y.getPixelForValue(baseDispersao.medianaY));
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+    ctx.fillStyle = CORES.suave;
+    ctx.font = `11px ${Chart.defaults.font.family}`;
+    const m = 6;
+    ctx.textBaseline = "top";
+    ctx.textAlign = "left";  ctx.fillText("Pouco volume, muita precisão", area.left + m, area.top + m);
+    ctx.textAlign = "right"; ctx.fillText("Muito volume, muita precisão", area.right - m, area.top + m);
+    ctx.textBaseline = "bottom";
+    ctx.textAlign = "left";  ctx.fillText("Pouco volume, pouca precisão", area.left + m, area.bottom - m);
+    ctx.textAlign = "right"; ctx.fillText("Muito volume, pouca precisão", area.right - m, area.bottom - m);
+    ctx.restore();
+  },
+  afterDatasetsDraw(chart) {
+    const { ctx, chartArea: area } = chart;
+    ctx.save();
+    ctx.font = `600 12px ${Chart.defaults.font.family}`;
+    ctx.fillStyle = CORES.texto;
+    ctx.textBaseline = "middle";
+    chart.data.datasets.forEach((dataset, i) => {
+      if (!dataset.destaque) return;
+      chart.getDatasetMeta(i).data.forEach((ponto) => {
+        // Nome à direita do ponto; à esquerda se não couber
+        const largura = ctx.measureText(dataset.label).width;
+        const cabe = ponto.x + 12 + largura < area.right;
+        ctx.textAlign = cabe ? "left" : "right";
+        ctx.fillText(dataset.label, ponto.x + (cabe ? 12 : -12), ponto.y);
+      });
+    });
+    ctx.restore();
+  },
+};
+
+function desenharDispersao() {
+  const canvas = document.getElementById("canvas-dispersao");
+  if (!canvas || !baseDispersao.pontos.length) return;
+
+  const a = porNome.get(document.getElementById("lutador-a").value.trim().toLowerCase());
+  const b = porNome.get(document.getElementById("lutador-b").value.trim().toLowerCase());
+  const destacados = [[a, CORES.azul], [b, CORES.vermelho]].filter(([l]) => l && pontoDe(l));
+  const nomesDestacados = new Set(destacados.map(([l]) => l.nome));
+
+  const datasets = [{
+    label: `Demais lutadores (${baseDispersao.pontos.length - nomesDestacados.size})`,
+    data: baseDispersao.pontos.filter((p) => !nomesDestacados.has(p.l.nome)),
+    backgroundColor: "rgba(154, 154, 154, 0.45)",
+    pointRadius: 3.5,
+    pointHoverRadius: 6,
+    pointHitRadius: 6,
+  }];
+  for (const [l, cor] of destacados) {
+    datasets.push({
+      label: l.nome,
+      destaque: true,
+      data: [pontoDe(l)],
+      backgroundColor: cor,
+      borderColor: "#0d0d0d",
+      borderWidth: 2,
+      pointRadius: 7,
+      pointHoverRadius: 9,
+      pointHitRadius: 10,
+    });
+  }
+
+  // Quem está destacado mas fica fora do recorte (menos de 4 lutas) ainda aparece, com aviso
+  const poucasLutas = destacados.filter(([l]) => l.n < MIN_LUTAS_DISPERSAO).map(([l]) => `${l.nome} (${l.n} ${l.n === 1 ? "luta" : "lutas"})`);
+  document.getElementById("nota-dispersao").textContent =
+    `Linhas tracejadas = medianas (${fmt1.format(baseDispersao.medianaX)} golpes tentados por minuto, ${fmt0.format(baseDispersao.medianaY)}% de precisão).`
+    + (poucasLutas.length ? ` Destacado com amostra pequena: ${poucasLutas.join(" e ")}.` : "");
+  canvas.setAttribute("aria-label", `Dispersão de volume e precisão de ${baseDispersao.pontos.length} lutadores. `
+    + destacados.map(([l]) => { const p = pontoDe(l); return `${l.nome}: ${fmt1.format(p.x)} golpes por minuto, ${fmt0.format(p.y)}% de precisão`; }).join("; "));
+
+  if (graficos.dispersao) graficos.dispersao.destroy();
+  graficos.dispersao = new Chart(canvas, {
+    type: "scatter",
+    data: { datasets },
+    options: {
+      maintainAspectRatio: false,
+      layout: { padding: { right: 8 } },
+      scales: {
+        x: { title: { display: true, text: "Golpes significativos tentados por minuto" }, grid: { color: CORES.grade } },
+        y: { title: { display: true, text: "Precisão (%)" }, grid: { color: CORES.grade } },
+      },
+      onHover: (evento, elementos) => { evento.native.target.style.cursor = elementos.length ? "pointer" : "default"; },
+      onClick: (_evento, elementos) => {
+        if (!elementos.length) return;
+        const { datasetIndex, index } = elementos[0];
+        const l = graficos.dispersao.data.datasets[datasetIndex].data[index].l;
+        document.getElementById("lutador-a").value = l.nome;
+        desenharComparador();
+        document.getElementById("comparador").scrollIntoView({ behavior: "smooth" });
+      },
+      plugins: {
+        legend: { labels: { usePointStyle: true, boxWidth: 8, color: CORES.texto } },
+        tooltip: {
+          callbacks: {
+            label: (c) => {
+              const { l, x, y } = c.raw;
+              return `${l.nome}: ${fmt1.format(x)} golpes/min · ${fmt0.format(y)}% · ${l.n} ${l.n === 1 ? "luta" : "lutas"}`;
+            },
+          },
+        },
+      },
+    },
+    plugins: [guiasDispersao],
+  });
+}
+
 // ---------- Link compartilhável ----------
 // O estado da página fica na URL (?a=...&b=...&m=...&min=...&top=...): quem abre o link vê a mesma
 // comparação e o mesmo ranking. Valores inválidos na URL são ignorados e ficam os padrões.
@@ -409,6 +563,7 @@ async function iniciar() {
 
   ["lutador-a", "lutador-b"].forEach((id) => configurarCampoLutador(document.getElementById(id)));
   ["metrica", "min-lutas", "tamanho"].forEach((id) => document.getElementById(id).addEventListener("change", desenharRanking));
+  prepararDispersao();
   document.querySelectorAll("button.copiar").forEach((botao) => {
     botao.addEventListener("click", () => copiarLink(botao.dataset.secao, botao.nextElementSibling));
   });

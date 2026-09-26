@@ -224,6 +224,12 @@ atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
 - Rankings: métrica + mín. de lutas + top N; clique na barra leva o lutador
   ao comparador; tabela equivalente em `<details>`. Precisões exigem
   amostra mínima de tentativas (`requisito` em cada métrica).
+- Dispersão volume × precisão (`#dispersao`): mesmo recorte do PNG (4+
+  lutas, volume por minuto). Os 2 lutadores do comparador aparecem
+  destacados (azul/vermelho, com nome) — `desenharComparador` chama
+  `desenharDispersao`, então link compartilhável também destaca. Plugin
+  `guiasDispersao` desenha medianas, quadrantes e nomes. Clique leva ao
+  comparador; destacado com <4 lutas aparece com aviso na nota.
 - Link compartilhável: o estado vai para a URL (`?a=&b=&m=&min=&top=`, via
   `history.replaceState`, sem poluir o histórico) e é lido na abertura por
   `lerEstadoDaUrl` (valores inválidos caem em `PADROES`). Botões "Copiar

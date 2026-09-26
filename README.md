@@ -22,6 +22,7 @@ Recorte de **149 eventos recentes do UFC: 1.837 lutas e 963 lutadores**.
 - **[Gráficos](https://khannnn1.github.io/ufc-data/)** (`index.html`): 17 gráficos com a leitura de cada um.
 - **[Explorar os dados](https://khannnn1.github.io/ufc-data/interativo.html)** (`interativo.html`):
   - **Comparar lutadores:** escolha dois lutadores quaisquer e veja cartel e médias por luta lado a lado.
+  - **Volume × precisão:** dispersão com todos os lutadores; os dois do comparador aparecem destacados, e passar o mouse mostra quem é cada ponto.
   - **Monte o seu ranking:** escolha a métrica (13 opções), o mínimo de lutas e o tamanho do top. Clique numa barra para levar o lutador ao comparador.
   - **Compartilhe:** a comparação e o ranking escolhidos ficam no endereço da página, e o botão "Copiar link" gera um link que abre exatamente aquela tela. Exemplo: [Alex Pereira × Jon Jones](https://khannnn1.github.io/ufc-data/interativo.html?a=Alex+Pereira&b=Jon+Jones#comparador).
 
@@ -117,5 +118,5 @@ pip install -r requirements.txt
 
 ## Próximos passos
 
-- Dispersão interativa de volume × precisão (nome de qualquer lutador ao passar o mouse).
+- Evolução por round de cada lutador no site interativo (usando o dataset por round).
 - Atualizar a base com os eventos mais recentes.

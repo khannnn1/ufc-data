@@ -113,6 +113,7 @@
     padding: 16px;
   }
   .grafico-ranking .area { position: relative; }
+  .grafico-ranking .area-dispersao { height: 480px; }
   .nota { color: var(--muted); font-size: 0.82rem; margin-top: 10px; }
 
   details { margin-top: 12px; }
@@ -140,6 +141,7 @@
     .campo.lutador, .campo.metrica { flex: 1 1 100%; }
     .campo.lutador input, .campo.metrica select { width: 100%; }
     .compartilhar { margin-left: 0; flex: 1 1 100%; }
+    .grafico-ranking .area-dispersao { height: 380px; }
   }
 </style>
 </head>
@@ -180,6 +182,15 @@
     </div>
     <div class="paineis" id="paineis"></div>
     <p class="nota">Amostras pequenas (poucas lutas no período) oscilam muito: confira o número de lutas no cartão de cada um.</p>
+  </section>
+
+  <section id="dispersao">
+    <h2>Volume × precisão</h2>
+    <p class="intro">Cada ponto é um lutador com pelo menos 4 lutas no período. Os dois lutadores do comparador aparecem destacados. Passe o mouse (ou toque) num ponto para ver quem é; clique para levá-lo ao comparador.</p>
+    <div class="grafico-ranking">
+      <div class="area area-dispersao"><canvas id="canvas-dispersao" role="img"></canvas></div>
+      <p class="nota" id="nota-dispersao"></p>
+    </div>
   </section>
 
   <section id="ranking">
@@ -228,6 +239,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <!-- ?v=N: aumente a cada mudança no JS, para o navegador não usar a versão antiga em cache -->
-<script src="js/interativo.js?v=3"></script>
+<script src="js/interativo.js?v=4"></script>
 </body>
 </html>
