@@ -182,6 +182,7 @@ function desenharComparador() {
       plugins: [valoresNaPonta],
     }));
   }
+  atualizarUrl();
 }
 
 // ---------- Ranking ----------
@@ -189,7 +190,9 @@ function desenharComparador() {
 function desenharRanking() {
   const chave = document.getElementById("metrica").value;
   const metrica = METRICAS[chave];
-  const minLutas = Math.max(1, parseInt(document.getElementById("min-lutas").value, 10) || 1);
+  const campoMin = document.getElementById("min-lutas");
+  const minLutas = Math.min(12, Math.max(1, parseInt(campoMin.value, 10) || 1));
+  campoMin.value = minLutas; // corrige no campo o que foi digitado fora do intervalo
   const tamanho = parseInt(document.getElementById("tamanho").value, 10);
 
   const elegiveis = lutadores
@@ -249,6 +252,7 @@ function desenharRanking() {
   });
 
   desenharTabela(metrica, top);
+  atualizarUrl();
 }
 
 function desenharTabela(metrica, top) {
@@ -302,6 +306,64 @@ function configurarCampoLutador(campo) {
   });
 }
 
+// ---------- Link compartilhável ----------
+// O estado da página fica na URL (?a=...&b=...&m=...&min=...&top=...): quem abre o link vê a mesma
+// comparação e o mesmo ranking. Valores inválidos na URL são ignorados e ficam os padrões.
+
+const PADROES = { a: "Islam Makhachev", b: "Merab Dvalishvili", m: "taxa_vitoria", min: 4, top: 10 };
+const TAMANHOS_TOP = [10, 15, 20];
+let urlPronta = false; // só escreve na URL depois de aplicar o estado inicial
+
+function lerEstadoDaUrl() {
+  const p = new URLSearchParams(location.search);
+  const nomeValido = (valor, padrao) => porNome.get((valor || "").trim().toLowerCase())?.nome || padrao;
+  const inteiro = (valor, minimo, maximo, padrao) => {
+    const n = parseInt(valor, 10);
+    return Number.isInteger(n) && n >= minimo && n <= maximo ? n : padrao;
+  };
+  const m = p.get("m");
+  const top = parseInt(p.get("top"), 10);
+  return {
+    a: nomeValido(p.get("a"), PADROES.a),
+    b: nomeValido(p.get("b"), PADROES.b),
+    m: m in METRICAS && m !== "kd_luta" ? m : PADROES.m,
+    min: inteiro(p.get("min"), 1, 12, PADROES.min),
+    top: TAMANHOS_TOP.includes(top) ? top : PADROES.top,
+  };
+}
+
+function atualizarUrl() {
+  if (!urlPronta) return;
+  const nomeCanonico = (id) => porNome.get(document.getElementById(id).value.trim().toLowerCase())?.nome;
+  const a = nomeCanonico("lutador-a");
+  const b = nomeCanonico("lutador-b");
+
+  const p = new URLSearchParams();
+  if (a) p.set("a", a);
+  if (b) p.set("b", b);
+  p.set("m", document.getElementById("metrica").value);
+  p.set("min", document.getElementById("min-lutas").value);
+  p.set("top", document.getElementById("tamanho").value);
+  // replaceState: atualiza o endereço sem criar uma entrada nova no histórico a cada mudança
+  history.replaceState(null, "", `${location.pathname}?${p}${location.hash}`);
+
+  document.title = a && b ? `${a} × ${b} — UFC Data` : "UFC Data — Explore os dados";
+}
+
+async function copiarLink(secao, aviso) {
+  const url = new URL(location.href);
+  url.hash = secao;
+  try {
+    await navigator.clipboard.writeText(url.href);
+    aviso.textContent = "Link copiado!";
+  } catch {
+    // Sem permissão de área de transferência: mostra o link para copiar à mão
+    aviso.textContent = url.href;
+  }
+  clearTimeout(aviso._timer);
+  aviso._timer = setTimeout(() => { aviso.textContent = ""; }, 4000);
+}
+
 // ---------- Inicialização ----------
 
 async function iniciar() {
@@ -338,16 +400,26 @@ async function iniciar() {
     opcao.textContent = metrica.rotulo;
     seletor.appendChild(opcao);
   }
-  seletor.value = "taxa_vitoria";
-
-  document.getElementById("lutador-a").value = "Islam Makhachev";
-  document.getElementById("lutador-b").value = "Merab Dvalishvili";
+  const estado = lerEstadoDaUrl();
+  seletor.value = estado.m;
+  document.getElementById("min-lutas").value = estado.min;
+  document.getElementById("tamanho").value = estado.top;
+  document.getElementById("lutador-a").value = estado.a;
+  document.getElementById("lutador-b").value = estado.b;
 
   ["lutador-a", "lutador-b"].forEach((id) => configurarCampoLutador(document.getElementById(id)));
   ["metrica", "min-lutas", "tamanho"].forEach((id) => document.getElementById(id).addEventListener("change", desenharRanking));
+  document.querySelectorAll("button.copiar").forEach((botao) => {
+    botao.addEventListener("click", () => copiarLink(botao.dataset.secao, botao.nextElementSibling));
+  });
 
   desenharComparador();
   desenharRanking();
+  urlPronta = true;
+  atualizarUrl();
+
+  // Com o conteúdo desenhado, a âncora do link (#comparador ou #ranking) já cai no lugar certo
+  if (location.hash) document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView();
 }
 
 iniciar();

@@ -224,6 +224,18 @@ atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
 - Rankings: métrica + mín. de lutas + top N; clique na barra leva o lutador
   ao comparador; tabela equivalente em `<details>`. Precisões exigem
   amostra mínima de tentativas (`requisito` em cada métrica).
+- Link compartilhável: o estado vai para a URL (`?a=&b=&m=&min=&top=`, via
+  `history.replaceState`, sem poluir o histórico) e é lido na abertura por
+  `lerEstadoDaUrl` (valores inválidos caem em `PADROES`). Botões "Copiar
+  link" por seção (âncora `#comparador` / `#ranking`); título da aba mostra
+  "A × B". Se entrar um parâmetro novo, atualizar ler/atualizar juntos.
+- **Cache**: o GitHub Pages guarda arquivos por ~10 min. A tag do script em
+  `interativo.html` tem `?v=N`: AUMENTAR o N a cada mudança em
+  `js/interativo.js`.
+- Testes no Chrome em segundo plano: animações e eventos do Chart.js ficam
+  pausados (barras com largura 0, cliques ignorados) e a área de
+  transferência é negada — não é bug do site; testar a lógica chamando
+  `chart.options.onClick(...)` ou com a janela em primeiro plano.
 - Chart.js 4.4.1 via jsdelivr; plugin próprio `valoresNaPonta` escreve o
   valor na ponta da barra (mesmo padrão dos PNGs).
 - Testar localmente com `python -m http.server` (o `fetch` do JSON não

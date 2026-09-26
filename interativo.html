@@ -67,6 +67,20 @@
   .campo.lutador.b input { border-left: 4px solid var(--vermelho); }
   .campo.metrica select { width: 280px; max-width: 100%; }
   .campo.numero input { width: 90px; }
+  .compartilhar { display: flex; align-items: center; gap: 10px; margin-left: auto; min-width: 0; }
+  button.copiar {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--grid-line);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  button.copiar:hover { border-color: var(--azul); }
+  button.copiar:focus-visible { outline: 2px solid var(--azul); outline-offset: 1px; }
+  .copiado { color: var(--muted); font-size: 0.85rem; overflow-wrap: anywhere; }
   .aviso { color: var(--vermelho); font-size: 0.85rem; min-height: 1.3em; margin: -8px 0 12px; }
 
   .cartoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
@@ -125,6 +139,7 @@
     .cartoes, .paineis { grid-template-columns: minmax(0, 1fr); }
     .campo.lutador, .campo.metrica { flex: 1 1 100%; }
     .campo.lutador input, .campo.metrica select { width: 100%; }
+    .compartilhar { margin-left: 0; flex: 1 1 100%; }
   }
 </style>
 </head>
@@ -150,6 +165,10 @@
       <div class="campo lutador b">
         <label for="lutador-b">Lutador 2</label>
         <input id="lutador-b" list="lista-lutadores" autocomplete="off" placeholder="Digite um nome">
+      </div>
+      <div class="compartilhar">
+        <button type="button" class="copiar" data-secao="comparador">Copiar link</button>
+        <span class="copiado" role="status"></span>
       </div>
     </div>
     <datalist id="lista-lutadores"></datalist>
@@ -184,6 +203,10 @@
           <option value="20">20</option>
         </select>
       </div>
+      <div class="compartilhar">
+        <button type="button" class="copiar" data-secao="ranking">Copiar link</button>
+        <span class="copiado" role="status"></span>
+      </div>
     </div>
 
     <div class="grafico-ranking">
@@ -204,6 +227,7 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="js/interativo.js"></script>
+<!-- ?v=N: aumente a cada mudança no JS, para o navegador não usar a versão antiga em cache -->
+<script src="js/interativo.js?v=3"></script>
 </body>
 </html>
