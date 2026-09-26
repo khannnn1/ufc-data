@@ -195,6 +195,10 @@ atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
   `js/interativo.js`). Rodar de novo sempre que o dataset mudar.
 - Comparador: 2 lutadores (datalist com autocomplete), cartões com cartel e
   um painel Chart.js por métrica (escalas diferentes, sem eixo único).
+  O `<datalist>` filtra pelo texto do campo, então com um nome preenchido
+  só ele aparece na lista: por isso `configurarCampoLutador` esvazia o
+  campo no foco (nome vira placeholder) e restaura ao sair sem escolher.
+  Redesenha no evento `input` quando o texto bate com um nome.
 - Rankings: métrica + mín. de lutas + top N; clique na barra leva o lutador
   ao comparador; tabela equivalente em `<details>`. Precisões exigem
   amostra mínima de tentativas (`requisito` em cada métrica).

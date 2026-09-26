@@ -270,6 +270,38 @@ function desenharTabela(metrica, top) {
   tabela.appendChild(corpo);
 }
 
+// A sugestão do <datalist> filtra pelo texto do campo: com um nome já preenchido, a lista mostra só
+// ele. Por isso, ao focar, o campo é esvaziado (o nome atual vira placeholder) e a lista completa
+// aparece; ao sair sem escolher ninguém, o nome anterior volta.
+function configurarCampoLutador(campo) {
+  let anterior = "";
+
+  campo.addEventListener("focus", () => {
+    anterior = campo.value;
+    campo.placeholder = anterior || "Digite um nome";
+    campo.value = "";
+  });
+
+  campo.addEventListener("blur", () => {
+    if (!campo.value.trim()) campo.value = anterior;
+    campo.placeholder = "Digite um nome";
+    desenharComparador();
+  });
+
+  // Atualiza assim que o texto bate com um nome (ao escolher da lista ou terminar de digitar),
+  // sem esperar o usuário sair do campo
+  campo.addEventListener("input", () => {
+    if (porNome.has(campo.value.trim().toLowerCase())) {
+      anterior = campo.value.trim();
+      desenharComparador();
+    }
+  });
+
+  campo.addEventListener("keydown", (evento) => {
+    if (evento.key === "Enter") campo.blur();
+  });
+}
+
 // ---------- Inicialização ----------
 
 async function iniciar() {
@@ -311,8 +343,7 @@ async function iniciar() {
   document.getElementById("lutador-a").value = "Islam Makhachev";
   document.getElementById("lutador-b").value = "Merab Dvalishvili";
 
-  // "change" dispara ao escolher da lista ou sair do campo; evita redesenhar a cada tecla
-  ["lutador-a", "lutador-b"].forEach((id) => document.getElementById(id).addEventListener("change", desenharComparador));
+  ["lutador-a", "lutador-b"].forEach((id) => configurarCampoLutador(document.getElementById(id)));
   ["metrica", "min-lutas", "tamanho"].forEach((id) => document.getElementById(id).addEventListener("change", desenharRanking));
 
   desenharComparador();
