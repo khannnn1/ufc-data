@@ -10,6 +10,7 @@ from src.limpeza import tempo_para_segundos
 
 RAIZ = Path(__file__).resolve().parent.parent
 ARQUIVO_RESUMO = RAIZ / "data" / "processed" / "dataset_final_resumo_limpo.csv"
+ARQUIVO_ROUND = RAIZ / "data" / "processed" / "dataset_final_round_limpo.csv"
 ARQUIVO_SAIDA = RAIZ / "dados" / "lutadores.json"
 
 # Totais somados por lutador. Nomes curtos para o JSON ficar pequeno; o navegador calcula
@@ -46,17 +47,36 @@ def agregar_lutadores(df):
     return agregado.rename(columns={"Fighter": "nome"})
 
 
-def exportar_lutadores(caminho_csv=ARQUIVO_RESUMO, caminho_saida=ARQUIVO_SAIDA):
-    """Lê o dataset resumo limpo e grava o JSON consumido pela página interativa."""
+# Ordem das colunas de cada round no JSON: [round, rounds disputados, sl, sa, tdl, tda, ctrl, kd].
+# Lista em vez de objeto para o arquivo ficar pequeno; o JS lê com essa mesma ordem.
+COLUNAS_ROUND = ["Sig_str_landed", "Sig_str_attempted", "Td_landed", "Td_attempted", "Ctrl_seconds", "KD"]
+
+
+def agregar_rounds(df_round):
+    """{lutador: [[round, rounds, sl, sa, tdl, tda, ctrl, kd], ...]} com os totais de cada round."""
+    totais = df_round.groupby(["Fighter", "Round"]).agg(
+        rounds=("Fight_URL", "size"), **{col: (col, "sum") for col in COLUNAS_ROUND}
+    ).reset_index()
+    por_lutador = {}
+    for linha in totais.itertuples(index=False):
+        valores = [int(linha.Round), int(linha.rounds)] + [int(getattr(linha, col)) for col in COLUNAS_ROUND]
+        por_lutador.setdefault(linha.Fighter, []).append(valores)
+    return por_lutador
+
+
+def exportar_lutadores(caminho_csv=ARQUIVO_RESUMO, caminho_round=ARQUIVO_ROUND, caminho_saida=ARQUIVO_SAIDA):
+    """Lê os datasets limpos (resumo e por round) e grava o JSON consumido pela página interativa."""
     df = pd.read_csv(caminho_csv)
     agregado = agregar_lutadores(df)
+    rounds = agregar_rounds(pd.read_csv(caminho_round))
 
     saida = {
         "gerado_em": date.today().isoformat(),
         "eventos": int(df["Event_URL"].nunique()),
         "lutas": int(df["Fight_URL"].nunique()),
         "lutadores": [
-            {k: (int(v) if isinstance(v, (int, float)) and k != "nome" else v) for k, v in linha.items()}
+            {**{k: (int(v) if isinstance(v, (int, float)) and k != "nome" else v) for k, v in linha.items()},
+             "r": rounds.get(linha["nome"], [])}
             for linha in agregado.to_dict(orient="records")
         ],
     }

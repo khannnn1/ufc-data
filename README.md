@@ -22,6 +22,7 @@ Recorte de **149 eventos recentes do UFC: 1.837 lutas e 963 lutadores**.
 - **[Gráficos](https://khannnn1.github.io/ufc-data/)** (`index.html`): 17 gráficos com a leitura de cada um.
 - **[Explorar os dados](https://khannnn1.github.io/ufc-data/interativo.html)** (`interativo.html`):
   - **Comparar lutadores:** escolha dois lutadores quaisquer e veja cartel e médias por luta lado a lado.
+  - **Round a round:** como os dois lutadores do comparador rendem do 1º ao 5º round (golpes, precisão, quedas ou controle), contra a média de todos.
   - **Volume × precisão:** dispersão com todos os lutadores; os dois do comparador aparecem destacados, e passar o mouse mostra quem é cada ponto.
   - **Monte o seu ranking:** escolha a métrica (13 opções), o mínimo de lutas e o tamanho do top. Clique numa barra para levar o lutador ao comparador.
   - **Compartilhe:** a comparação e o ranking escolhidos ficam no endereço da página, e o botão "Copiar link" gera um link que abre exatamente aquela tela. Exemplo: [Alex Pereira × Jon Jones](https://khannnn1.github.io/ufc-data/interativo.html?a=Alex+Pereira&b=Jon+Jones#comparador).
@@ -44,7 +45,7 @@ data/processed/*.csv
 1. **Coleta** (`src/scraper.py`): o ufcstats.com bloqueia requisições simples com uma verificação anti-bot que exige JavaScript, então a coleta usa Selenium em modo headless e lê o HTML depois que a página carrega. As tabelas de estatísticas trazem os dois lutadores na mesma célula, e o `pandas.read_html` não separa isso, por isso o parsing é feito manualmente com BeautifulSoup. A coleta em lote salva cada evento no CSV assim que termina, para não perder o progresso se a conexão cair.
 2. **Limpeza** (`src/limpeza.py`): converte `"181 of 305"` em duas colunas numéricas (acertados/tentados), percentuais em número e tempos `M:SS` em segundos. `"---"` (nenhuma tentativa) vira ausente, e não 0%.
 3. **Análise e gráficos** (`notebooks/02_visualizacao.ipynb` + `src/visualizacao.py`): padrão visual único (fundo escuro, barras com o valor escrito na ponta, sem eixo quando ele não acrescenta).
-4. **Exportação** (`src/exportar.py`): agrega os totais por lutador em um JSON pequeno (≈210 KB); médias e percentuais são calculados no navegador.
+4. **Exportação** (`src/exportar.py`): agrega os totais por lutador (no geral e por round) em um JSON pequeno (≈280 KB); médias e percentuais são calculados no navegador.
 5. **SQL** (`src/banco.py`, `sql/`, `notebooks/03_sql.ipynb`): os CSVs, com uma linha por lutador em cada luta e os dados da luta repetidos, viram um banco SQLite com quatro tabelas relacionadas — `eventos` → `lutas` → `desempenho` → `desempenho_round` —, com chaves primárias e estrangeiras. As perguntas dos gráficos são respondidas de novo em SQL (JOINs, `GROUP BY`/`HAVING` para as amostras mínimas, CTEs e funções de janela como `RANK`, `ROW_NUMBER` e `SUM() OVER (PARTITION BY ...)`), e o notebook **confere cada resposta com o resultado em Pandas**. Duas consultas só existem em SQL: o destaque de cada evento e a maior sequência de vitórias de cada lutador (*gaps and islands*).
 
 ## Decisões de análise
@@ -118,5 +119,4 @@ pip install -r requirements.txt
 
 ## Próximos passos
 
-- Evolução por round de cada lutador no site interativo (usando o dataset por round).
 - Atualizar a base com os eventos mais recentes.

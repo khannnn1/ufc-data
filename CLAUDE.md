@@ -210,7 +210,7 @@ Projeto já é considerado pronto para uso em currículo como está. Trabalho
 atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
 `interativo.html`, a versão **interativa** (1ª versão):
 - `python -m src.exportar` (na raiz, com o venv) regenera
-  `dados/lutadores.json` a partir do dataset resumo limpo. O JSON guarda
+  `dados/lutadores.json` a partir dos datasets limpos (resumo e por round). O JSON guarda
   TOTAIS por lutador (chaves curtas: n, w, l, d, nc, ko, subw, kd, sl, sa,
   tl, ta, tdl, tda, sub, ctrl, head, body, leg, dist, clinch, ground, dur);
   médias e percentuais são calculados no JS (`METRICAS` em
@@ -224,13 +224,19 @@ atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
 - Rankings: métrica + mín. de lutas + top N; clique na barra leva o lutador
   ao comparador; tabela equivalente em `<details>`. Precisões exigem
   amostra mínima de tentativas (`requisito` em cada métrica).
+- Round a round (`#rounds`): cada lutador no JSON tem `r` =
+  `[[round, rounds, sl, sa, tdl, tda, ctrl, kd], ...]` (lista compacta,
+  ordem fixa em `COLUNAS_ROUND` de `src/exportar.py` e em `roundsDe` no JS —
+  mudar os dois juntos). Linha dos 2 lutadores do comparador + média geral
+  tracejada; métrica em `METRICAS_ROUND`, na URL como `rm`. Tooltip mostra
+  quantos rounds entram em cada média (4º/5º têm amostra pequena).
 - Dispersão volume × precisão (`#dispersao`): mesmo recorte do PNG (4+
   lutas, volume por minuto). Os 2 lutadores do comparador aparecem
   destacados (azul/vermelho, com nome) — `desenharComparador` chama
   `desenharDispersao`, então link compartilhável também destaca. Plugin
   `guiasDispersao` desenha medianas, quadrantes e nomes. Clique leva ao
   comparador; destacado com <4 lutas aparece com aviso na nota.
-- Link compartilhável: o estado vai para a URL (`?a=&b=&m=&min=&top=`, via
+- Link compartilhável: o estado vai para a URL (`?a=&b=&m=&min=&top=&rm=`, via
   `history.replaceState`, sem poluir o histórico) e é lido na abertura por
   `lerEstadoDaUrl` (valores inválidos caem em `PADROES`). Botões "Copiar
   link" por seção (âncora `#comparador` / `#ranking`); título da aba mostra

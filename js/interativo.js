@@ -98,7 +98,7 @@ const valoresNaPonta = {
 
 let lutadores = [];
 let porNome = new Map();
-const graficos = { paineis: [], ranking: null, dispersao: null };
+const graficos = { paineis: [], ranking: null, dispersao: null, rounds: null };
 
 // ---------- Comparador ----------
 
@@ -137,7 +137,8 @@ function desenharComparador() {
   const container = document.getElementById("paineis");
   container.innerHTML = "";
 
-  // A dispersão destaca os lutadores do comparador, então acompanha cada mudança
+  // Round a round e dispersão mostram os lutadores do comparador, então acompanham cada mudança
+  desenharRounds();
   desenharDispersao();
 
   const selecionados = [a, b].filter(Boolean);
@@ -312,6 +313,107 @@ function configurarCampoLutador(campo) {
   });
 }
 
+// ---------- Round a round ----------
+// Cada lutador traz "r": [[round, rounds disputados, sl, sa, tdl, tda, ctrl, kd], ...] (ordem
+// definida em src/exportar.py). As métricas são médias por round disputado.
+
+const ROUNDS = [1, 2, 3, 4, 5];
+
+const METRICAS_ROUND = {
+  sig: { rotulo: "Golpes significativos acertados por round", valor: (t) => t.sl / t.n, formato: "decimal" },
+  precisao: { rotulo: "Precisão de golpes significativos (%)", valor: (t) => (t.sa ? (t.sl / t.sa) * 100 : null), formato: "pct" },
+  quedas: { rotulo: "Quedas por round", valor: (t) => t.tdl / t.n, formato: "decimal" },
+  controle: { rotulo: "Tempo de controle por round", valor: (t) => t.ctrl / t.n / 60, formato: "minutos" },
+};
+
+let mediaGeralRounds = new Map();
+
+// {round: {n, sl, sa, tdl, tda, ctrl, kd}} a partir das listas compactas de um lutador
+function roundsDe(l) {
+  const mapa = new Map();
+  for (const [round, n, sl, sa, tdl, tda, ctrl, kd] of l.r || []) mapa.set(round, { n, sl, sa, tdl, tda, ctrl, kd });
+  return mapa;
+}
+
+function prepararRounds() {
+  mediaGeralRounds = new Map();
+  for (const l of lutadores) {
+    for (const [round, t] of roundsDe(l)) {
+      const soma = mediaGeralRounds.get(round) || { n: 0, sl: 0, sa: 0, tdl: 0, tda: 0, ctrl: 0, kd: 0 };
+      for (const campo in soma) soma[campo] += t[campo];
+      mediaGeralRounds.set(round, soma);
+    }
+  }
+}
+
+function desenharRounds() {
+  const canvas = document.getElementById("canvas-rounds");
+  if (!canvas || !mediaGeralRounds.size) return;
+  const metrica = METRICAS_ROUND[document.getElementById("metrica-round").value];
+  const formatar = formatos[metrica.formato];
+  const formatarEixo = (v) => {
+    if (v === 0) return "0";
+    if (metrica.formato === "pct") return formatar(v);
+    return fmt1.format(v) + (metrica.formato === "minutos" ? " min" : "");
+  };
+
+  const a = porNome.get(document.getElementById("lutador-a").value.trim().toLowerCase());
+  const b = porNome.get(document.getElementById("lutador-b").value.trim().toLowerCase());
+
+  // Cada ponto guarda também quantos rounds entram na média, para o tooltip
+  const serie = (totais) => ROUNDS.map((round) => {
+    const t = totais.get(round);
+    const v = t ? metrica.valor(t) : null;
+    return { y: Number.isFinite(v) ? v : null, n: t ? t.n : 0 };
+  });
+
+  const datasets = [];
+  for (const [l, cor] of [[a, CORES.azul], [b, CORES.vermelho]]) {
+    if (!l) continue;
+    const pontos = serie(roundsDe(l));
+    datasets.push({
+      label: l.nome, data: pontos.map((p) => p.y), amostras: pontos.map((p) => p.n),
+      borderColor: cor, backgroundColor: cor, borderWidth: 2.5, pointRadius: 5, pointHoverRadius: 7,
+    });
+  }
+  const geral = serie(mediaGeralRounds);
+  datasets.push({
+    label: "Média de todos os lutadores", data: geral.map((p) => p.y), amostras: geral.map((p) => p.n),
+    borderColor: CORES.suave, backgroundColor: CORES.suave, borderDash: [5, 4], borderWidth: 1.5, pointRadius: 3,
+  });
+
+  canvas.setAttribute("aria-label", `${metrica.rotulo}, do 1º ao 5º round. `
+    + datasets.map((d) => `${d.label}: ` + d.data.map((v, i) => `${i + 1}º ${v === null ? "sem rounds" : formatar(v)}`).join(", ")).join(". "));
+
+  if (graficos.rounds) graficos.rounds.destroy();
+  graficos.rounds = new Chart(canvas, {
+    type: "line",
+    data: { labels: ROUNDS.map((r) => `${r}º round`), datasets },
+    options: {
+      maintainAspectRatio: false,
+      spanGaps: false, // round não disputado fica em branco, sem ligar os vizinhos
+      interaction: { mode: "index", intersect: false },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: CORES.texto } },
+        // No eixo, casas decimais iguais em todos os rótulos (os valores dos pontos seguem `formatar`)
+        y: { beginAtZero: true, grid: { color: CORES.grade }, ticks: { callback: (v) => formatarEixo(v) } },
+      },
+      plugins: {
+        legend: { labels: { usePointStyle: true, boxWidth: 8, color: CORES.texto } },
+        tooltip: {
+          callbacks: {
+            title: (itens) => `${itens[0].label} — ${metrica.rotulo.toLowerCase()}`,
+            label: (c) => {
+              const n = c.dataset.amostras[c.dataIndex];
+              return `${c.dataset.label}: ${c.raw === null ? "sem rounds" : formatar(c.raw)} (${fmt0.format(n)} ${n === 1 ? "round" : "rounds"})`;
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
 // ---------- Dispersão volume × precisão ----------
 // Mesmo recorte do gráfico estático: lutadores com 4+ lutas; volume por minuto de luta.
 
@@ -464,7 +566,7 @@ function desenharDispersao() {
 // O estado da página fica na URL (?a=...&b=...&m=...&min=...&top=...): quem abre o link vê a mesma
 // comparação e o mesmo ranking. Valores inválidos na URL são ignorados e ficam os padrões.
 
-const PADROES = { a: "Islam Makhachev", b: "Merab Dvalishvili", m: "taxa_vitoria", min: 4, top: 10 };
+const PADROES = { a: "Islam Makhachev", b: "Merab Dvalishvili", m: "taxa_vitoria", min: 4, top: 10, rm: "sig" };
 const TAMANHOS_TOP = [10, 15, 20];
 let urlPronta = false; // só escreve na URL depois de aplicar o estado inicial
 
@@ -476,8 +578,10 @@ function lerEstadoDaUrl() {
     return Number.isInteger(n) && n >= minimo && n <= maximo ? n : padrao;
   };
   const m = p.get("m");
+  const rm = p.get("rm");
   const top = parseInt(p.get("top"), 10);
   return {
+    rm: rm in METRICAS_ROUND ? rm : PADROES.rm,
     a: nomeValido(p.get("a"), PADROES.a),
     b: nomeValido(p.get("b"), PADROES.b),
     m: m in METRICAS && m !== "kd_luta" ? m : PADROES.m,
@@ -498,6 +602,7 @@ function atualizarUrl() {
   p.set("m", document.getElementById("metrica").value);
   p.set("min", document.getElementById("min-lutas").value);
   p.set("top", document.getElementById("tamanho").value);
+  p.set("rm", document.getElementById("metrica-round").value);
   // replaceState: atualiza o endereço sem criar uma entrada nova no histórico a cada mudança
   history.replaceState(null, "", `${location.pathname}?${p}${location.hash}`);
 
@@ -554,7 +659,16 @@ async function iniciar() {
     opcao.textContent = metrica.rotulo;
     seletor.appendChild(opcao);
   }
+  const seletorRound = document.getElementById("metrica-round");
+  for (const [chave, metrica] of Object.entries(METRICAS_ROUND)) {
+    const opcao = document.createElement("option");
+    opcao.value = chave;
+    opcao.textContent = metrica.rotulo;
+    seletorRound.appendChild(opcao);
+  }
+
   const estado = lerEstadoDaUrl();
+  seletorRound.value = estado.rm;
   seletor.value = estado.m;
   document.getElementById("min-lutas").value = estado.min;
   document.getElementById("tamanho").value = estado.top;
@@ -564,6 +678,8 @@ async function iniciar() {
   ["lutador-a", "lutador-b"].forEach((id) => configurarCampoLutador(document.getElementById(id)));
   ["metrica", "min-lutas", "tamanho"].forEach((id) => document.getElementById(id).addEventListener("change", desenharRanking));
   prepararDispersao();
+  prepararRounds();
+  seletorRound.addEventListener("change", () => { desenharRounds(); atualizarUrl(); });
   document.querySelectorAll("button.copiar").forEach((botao) => {
     botao.addEventListener("click", () => copiarLink(botao.dataset.secao, botao.nextElementSibling));
   });
