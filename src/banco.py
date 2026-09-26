@@ -26,6 +26,12 @@ ESTATISTICAS = {
     "Distance_landed": "distancia", "Clinch_landed": "clinch", "Ground_landed": "chao",
 }
 
+# Colunas vindas da página do evento (data/raw/lutas_evento.csv, juntadas por src/atualizar.py) -> tabela lutas
+DADOS_DA_LUTA = {
+    "Weight_Class": "categoria", "Title_Bout": "disputa_titulo",
+    "Fight_Bonus": "bonus_luta", "Perf_Bonus": "bonus_performance",
+}
+
 
 def montar_tabelas(resumo, por_round, datas_eventos):
     """Separa os CSVs (uma linha por lutador-luta) em eventos, lutas, desempenho e desempenho_round."""
@@ -37,14 +43,16 @@ def montar_tabelas(resumo, por_round, datas_eventos):
     eventos.insert(0, "evento_id", range(1, len(eventos) + 1))
     eventos = eventos.rename(columns={"Event_URL": "url", "Event_Name": "nome"})
 
-    lutas = resumo.drop_duplicates("Fight_URL")[["Fight_URL", "Event_URL", "Method", "Final_Round", "Time", "Referee"]]
+    lutas = resumo.drop_duplicates("Fight_URL")[["Fight_URL", "Event_URL", "Method", "Final_Round", "Time", "Referee",
+                                                 *DADOS_DA_LUTA]]
     lutas = tempo_para_segundos(lutas.assign(Tempo=lutas["Time"]), "Tempo").reset_index(drop=True)
     lutas["duracao_seg"] = (lutas["Final_Round"] - 1) * 300 + lutas["Tempo_seconds"]
     lutas.insert(0, "luta_id", range(1, len(lutas) + 1))
     lutas["evento_id"] = lutas["Event_URL"].map(eventos.set_index("url")["evento_id"])
     lutas = lutas.rename(columns={"Fight_URL": "url", "Method": "metodo", "Final_Round": "round_final",
-                                  "Time": "tempo_final", "Referee": "arbitro"})
-    lutas = lutas[["luta_id", "url", "evento_id", "metodo", "round_final", "tempo_final", "duracao_seg", "arbitro"]]
+                                  "Time": "tempo_final", "Referee": "arbitro", **DADOS_DA_LUTA})
+    lutas = lutas[["luta_id", "url", "evento_id", "metodo", "round_final", "tempo_final", "duracao_seg", "arbitro",
+                   *DADOS_DA_LUTA.values()]]
 
     id_da_luta = lutas.set_index("url")["luta_id"]
 

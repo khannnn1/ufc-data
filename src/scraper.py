@@ -131,6 +131,44 @@ def extrair_urls_evento(url_evento, driver):
     return [linha["data-link"] for linha in linhas_luta if linha.has_attr("data-link")]
 
 
+ICONES_PERFORMANCE = {"perf.png", "sub.png", "ko.png"}  # sub/ko: nomes antigos do bônus de performance
+
+
+def extrair_lutas_da_pagina_evento(html_evento):
+    """Categoria de peso, disputa de cinturão e bônus de cada luta, lidos da tabela da página do evento.
+
+    Os três ficam na célula "Weight class": o texto é a categoria e os ícones marcam cinturão
+    (belt.png), Luta da Noite (fight.png) e Performance da Noite (perf.png).
+    """
+    soup = BeautifulSoup(html_evento, "html.parser")
+    cabecalho = [th.get_text(strip=True) for th in soup.select("thead th")]
+    coluna = cabecalho.index("Weight class")
+
+    lutas = []
+    for linha in soup.find_all("tr", class_="b-fight-details__table-row"):
+        if not linha.has_attr("data-link"):
+            continue
+        celula = linha.find_all("td")[coluna]
+        icones = {img["src"].rsplit("/", 1)[-1] for img in celula.find_all("img")}
+        lutas.append({
+            "Fight_URL": linha["data-link"],
+            "Weight_Class": celula.get_text(strip=True),
+            "Title_Bout": int("belt.png" in icones),
+            "Fight_Bonus": int("fight.png" in icones),
+            "Perf_Bonus": int(bool(icones & ICONES_PERFORMANCE)),
+        })
+    return lutas
+
+
+def extrair_lutas_evento(url_evento, driver):
+    """DataFrame com categoria, cinturão e bônus das lutas de um evento (uma linha por luta)."""
+    driver.get(url_evento)
+    time.sleep(5)
+    df = pd.DataFrame(extrair_lutas_da_pagina_evento(driver.page_source))
+    df.insert(0, "Event_URL", url_evento)
+    return df
+
+
 def extrair_evento(url_evento, driver):
     """Extrai os dados de todas as lutas de um evento."""
     urls_lutas = extrair_urls_evento(url_evento, driver)

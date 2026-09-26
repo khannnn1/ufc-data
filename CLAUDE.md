@@ -87,7 +87,11 @@ Definido em `src/visualizacao.py`:
   `extrair_varios_eventos(eventos, driver, limite)`,
   `extrair_eventos_multiplas_paginas(driver, num_paginas)`,
   `extrair_eventos_da_pagina(html)` — eventos da listagem já com a data
-  (`{"nome", "url", "data": "AAAA-MM-DD"}`)
+  (`{"nome", "url", "data": "AAAA-MM-DD"}`),
+  `extrair_lutas_da_pagina_evento(html)` / `extrair_lutas_evento(url, driver)`
+  — categoria de peso, cinturão e bônus de cada luta, lidos da célula
+  "Weight class" da página do evento (texto = categoria; ícones belt.png,
+  fight.png = Luta da Noite, perf.png = Performance da Noite)
 - **limpeza.py**: `separar_landed_attempted` (split "X of Y" em
   landed/attempted), `limpar_percentual` (remove %, trata "---" como NaN),
   `tempo_para_segundos` (formato "M:SS" -> segundos), `limpar_dataset(df)`
@@ -105,7 +109,8 @@ Definido em `src/visualizacao.py`:
 
 ## Banco SQL (SQLite)
 Tabelas: `eventos` (evento_id, url, nome) → `lutas` (luta_id, url,
-evento_id, metodo, round_final, tempo_final, duracao_seg, arbitro) →
+evento_id, metodo, round_final, tempo_final, duracao_seg, arbitro,
+categoria, disputa_titulo, bonus_luta, bonus_performance — flags 0/1) →
 `desempenho` (PK luta_id+lutador; resultado W/L/D/NC; kd, sig_acertados,
 sig_tentados, total_*, quedas, quedas_tentadas, tent_finalizacao,
 reversoes, controle_seg, cabeca/corpo/perna, distancia/clinch/chao) →
@@ -136,14 +141,17 @@ antigos foi considerado e descartado (muda o sentido de "no período").
 lê a listagem do ufcstats até achar a base, coleta só eventos MAIS NOVOS
 que o último (data <= hoje) com `extrair_varios_eventos` (append nos CSVs
 brutos), refaz os processados com `limpar_dataset`, grava
-`data/processed/eventos.csv` (Event_URL, Event_Name, Event_Date) e regenera
+`data/processed/eventos.csv` (Event_URL, Event_Name, Event_Date), completa
+`data/raw/lutas_evento.csv` (uma linha por luta: categoria/cinturão/bônus;
+lê a página de cada evento da base que ainda não esteja nele, ~7 s cada) e
+junta essas colunas ao resumo limpo (`adicionar_dados_das_lutas`), e regenera
 `dados/lutadores.json` e `data/ufc.db`. `--graficos` também reexecuta os
 notebooks 02 e 03. Textos com números fixos (badges/legendas do
 `index.html`, README) NÃO se atualizam sozinhos. Testado de ponta a ponta
 numa cópia da base sem o UFC 331: recoletou o evento idêntico ao original.
 
 Datasets finais processados:
-- `data/processed/dataset_final_resumo_limpo.csv` — (3674, 24), uma linha
+- `data/processed/dataset_final_resumo_limpo.csv` — (3674, 37), uma linha
   por lutador-luta
 - `data/processed/dataset_final_round_limpo.csv` — (8910, 20), uma linha
   por lutador-luta-round
@@ -154,6 +162,10 @@ sem acento): `Fighter`, `KD`, `Sig. str. %`, `Td %`, `Sub. att`, `Rev.`,
 "Submission"), `Final_Round`, `Time`, `Referee`, `Fight_URL`, `Event_URL`,
 `Event_Name`, e pares `_landed`/`_attempted` para Sig_str, Total_str, Td,
 Head, Body, Leg, Distance, Clinch, Ground, além de `Ctrl_seconds`.
+Dados da luta vindos da página do evento: `Weight_Class` (ex: "Lightweight",
+"Women's Strawweight", "Catch Weight" = peso casado, 28 lutas; "Women's
+Featherweight" só tem 4), `Title_Bout`, `Fight_Bonus`, `Perf_Bonus` (0/1;
+76 disputas de cinturão, 101 Lutas da Noite, 408 Performances no período).
 O dataset por round tem as mesmas colunas + `Round` (1-5), sem as colunas
 de metadados da luta (Method, Time, Referee etc, que só existem no resumo).
 

@@ -23,7 +23,11 @@ CREATE TABLE lutas (
     round_final  INTEGER NOT NULL,
     tempo_final  TEXT NOT NULL,     -- 'M:SS' dentro do round final
     duracao_seg  INTEGER NOT NULL,  -- (round_final - 1) * 300 + tempo_final em segundos
-    arbitro      TEXT
+    arbitro      TEXT,
+    categoria    TEXT,              -- categoria de peso, ex.: 'Lightweight', "Women's Flyweight", 'Catch Weight'
+    disputa_titulo      INTEGER CHECK (disputa_titulo IN (0, 1)),       -- luta valendo cinturão
+    bonus_luta          INTEGER CHECK (bonus_luta IN (0, 1)),           -- Luta da Noite
+    bonus_performance   INTEGER CHECK (bonus_performance IN (0, 1))     -- Performance da Noite (do vencedor)
 );
 
 -- Uma linha por lutador em cada luta
