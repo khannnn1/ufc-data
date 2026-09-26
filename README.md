@@ -1,65 +1,112 @@
 # UFC Data — Análise Estatística de MMA
 
-🔗 **[Ver o projeto publicado](https://khannnn1.github.io/ufc-data/)** · **[Explorar os dados (interativo)](https://khannnn1.github.io/ufc-data/interativo.html)**
+🔗 **[Ver os gráficos](https://khannnn1.github.io/ufc-data/)** · **[Explorar os dados (interativo)](https://khannnn1.github.io/ufc-data/interativo.html)**
 
-Projeto de coleta, tratamento e visualização de dados de lutas do UFC, com estilo editorial inspirado em contas de dados esportivos como @DataFut.
+Projeto de ponta a ponta com dados de lutas do UFC: **coleta** por web scraping, **limpeza** e **análise** em Python, **visualização** em estilo editorial (inspirado em contas de dados esportivos como @DataFut) e um **site interativo** em JavaScript, onde o visitante compara lutadores e monta os próprios rankings.
 
-## O que o projeto faz
+![O que separa vencedores de perdedores](figures/vencedores_vs_perdedores.png)
 
-- **Coleta (web scraping):** extrai dados de lutas, eventos e estatísticas detalhadas (golpes, quedas, controle de posição) direto do [ufcstats.com](http://ufcstats.com), usando Selenium (para contornar a proteção anti-bot do site) e BeautifulSoup.
-- **Limpeza e tratamento:** converte campos de texto (ex: `"181 of 305"`, `"59%"`) em dados numéricos prontos para análise, tratando casos de borda (valores ausentes, lutas sem tentativas de determinada ação).
-- **Visualização:** gráficos em dark mode / estilo editorial, feitos com Matplotlib, pensados para leitura rápida em redes sociais.
+## Destaques da análise
 
-## Escopo dos dados
+Recorte de **149 eventos recentes do UFC: 1.837 lutas e 963 lutadores**.
 
-149 eventos do UFC (os mais recentes disponíveis no momento da coleta), totalizando aproximadamente 3.700 registros de lutador-luta e 8.900 linhas de estatísticas por round.
+- **Metade das lutas termina antes da decisão dos juízes:** 32% por nocaute e 17% por finalização.
+- **Knockdown é o que mais separa vencedores de perdedores:** quem vence derruba o adversário 8,4× mais. Nos golpes significativos a diferença é bem menor (1,5×): quem perde também troca bastante.
+- **A luta se decide no chão:** vencedores acertam 13% dos golpes no chão, contra 3,5% dos perdedores, quase 4× mais.
+- **Nocautes acontecem mais cedo que finalizações:** 54% dos nocautes saem no 1º round, contra 46% das finalizações, que pesam mais no 2º e 3º rounds.
+- **Volume e precisão quase não se relacionam** (correlação de −0,15): há lutadores de todos os estilos, de quem arrisca muito a quem espera o golpe certo.
+- **63% dos golpes significativos acertam a cabeça**, mas há especialistas que acertam mais nas pernas do que em qualquer outro alvo.
 
-## Alguns resultados
+## O site
 
-**Métodos de vitória mais comuns**
-![Métodos de vitória](figures/metodos_vitoria.png)
+- **[Gráficos](https://khannnn1.github.io/ufc-data/)** (`index.html`): 17 gráficos com a leitura de cada um.
+- **[Explorar os dados](https://khannnn1.github.io/ufc-data/interativo.html)** (`interativo.html`):
+  - **Comparar lutadores:** escolha dois lutadores quaisquer e veja cartel e médias por luta lado a lado.
+  - **Monte o seu ranking:** escolha a métrica (13 opções), o mínimo de lutas e o tamanho do top. Clique numa barra para levar o lutador ao comparador.
 
-**Top 10 por precisão de golpes significativos**
-![Top 10 por precisão de golpes](figures/top10_precisao.png)
+## Pipeline
 
-**Top 10 por Knockdowns**
-![Top 10 por Knockdowns](figures/top10_kd.png)
+```
+ufcstats.com
+   │  scraper.py (Selenium + BeautifulSoup)
+   ▼
+data/raw/*.csv
+   │  limpeza.py
+   ▼
+data/processed/*.csv
+   ├──► notebooks (Matplotlib) ──► figures/*.png ──► index.html
+   └──► exportar.py ──► dados/lutadores.json ──► interativo.html (Chart.js)
+```
 
-**Top 10 por tempo de controle**
-![Top 10 por tempo de controle](figures/top10_ctrl.png)
+1. **Coleta** (`src/scraper.py`): o ufcstats.com bloqueia requisições simples com uma verificação anti-bot que exige JavaScript, então a coleta usa Selenium em modo headless e lê o HTML depois que a página carrega. As tabelas de estatísticas trazem os dois lutadores na mesma célula, e o `pandas.read_html` não separa isso, por isso o parsing é feito manualmente com BeautifulSoup. A coleta em lote salva cada evento no CSV assim que termina, para não perder o progresso se a conexão cair.
+2. **Limpeza** (`src/limpeza.py`): converte `"181 of 305"` em duas colunas numéricas (acertados/tentados), percentuais em número e tempos `M:SS` em segundos. `"---"` (nenhuma tentativa) vira ausente, e não 0%.
+3. **Análise e gráficos** (`notebooks/02_visualizacao.ipynb` + `src/visualizacao.py`): padrão visual único (fundo escuro, barras com o valor escrito na ponta, sem eixo quando ele não acrescenta).
+4. **Exportação** (`src/exportar.py`): agrega os totais por lutador em um JSON pequeno (≈210 KB); médias e percentuais são calculados no navegador.
+
+## Decisões de análise
+
+Alguns cuidados que mudam o resultado e que estão aplicados nos gráficos:
+
+- **Médias por luta, não somas**, ao comparar lutadores com números de lutas diferentes.
+- **Amostra mínima em todo ranking de taxa ou precisão** (ex.: taxa de vitória só com 6+ lutas; precisão de quedas com 15+ tentativas e 3+ lutas). Sem isso, o topo vira quem tentou pouco e acertou tudo.
+- **Uma linha por luta** quando a pergunta é sobre lutas. O dataset tem uma linha por lutador em cada luta, e contar direto dobraria tudo (um erro que o projeto teve e corrigiu).
+- **Volume por minuto, não por luta**, para não penalizar quem finaliza cedo.
+- **Associação não é causa**, e isso aparece nas legendas: um knockdown muitas vezes já é o começo do fim da luta; a taxa de finalização de um árbitro reflete as lutas que ele recebe, não o estilo dele.
+- **Viés de sobrevivência**: rounds avançados só existem em lutas longas, então médias por round não comparam as mesmas lutas.
+
+## Gráficos
+
+| Tema | Gráficos |
+|---|---|
+| Como as lutas terminam | métodos de vitória · round em que as lutas terminam, por método · lutas encerradas antes da decisão, por árbitro |
+| O que decide a luta | vencedores × perdedores · de onde saem os golpes (distância, clinch, chão) |
+| Estilo de luta | volume × precisão (dispersão) · onde os golpes acertam (cabeça, corpo, perna) · evolução de golpes por round |
+| Rankings | vitórias · taxa de vitória · nocautes · finalizações · knockdowns · tempo de controle · precisão de golpes · precisão de quedas |
+| Lutadores | comparação cara a cara entre dois lutadores |
+
+Todas as imagens estão em [`figures/`](figures/), e o código de cada uma em [`notebooks/02_visualizacao.ipynb`](notebooks/02_visualizacao.ipynb).
 
 ## Stack
 
-Python · Selenium · BeautifulSoup · Pandas · Matplotlib · Jupyter
+**Python** (Pandas, NumPy, Matplotlib, Selenium, BeautifulSoup, Jupyter) · **JavaScript** (Chart.js) · **HTML/CSS** · **Git** (Git Flow) · **GitHub Pages**
 
 ## Estrutura do projeto
-├── data/
-│ ├── raw/ # dados brutos extraídos do scraper (não versionados)
-│ └── processed/ # dados limpos, prontos para análise (não versionados)
-├── figures/ # gráficos exportados
-├── notebooks/
-│ ├── 00_teste_ambiente.ipynb # validação inicial do ambiente
-│ ├── 01_scrapper_test_luta.ipynb # coleta e limpeza
-│ └── 02_visualizacao.ipynb # geração dos gráficos
-├── src/
-│ ├── scraper.py # funções de coleta (Selenium + BeautifulSoup)
-│ ├── limpeza.py # funções de tratamento de dados
-│ └── visualizacao.py # estilo visual e funções de plotagem
-└── requirements.txt
 
+```
+├── data/                  # CSVs brutos e limpos (não versionados)
+├── dados/lutadores.json   # dados agregados que o site interativo lê
+├── figures/               # gráficos exportados (.png)
+├── js/interativo.js       # lógica do site interativo
+├── notebooks/
+│   ├── 00_teste_ambiente.ipynb
+│   ├── 01_scrapper_test_luta.ipynb   # coleta e limpeza
+│   └── 02_visualizacao.ipynb         # análise e gráficos
+├── src/
+│   ├── scraper.py         # coleta (Selenium + BeautifulSoup)
+│   ├── limpeza.py         # tratamento dos dados
+│   ├── visualizacao.py    # padrão visual e funções de plotagem
+│   ├── exportar.py        # gera dados/lutadores.json
+│   └── config.py          # constantes
+├── index.html             # página com os gráficos
+├── interativo.html        # comparador e rankings
+└── requirements.txt
+```
 
 ## Como rodar
 
 ```bash
 python -m venv venv
-venv\Scripts\Activate.ps1   # Windows
+venv\Scripts\Activate.ps1          # Windows (Linux/macOS: source venv/bin/activate)
 pip install -r requirements.txt
 ```
 
-Depois, abra os notebooks em `notebooks/` no VS Code ou Jupyter, na ordem: `00` → `01` → `02`.
+- **Coleta e limpeza:** `notebooks/01_scrapper_test_luta.ipynb` (precisa do Google Chrome instalado para o Selenium).
+- **Gráficos:** `notebooks/02_visualizacao.ipynb`.
+- **Dados do site interativo:** `python -m src.exportar` (na raiz do projeto) regenera `dados/lutadores.json`.
+- **Ver o site localmente:** `python -m http.server` e abrir `http://localhost:8000`. Abrir o HTML direto do disco não funciona, porque o navegador bloqueia a leitura do JSON.
 
 ## Próximos passos
 
-- Gráfico comparativo direto entre dois lutadores
-- Análise de evolução de desempenho por round
-- Página/dashboard estático para publicação do projeto
+- Consultas em **SQL** sobre os mesmos dados (SQLite), respondendo às perguntas dos gráficos.
+- Link compartilhável no site interativo (a comparação escolhida fica no endereço da página).
+- Atualizar a base com os eventos mais recentes.
