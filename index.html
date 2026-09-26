@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UFC Data — Análise Estatística de MMA</title>
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --card-bg: #161616;
+    --text: #f5f5f5;
+    --muted: #9a9a9a;
+    --vermelho: #e63946;
+    --azul: #457b9d;
+    --grid-line: #2a2a2a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+  }
+  header {
+    padding: 60px 20px 40px;
+    text-align: center;
+    border-bottom: 1px solid var(--grid-line);
+  }
+  header h1 {
+    font-size: 2.2rem;
+    margin: 0 0 12px;
+  }
+  header h1 span { color: var(--vermelho); }
+  header p {
+    color: var(--muted);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .badges {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    background: var(--card-bg);
+    border: 1px solid var(--grid-line);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 50px 20px;
+  }
+  .grafico {
+    margin-bottom: 60px;
+  }
+  .grafico h2 {
+    font-size: 1.2rem;
+    border-left: 4px solid var(--vermelho);
+    padding-left: 12px;
+    margin-bottom: 16px;
+  }
+  .grafico img {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--grid-line);
+    display: block;
+  }
+  .grafico p.legenda {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-top: 10px;
+  }
+  footer {
+    text-align: center;
+    padding: 40px 20px 60px;
+    color: var(--muted);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--grid-line);
+  }
+  footer a { color: var(--azul); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>UFC <span>Data</span></h1>
+  <p>Coleta, tratamento e visualização de dados de lutas do UFC, com estilo editorial inspirado em contas de dados esportivos.</p>
+  <div class="badges">
+    <span class="badge">149 eventos</span>
+    <span class="badge">~3.700 lutas analisadas</span>
+    <span class="badge">Python · Selenium · Pandas · Matplotlib</span>
+  </div>
+</header>
+
+<main>
+
+  <div class="grafico">
+    <h2>Métodos de vitória mais comuns</h2>
+    <img src="figures/metodos_vitoria.png" alt="Métodos de vitória mais comuns">
+    <p class="legenda">Decisões unânimes e nocautes dominam o cenário, seguidos por finalizações.</p>
+  </div>
+
+  <div class="grafico">
+    <h2>Top 10 por precisão de golpes significativos</h2>
+    <img src="figures/top10_precisao.png" alt="Top 10 por precisão de golpes">
+    <p class="legenda">Considerando apenas lutadores com pelo menos 50 tentativas de golpe no período.</p>
+  </div>
+
+  <div class="grafico">
+    <h2>Top 10 por Knockdowns</h2>
+    <img src="figures/top10_kd.png" alt="Top 10 por Knockdowns">
+  </div>
+
+  <div class="grafico">
+    <h2>Top 10 por tempo de controle</h2>
+    <img src="figures/top10_ctrl.png" alt="Top 10 por tempo de controle">
+  </div>
+
+  <div class="grafico">
+    <h2>Comparação direta entre lutadores</h2>
+    <img src="figures/comparacao_Islam_Makhachev_vs_Merab_Dvalishvili.png" alt="Comparação Islam Makhachev vs Merab Dvalishvili">
+    <p class="legenda">Médias por luta, com o número de lutas na amostra exibido na legenda para transparência estatística.</p>
+  </div>
+
+  <div class="grafico">
+    <h2>Evolução de golpes significativos por round</h2>
+    <img src="figures/evolucao_golpes_por_round.png" alt="Evolução de golpes por round">
+    <p class="legenda">O aumento ao longo dos rounds provavelmente reflete viés de sobrevivência: rounds avançados só existem em lutas de decisão/atrito.</p>
+  </div>
+
+</main>
+
+<footer>
+  Projeto de <a href="https://github.com/khannnn1/ufc-data">código aberto no GitHub</a> · Dados de <a href="http://ufcstats.com">ufcstats.com</a>
+</footer>
+
+</body>
+</html>
