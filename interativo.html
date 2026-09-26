@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UFC Data — Explore os dados</title>
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --card-bg: #161616;
+    --text: #f5f5f5;
+    --muted: #9a9a9a;
+    --vermelho: #e63946;
+    --azul: #457b9d;
+    --grid-line: #2a2a2a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+  }
+  header {
+    padding: 50px 20px 32px;
+    text-align: center;
+    border-bottom: 1px solid var(--grid-line);
+  }
+  header h1 { font-size: 2rem; margin: 0 0 10px; }
+  header h1 span { color: var(--vermelho); }
+  header p { color: var(--muted); max-width: 640px; margin: 0 auto; }
+  header a.voltar { display: inline-block; margin-top: 16px; color: var(--azul); text-decoration: none; font-size: 0.9rem; }
+  header a.voltar:hover { text-decoration: underline; }
+  main { max-width: 1100px; margin: 0 auto; padding: 40px 16px; }
+  section { margin-bottom: 64px; }
+  section h2 {
+    font-size: 1.2rem;
+    border-left: 4px solid var(--vermelho);
+    padding-left: 12px;
+    margin: 0 0 6px;
+  }
+  section > p.intro { color: var(--muted); margin: 0 0 20px; font-size: 0.92rem; }
+
+  .controles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    align-items: flex-end;
+    margin-bottom: 20px;
+  }
+  .campo { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .campo label { font-size: 0.8rem; color: var(--muted); }
+  .campo input, .campo select {
+    background: var(--card-bg);
+    color: var(--text);
+    border: 1px solid var(--grid-line);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font: inherit;
+    font-size: 0.95rem;
+    min-width: 0;
+  }
+  .campo input:focus, .campo select:focus { outline: 2px solid var(--azul); outline-offset: 1px; }
+  .campo.lutador input { width: 260px; max-width: 100%; }
+  .campo.lutador.a input { border-left: 4px solid var(--azul); }
+  .campo.lutador.b input { border-left: 4px solid var(--vermelho); }
+  .campo.metrica select { width: 280px; max-width: 100%; }
+  .campo.numero input { width: 90px; }
+  .aviso { color: var(--vermelho); font-size: 0.85rem; min-height: 1.3em; margin: -8px 0 12px; }
+
+  .cartoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .cartao {
+    background: var(--card-bg);
+    border: 1px solid var(--grid-line);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .cartao.a { border-top: 3px solid var(--azul); }
+  .cartao.b { border-top: 3px solid var(--vermelho); }
+  .cartao .nome { font-weight: 700; font-size: 1.05rem; }
+  .cartao .cartel { font-size: 1.6rem; font-weight: 700; margin: 2px 0; }
+  .cartao .detalhe { color: var(--muted); font-size: 0.85rem; }
+
+  .paineis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .painel {
+    background: var(--card-bg);
+    border: 1px solid var(--grid-line);
+    border-radius: 10px;
+    padding: 12px 14px 8px;
+  }
+  .painel h3 { font-size: 0.9rem; font-weight: 600; margin: 0; }
+  .painel .area { position: relative; height: 90px; }
+
+  .grafico-ranking {
+    background: var(--card-bg);
+    border: 1px solid var(--grid-line);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .grafico-ranking .area { position: relative; }
+  .nota { color: var(--muted); font-size: 0.82rem; margin-top: 10px; }
+
+  details { margin-top: 12px; }
+  summary { cursor: pointer; color: var(--muted); font-size: 0.88rem; }
+  .tabela-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--grid-line); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 600; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  footer {
+    text-align: center;
+    padding: 40px 20px 60px;
+    color: var(--muted);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--grid-line);
+  }
+  footer a { color: var(--azul); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  @media (max-width: 700px) {
+    header { padding: 36px 16px 24px; }
+    header h1 { font-size: 1.6rem; }
+    .cartoes, .paineis { grid-template-columns: minmax(0, 1fr); }
+    .campo.lutador, .campo.metrica { flex: 1 1 100%; }
+    .campo.lutador input, .campo.metrica select { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>UFC <span>Data</span> — explore os dados</h1>
+  <p id="resumo-dados">Compare dois lutadores quaisquer ou monte o seu próprio ranking.</p>
+  <a class="voltar" href="index.html">← Voltar para os gráficos</a>
+</header>
+
+<main>
+
+  <section id="comparador">
+    <h2>Comparar lutadores</h2>
+    <p class="intro">Médias por luta no período. Cada métrica tem a sua própria escala, por isso um painel para cada.</p>
+
+    <div class="controles">
+      <div class="campo lutador a">
+        <label for="lutador-a">Lutador 1</label>
+        <input id="lutador-a" list="lista-lutadores" autocomplete="off" placeholder="Digite um nome">
+      </div>
+      <div class="campo lutador b">
+        <label for="lutador-b">Lutador 2</label>
+        <input id="lutador-b" list="lista-lutadores" autocomplete="off" placeholder="Digite um nome">
+      </div>
+    </div>
+    <datalist id="lista-lutadores"></datalist>
+    <p class="aviso" id="aviso-comparador" role="status"></p>
+
+    <div class="cartoes">
+      <div class="cartao a" id="cartao-a"></div>
+      <div class="cartao b" id="cartao-b"></div>
+    </div>
+    <div class="paineis" id="paineis"></div>
+    <p class="nota">Amostras pequenas (poucas lutas no período) oscilam muito: confira o número de lutas no cartão de cada um.</p>
+  </section>
+
+  <section id="ranking">
+    <h2>Monte o seu ranking</h2>
+    <p class="intro">Escolha a métrica e o mínimo de lutas no período. Clique numa barra para levar o lutador ao comparador.</p>
+
+    <div class="controles">
+      <div class="campo metrica">
+        <label for="metrica">Métrica</label>
+        <select id="metrica"></select>
+      </div>
+      <div class="campo numero">
+        <label for="min-lutas">Mín. de lutas</label>
+        <input id="min-lutas" type="number" min="1" max="12" value="4">
+      </div>
+      <div class="campo numero">
+        <label for="tamanho">Top</label>
+        <select id="tamanho">
+          <option value="10" selected>10</option>
+          <option value="15">15</option>
+          <option value="20">20</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grafico-ranking">
+      <div class="area" id="area-ranking"><canvas id="canvas-ranking" role="img"></canvas></div>
+      <p class="nota" id="nota-ranking"></p>
+    </div>
+
+    <details>
+      <summary>Ver como tabela</summary>
+      <div class="tabela-wrap"><table id="tabela-ranking"></table></div>
+    </details>
+  </section>
+
+</main>
+
+<footer>
+  Projeto de <a href="https://github.com/khannnn1/ufc-data">código aberto no GitHub</a> · Dados de <a href="http://ufcstats.com">ufcstats.com</a> · Gráficos com <a href="https://www.chartjs.org/">Chart.js</a>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="js/interativo.js"></script>
+</body>
+</html>

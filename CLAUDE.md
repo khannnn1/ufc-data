@@ -26,8 +26,14 @@ ProjetoUFC/
 │   ├── scraper.py       # coleta (Selenium + BeautifulSoup)
 │   ├── limpeza.py        # tratamento de dados
 │   ├── visualizacao.py   # estilo e funções de plotagem
+│   ├── exportar.py       # gera dados/lutadores.json para o site interativo
 │   └── config.py         # constantes (COLUNAS_OF, COLUNAS_PCT)
+├── dados/
+│   └── lutadores.json  # totais por lutador (VERSIONADO: o site lê daqui)
+├── js/
+│   └── interativo.js   # lógica da página interativa (Chart.js)
 ├── index.html          # página estática publicada via GitHub Pages
+├── interativo.html     # comparador de lutadores + montador de rankings
 ├── requirements.txt
 └── README.md
 ```
@@ -79,6 +85,8 @@ Definido em `src/visualizacao.py`:
 - **visualizacao.py**: `aplicar_estilo_dark`, `estilizar_grafico`,
   `adicionar_valores_barras`, `COR_VERMELHO`, `COR_AZUL`, `COR_AMARELO`
 - **config.py**: `COLUNAS_OF`, `COLUNAS_PCT`
+- **exportar.py**: `agregar_lutadores(df)`, `exportar_lutadores()` — gera
+  `dados/lutadores.json` para o site interativo
 
 Os notebooks importam esses módulos via:
 ```python
@@ -177,11 +185,20 @@ git push origin main
 
 ## Próximos passos / direção atual
 Projeto já é considerado pronto para uso em currículo como está. Trabalho
-atual é por aprendizado: continuar criando gráficos, e depois evoluir a
-página estática (`index.html`, hoje com imagens PNG fixas) para uma versão
-**interativa**, permitindo ao visitante criar os próprios gráficos e comparar
-lutadores arbitrariamente. Isso vai exigir, futuramente:
-- Exportar os dados (ou um subconjunto agregado) como JSON/CSV consumível
-  pelo navegador, em vez de só imagens estáticas
-- Introduzir JavaScript no projeto pela primeira vez, provavelmente com uma
-  lib de gráficos como Chart.js
+atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
+`interativo.html`, a versão **interativa** (1ª versão):
+- `python -m src.exportar` (na raiz, com o venv) regenera
+  `dados/lutadores.json` a partir do dataset resumo limpo. O JSON guarda
+  TOTAIS por lutador (chaves curtas: n, w, l, d, nc, ko, subw, kd, sl, sa,
+  tl, ta, tdl, tda, sub, ctrl, head, body, leg, dist, clinch, ground, dur);
+  médias e percentuais são calculados no JS (`METRICAS` em
+  `js/interativo.js`). Rodar de novo sempre que o dataset mudar.
+- Comparador: 2 lutadores (datalist com autocomplete), cartões com cartel e
+  um painel Chart.js por métrica (escalas diferentes, sem eixo único).
+- Rankings: métrica + mín. de lutas + top N; clique na barra leva o lutador
+  ao comparador; tabela equivalente em `<details>`. Precisões exigem
+  amostra mínima de tentativas (`requisito` em cada métrica).
+- Chart.js 4.4.1 via jsdelivr; plugin próprio `valoresNaPonta` escreve o
+  valor na ponta da barra (mesmo padrão dos PNGs).
+- Testar localmente com `python -m http.server` (o `fetch` do JSON não
+  funciona abrindo o HTML direto do disco).

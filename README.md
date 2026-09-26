@@ -1,6 +1,6 @@
 # UFC Data — Análise Estatística de MMA
 
-🔗 **[Ver o projeto publicado](https://khannnn1.github.io/ufc-data/)**
+🔗 **[Ver o projeto publicado](https://khannnn1.github.io/ufc-data/)** · **[Explorar os dados (interativo)](https://khannnn1.github.io/ufc-data/interativo.html)**
 
 Projeto de coleta, tratamento e visualização de dados de lutas do UFC, com estilo editorial inspirado em contas de dados esportivos como @DataFut.
 
