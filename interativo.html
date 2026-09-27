@@ -99,6 +99,20 @@
   .cartao .fisico { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--grid-line); }
   .cartao .fisico:empty { display: none; }
 
+  .no-papel {
+    background: var(--card-bg);
+    border: 1px solid var(--grid-line);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin: -8px 0 20px;
+    font-size: 0.88rem;
+  }
+  .no-papel h3 { font-size: 0.8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 6px; }
+  .no-papel p { margin: 4px 0; }
+  .no-papel .lado-a { color: var(--azul); }
+  .no-papel .lado-b { color: var(--vermelho); }
+  .no-papel .rodape { color: var(--muted); font-size: 0.8rem; margin-top: 8px; }
+
   .paineis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .painel {
     background: var(--card-bg);
@@ -185,6 +199,7 @@
       <div class="cartao a" id="cartao-a"></div>
       <div class="cartao b" id="cartao-b"></div>
     </div>
+    <div class="no-papel" id="no-papel" hidden></div>
     <div class="paineis" id="paineis"></div>
     <p class="nota">Amostras pequenas (poucas lutas no período) oscilam muito: confira o número de lutas no cartão de cada um.</p>
   </section>
@@ -271,6 +286,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <!-- ?v=N: aumente a cada mudança no JS, para o navegador não usar a versão antiga em cache -->
-<script src="js/interativo.js?v=10"></script>
+<script src="js/interativo.js?v=11"></script>
 </body>
 </html>

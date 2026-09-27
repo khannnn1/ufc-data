@@ -99,6 +99,7 @@ const valoresNaPonta = {
 
 let lutadores = [];
 let porNome = new Map();
+let vantagens = null; // % histórico de vitórias de quem é mais novo / tem mais envergadura, por faixa (JSON)
 const graficos = { paineis: [], ranking: null, dispersao: null, rounds: null };
 
 // ---------- Comparador ----------
@@ -165,6 +166,87 @@ function preencherCartao(elemento, l) {
   elemento.querySelector(".fisico").textContent = linhaFisico(l);
 }
 
+// "No papel": diferença de idade e de envergadura entre os dois, com a taxa histórica de vitória de
+// quem tem essa vantagem na mesma faixa de diferença (as faixas do gráfico idade_vs_envergadura.png).
+function faixaDe(tabela, diferenca) {
+  return tabela.find(([limite]) => limite === null || diferenca <= limite);
+}
+
+function textoFaixa(limite, anterior, unidade) {
+  if (limite === null) return `mais de ${anterior} ${unidade}`;
+  return anterior === 0 ? `até ${limite} ${unidade}` : `${anterior} a ${limite} ${unidade}`;
+}
+
+function linhasNoPapel(a, b) {
+  const linhas = [];
+  if (!vantagens) return linhas;
+
+  if (a.nasc && b.nasc) {
+    // Diferença de idade = diferença entre as datas de nascimento
+    const anos = (new Date(b.nasc) - new Date(a.nasc)) / (365.25 * 24 * 3600 * 1000);
+    if (Math.abs(anos) < 0.5) {
+      linhas.push({ texto: "Os dois têm praticamente a mesma idade." });
+    } else {
+      const novo = anos > 0 ? b : a;
+      const tabela = vantagens.idade;
+      const i = tabela.indexOf(faixaDe(tabela, Math.abs(anos)));
+      const [limite, pct, n] = tabela[i];
+      const faixa = textoFaixa(limite, i ? tabela[i - 1][0] : 0, "anos");
+      const inteiro = Math.round(Math.abs(anos));
+      linhas.push({
+        nome: novo.nome,
+        texto: ` é ${inteiro} ${inteiro === 1 ? "ano" : "anos"} mais novo. Com ${faixa} de diferença, o mais novo venceu ${fmt0.format(pct)}% das lutas do período (${fmt0.format(n)} lutas).`,
+      });
+    }
+  }
+
+  if (a.env && b.env) {
+    const polegadas = Math.round((a.env - b.env) / 2.54 * 10) / 10;
+    if (Math.abs(polegadas) < 0.5) {
+      linhas.push({ texto: "Os dois têm a mesma envergadura." });
+    } else {
+      const maior = polegadas > 0 ? a : b;
+      const tabela = vantagens.env;
+      const i = tabela.indexOf(faixaDe(tabela, Math.abs(polegadas)));
+      const [limite, pct, n] = tabela[i];
+      const anterior = i ? tabela[i - 1][0] : 0;
+      const faixa = limite === null ? `mais de ${anterior}"` : anterior ? `${anterior}" a ${limite}"` : `até ${limite}"`;
+      linhas.push({
+        nome: maior.nome,
+        texto: ` tem ${Math.abs(a.env - b.env)} cm (${fmt0.format(Math.round(Math.abs(polegadas)))}") a mais de envergadura. Com ${faixa} de diferença, quem alcança mais venceu ${fmt0.format(pct)}% (${fmt0.format(n)} lutas).`,
+      });
+    }
+  }
+  return linhas;
+}
+
+function desenharNoPapel(a, b) {
+  const caixa = document.getElementById("no-papel");
+  caixa.innerHTML = "";
+  const linhas = a && b && a !== b ? linhasNoPapel(a, b) : [];
+  caixa.hidden = !linhas.length;
+  if (!linhas.length) return;
+
+  const titulo = document.createElement("h3");
+  titulo.textContent = "No papel";
+  caixa.appendChild(titulo);
+  for (const linha of linhas) {
+    const p = document.createElement("p");
+    if (linha.nome) {
+      const nome = document.createElement("strong");
+      nome.textContent = linha.nome; // via textContent: nunca como HTML
+      nome.className = linha.nome === a.nome ? "lado-a" : "lado-b";
+      p.appendChild(nome);
+    }
+    p.appendChild(document.createTextNode(linha.texto));
+    caixa.appendChild(p);
+  }
+  const nota = document.createElement("p");
+  nota.className = "rodape";
+  nota.textContent = "Taxas históricas de todas as lutas com vencedor no período, não uma previsão: idade pesa bem mais que envergadura.";
+  caixa.appendChild(nota);
+}
+
 function desenharComparador() {
   const nomeA = document.getElementById("lutador-a").value.trim();
   const nomeB = document.getElementById("lutador-b").value.trim();
@@ -177,6 +259,7 @@ function desenharComparador() {
 
   preencherCartao(document.getElementById("cartao-a"), a);
   preencherCartao(document.getElementById("cartao-b"), b);
+  desenharNoPapel(a, b);
 
   graficos.paineis.forEach((g) => g.destroy());
   graficos.paineis = [];
@@ -713,6 +796,7 @@ async function iniciar() {
   }
 
   lutadores = dados.lutadores;
+  vantagens = dados.vantagens || null;
   porNome = new Map(lutadores.map((l) => [l.nome.toLowerCase(), l]));
   // "2023-04-08" -> "abr/2023" (sem new Date(): evita mudar o dia por fuso horário)
   const mesAno = (iso) => {

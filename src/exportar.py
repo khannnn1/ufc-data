@@ -91,6 +91,37 @@ def dados_fisicos(df, lutadores, datas_eventos):
     return fisico
 
 
+# Faixas de diferença do gráfico idade_vs_envergadura.png: limite superior de cada faixa
+# (anos de idade / polegadas de envergadura); None = sem limite (última faixa).
+FAIXAS_VANTAGEM = {"idade": [2, 5, 8, None], "env": [1, 2, 3, None]}
+
+
+def historico_vantagens(df, lutadores, datas_eventos):
+    """Em lutas com vencedor, % de vitórias de quem era mais novo / tinha mais envergadura, por faixa.
+
+    Mesma conta do gráfico idade_vs_envergadura.png (e da consulta SQL idade_envergadura).
+    Devolve {"idade": [[limite, pct, lutas], ...], "env": [...]} para o comparador do site.
+    """
+    fisico = df.merge(lutadores, on="Fighter_URL").merge(datas_eventos[["Event_URL", "Event_Date"]], on="Event_URL")
+    fisico["idade"] = (pd.to_datetime(fisico["Event_Date"]) - pd.to_datetime(fisico["DOB"])).dt.days / 365.25
+    fisico["env"] = (fisico["Reach_cm"] / 2.54).round(1)
+    vencedor = fisico[fisico["Resultado"] == "W"].set_index("Fight_URL")[["idade", "env"]]
+    perdedor = fisico[fisico["Resultado"] == "L"].set_index("Fight_URL")[["idade", "env"]]
+    duelos = vencedor.join(perdedor, lsuffix="_v", rsuffix="_p", how="inner")
+
+    # Vantagem = mais novo (diferença de idade negativa) / mais envergadura (positiva)
+    diferencas = {"idade": -(duelos["idade_v"] - duelos["idade_p"]), "env": (duelos["env_v"] - duelos["env_p"]).round(1)}
+    historico = {}
+    for chave, dif in diferencas.items():
+        dif = dif[dif != 0]
+        limites = FAIXAS_VANTAGEM[chave]
+        faixas = pd.cut(dif.abs(), [0] + [l if l is not None else 999 for l in limites], labels=False)
+        venceu = (dif > 0).groupby(faixas).agg(["mean", "size"])
+        historico[chave] = [[limite, round(float(venceu.loc[i, "mean"]) * 100, 1), int(venceu.loc[i, "size"])]
+                            for i, limite in enumerate(limites)]
+    return historico
+
+
 def exportar_lutadores(caminho_csv=ARQUIVO_RESUMO, caminho_round=ARQUIVO_ROUND, caminho_saida=ARQUIVO_SAIDA):
     """Lê os datasets limpos (resumo e por round) e grava o JSON consumido pela página interativa."""
     df = pd.read_csv(caminho_csv)
@@ -99,12 +130,14 @@ def exportar_lutadores(caminho_csv=ARQUIVO_RESUMO, caminho_round=ARQUIVO_ROUND, 
 
     datas_eventos = pd.read_csv(ARQUIVO_EVENTOS)
     datas = datas_eventos["Event_Date"]
-    fisico = dados_fisicos(df, pd.read_csv(ARQUIVO_LUTADORES), datas_eventos)
+    lutadores = pd.read_csv(ARQUIVO_LUTADORES)
+    fisico = dados_fisicos(df, lutadores, datas_eventos)
     saida = {
         "gerado_em": date.today().isoformat(),
         "periodo": {"inicio": datas.min(), "fim": datas.max()},
         "eventos": int(df["Event_URL"].nunique()),
         "lutas": int(df["Fight_URL"].nunique()),
+        "vantagens": historico_vantagens(df, lutadores, datas_eventos),
         "lutadores": [
             {**{k: (int(v) if isinstance(v, (int, float)) and k != "nome" else v) for k, v in linha.items()},
              **fisico.get(linha["nome"], {}), "r": rounds.get(linha["nome"], [])}

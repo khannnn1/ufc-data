@@ -310,6 +310,12 @@ atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
   Redesenha no evento `input` quando o texto bate com um nome. Cartões:
   categoria em PT (`CATEGORIAS`), cartel, e linha física (idade, altura,
   envergadura, base em PT via `BASES`; `linhaFisico`).
+  Caixa "No papel" (`#no-papel`, `desenharNoPapel`/`linhasNoPapel`): quem é
+  mais novo / tem mais envergadura e a taxa histórica de vitória de quem tem
+  essa vantagem na mesma faixa, lida de `vantagens` no JSON
+  (`{"idade": [[limite, pct, lutas], ...], "env": [...]}`, limite null = última
+  faixa), gerado por `historico_vantagens` em `src/exportar.py` com as faixas do
+  gráfico 19 (`FAIXAS_VANTAGEM`). Oculta sem os 2 lutadores ou com o mesmo nos dois.
 - Rankings: métrica + categoria + base + idade + mín. de lutas + top N; clique na barra leva o lutador
   ao comparador; tabela equivalente em `<details>`. Precisões exigem
   amostra mínima de tentativas (`requisito` em cada métrica). Filtro de

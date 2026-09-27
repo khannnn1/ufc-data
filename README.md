@@ -25,7 +25,7 @@ Recorte de **149 eventos recentes do UFC, de abril de 2023 (UFC 287) a setembro 
 
 - **[Gráficos](https://khannnn1.github.io/ufc-data/)** (`index.html`): 21 gráficos com a leitura de cada um.
 - **[Explorar os dados](https://khannnn1.github.io/ufc-data/interativo.html)** (`interativo.html`):
-  - **Comparar lutadores:** escolha dois lutadores quaisquer e veja categoria, cartel, idade, altura, envergadura, base e médias por luta lado a lado.
+  - **Comparar lutadores:** escolha dois lutadores quaisquer e veja categoria, cartel, idade, altura, envergadura, base e médias por luta lado a lado. Uma caixa "No papel" diz quem é mais novo e quem tem mais envergadura, e quanto quem tem essa vantagem venceu no período, na mesma faixa de diferença.
   - **Round a round:** como os dois lutadores do comparador rendem do 1º ao 5º round (golpes, precisão, quedas ou controle), contra a média de todos.
   - **Volume × precisão:** dispersão com todos os lutadores; os dois do comparador aparecem destacados, e passar o mouse mostra quem é cada ponto.
   - **Monte o seu ranking:** escolha a métrica (13 opções), filtre por categoria de peso, base (ortodoxo, canhoto, troca de base) e faixa de idade, e escolha o mínimo de lutas e o tamanho do top. Clique numa barra para levar o lutador ao comparador. Exemplo: [knockdowns no peso-mosca](https://khannnn1.github.io/ufc-data/interativo.html?m=kd&cat=Flyweight#ranking), [taxa de vitória dos canhotos](https://khannnn1.github.io/ufc-data/interativo.html?m=taxa_vitoria&base=Southpaw#ranking).
