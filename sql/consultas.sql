@@ -212,3 +212,58 @@ FROM lutas AS l
 JOIN eventos AS e USING (evento_id)
 GROUP BY ano
 ORDER BY ano;
+
+
+-- nome: confronto_bases
+-- Canhoto x ortodoxo: em lutas com vencedor entre bases diferentes, quantas o 1º lado venceu.
+-- Self-join de desempenho (linha do vencedor com a do perdedor da mesma luta), cada uma ligada
+-- à base do lutador em lutadores. Os confrontos são listados em VALUES para fixar a ordem e o lado.
+WITH duelos AS (
+    SELECT lv.base AS base_vencedor, lp.base AS base_perdedor
+    FROM desempenho AS v
+    JOIN desempenho AS p  ON p.luta_id = v.luta_id AND p.resultado = 'L'
+    JOIN lutadores  AS lv ON lv.url = v.lutador_url
+    JOIN lutadores  AS lp ON lp.url = p.lutador_url
+    WHERE v.resultado = 'W' AND lv.base <> lp.base  -- base NULL fica de fora pela comparação
+),
+confrontos (ordem, lado_a, lado_b) AS (
+    VALUES (1, 'Southpaw', 'Orthodox'), (2, 'Switch', 'Orthodox'), (3, 'Switch', 'Southpaw')
+)
+SELECT
+    c.lado_a || ' x ' || c.lado_b                                         AS confronto,
+    COUNT(*)                                                              AS lutas,
+    SUM(d.base_vencedor = c.lado_a)                                       AS vitorias_lado_a,
+    ROUND(100.0 * SUM(d.base_vencedor = c.lado_a) / COUNT(*), 1)          AS pct_lado_a
+FROM confrontos AS c
+JOIN duelos AS d
+  ON (d.base_vencedor = c.lado_a AND d.base_perdedor = c.lado_b)
+  OR (d.base_vencedor = c.lado_b AND d.base_perdedor = c.lado_a)
+GROUP BY c.ordem, c.lado_a, c.lado_b
+ORDER BY c.ordem;
+
+
+-- nome: disputas_titulo
+-- Disputas de cinturão x demais lutas. A CTE soma os dois lutadores de cada luta; o ritmo é por
+-- minuto de luta e por lutador (duração x 2), porque as disputas têm 5 rounds e duram mais.
+WITH por_luta AS (
+    SELECT l.luta_id, l.disputa_titulo, l.duracao_seg, l.metodo, l.bonus_luta, l.bonus_performance,
+           SUM(d.sig_acertados) AS golpes,
+           SUM(d.kd)            AS kd
+    FROM lutas AS l
+    JOIN desempenho AS d USING (luta_id)
+    GROUP BY l.luta_id
+)
+SELECT
+    CASE disputa_titulo WHEN 1 THEN 'Disputa de cinturão' ELSE 'Demais lutas' END  AS tipo,
+    COUNT(*)                                                                      AS lutas,
+    ROUND(AVG(duracao_seg) / 60.0, 1)                                             AS duracao_min,
+    ROUND(SUM(golpes) / (SUM(duracao_seg) / 60.0 * 2), 2)                         AS golpes_por_min,
+    ROUND(SUM(kd) * 15 / (SUM(duracao_seg) / 60.0 * 2), 2)                        AS kd_por_15min,
+    ROUND(100.0 * AVG(metodo LIKE '%KO/TKO%' OR metodo LIKE 'TKO - Doctor%'), 1)  AS nocaute_pct,
+    ROUND(100.0 * AVG(metodo LIKE '%Submission%'), 1)                             AS finalizacao_pct,
+    ROUND(100.0 * AVG(metodo LIKE 'Decision%'), 1)                                AS decisao_pct,
+    ROUND(100.0 * AVG(bonus_luta), 1)                                             AS luta_da_noite_pct,
+    ROUND(100.0 * AVG(bonus_performance), 1)                                      AS performance_pct
+FROM por_luta
+GROUP BY disputa_titulo
+ORDER BY disputa_titulo DESC;

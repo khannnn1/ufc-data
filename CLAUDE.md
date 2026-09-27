@@ -126,6 +126,8 @@ reversoes, controle_seg, cabeca/corpo/perna, distancia/clinch/chao) →
 referência de tempo: ordenar lutas por `e.data`. `evento_id` é atribuído em
 ordem de data decrescente (1 = mais recente, UFC 331; 149 = UFC 287).
 Consultas novas vão em `sql/consultas.sql` com `-- nome: x` na linha acima.
+O `03_sql.ipynb` confere com Pandas (assert) cada gráfico refeito em SQL, inclusive
+`confronto_bases` (self-join vencedor × perdedor + `lutadores`) e `disputas_titulo`.
 
 Os notebooks importam esses módulos via:
 ```python
