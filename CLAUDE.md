@@ -259,6 +259,11 @@ str. %, Td %) indicam zero tentativas, tratados como NaN (não 0%).
     lutas com vencedor, base via `Fighter_URL`. Canhoto 53% (245 de 465,
     IC 48–57%, não descarta o acaso), switch × ortodoxo 52%, switch ×
     canhoto 62% em só 55 lutas; tracejado em 50%
+21. `disputas_de_cinturao.png` — painéis (formato do 10) disputa de
+    cinturão (amarelo) × demais lutas (azul), uma linha por luta: duração
+    média 16,8 × 10,7 min, golpes sig. por minuto por lutador 4,0 × 4,0,
+    KD a cada 15 min 0,21 × 0,31 (só 36 KDs), Luta da Noite 18% × 5%
+    (3,7×), Performance 32% × 22%; rodapé: disputa fecha o card
 
 ## Workflow de Git
 Usamos Git Flow: `main` (estável) + `develop` (integração) + `feature/*`

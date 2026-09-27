@@ -18,11 +18,12 @@ Recorte de **149 eventos recentes do UFC, de abril de 2023 (UFC 287) a setembro 
 - **63% dos golpes significativos acertam a cabeça**, mas há especialistas que acertam mais nas pernas do que em qualquer outro alvo.
 - **Idade pesa mais que envergadura:** o lutador mais novo vence 60% das lutas (73% quando a diferença passa de 8 anos); quem tem mais envergadura, tão citada nas transmissões, vence só 51%, quase cara ou coroa.
 - **A vantagem do canhoto é pequena:** contra ortodoxos, o canhoto vence 53% de 465 lutas, mas o intervalo de 95% (48% a 57%) inclui os 50%. Com essa amostra, não dá para descartar o acaso.
+- **Disputas de cinturão têm o mesmo ritmo, mas levam mais bônus:** 4 golpes significativos por minuto, como nas demais lutas, mas Luta da Noite em 18% delas, contra 5%.
 - **O meio-pesado é a divisão que mais encerra lutas antes da decisão (68%)**, à frente até do peso-pesado (53%). Nas divisões mais leves e nas femininas, os nocautes caem pela metade e a finalização passa a pesar tanto quanto eles.
 
 ## O site
 
-- **[Gráficos](https://khannnn1.github.io/ufc-data/)** (`index.html`): 20 gráficos com a leitura de cada um.
+- **[Gráficos](https://khannnn1.github.io/ufc-data/)** (`index.html`): 21 gráficos com a leitura de cada um.
 - **[Explorar os dados](https://khannnn1.github.io/ufc-data/interativo.html)** (`interativo.html`):
   - **Comparar lutadores:** escolha dois lutadores quaisquer e veja categoria, cartel, idade, altura, envergadura, base e médias por luta lado a lado.
   - **Round a round:** como os dois lutadores do comparador rendem do 1º ao 5º round (golpes, precisão, quedas ou controle), contra a média de todos.
