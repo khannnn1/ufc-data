@@ -454,27 +454,101 @@ function desenharTabela(metrica, top) {
   tabela.appendChild(corpo);
 }
 
-// A sugestão do <datalist> filtra pelo texto do campo: com um nome já preenchido, a lista mostra só
-// ele. Por isso, ao focar, o campo é esvaziado (o nome atual vira placeholder) e a lista completa
-// aparece; ao sair sem escolher ninguém, o nome anterior volta.
+// Lista de sugestões própria (o <datalist> nativo abre com todos os 964 nomes e não aceita limite
+// de altura). Ao focar, o campo é esvaziado (o nome atual vira placeholder) e a lista aparece com
+// rolagem; digitar filtra sem diferenciar acentos e maiúsculas. Ao sair sem escolher, o nome volta.
+let nomesOrdenados = [];
+
+const normalizar = (texto) => texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+function filtrarNomes(texto) {
+  const termo = normalizar(texto.trim());
+  if (!termo) return nomesOrdenados.map((n) => n.nome);
+  // Prioridade: nome que começa com o termo, depois alguma palavra que começa com ele, depois contém
+  const grupos = [[], [], []];
+  for (const { nome, chave } of nomesOrdenados) {
+    if (chave.startsWith(termo)) grupos[0].push(nome);
+    else if (chave.includes(" " + termo)) grupos[1].push(nome);
+    else if (chave.includes(termo)) grupos[2].push(nome);
+  }
+  return grupos.flat();
+}
+
 function configurarCampoLutador(campo) {
+  const lista = document.getElementById(campo.getAttribute("aria-controls"));
   let anterior = "";
+  let itens = [];
+  let ativo = -1;
+
+  const fechar = () => {
+    lista.hidden = true;
+    campo.setAttribute("aria-expanded", "false");
+    campo.removeAttribute("aria-activedescendant");
+    ativo = -1;
+  };
+
+  const marcar = (indice) => {
+    const opcoes = lista.querySelectorAll('[role="option"]');
+    if (!opcoes.length) return;
+    ativo = (indice + opcoes.length) % opcoes.length;
+    opcoes.forEach((opcao, i) => opcao.classList.toggle("ativo", i === ativo));
+    campo.setAttribute("aria-activedescendant", opcoes[ativo].id);
+    opcoes[ativo].scrollIntoView({ block: "nearest" });
+  };
+
+  const mostrar = () => {
+    itens = filtrarNomes(campo.value);
+    ativo = -1;
+    campo.removeAttribute("aria-activedescendant");
+    lista.innerHTML = "";
+    if (!itens.length) {
+      const vazio = document.createElement("li");
+      vazio.className = "vazio";
+      vazio.textContent = "Nenhum lutador com esse nome no período";
+      lista.appendChild(vazio);
+    }
+    itens.forEach((nome, i) => {
+      const opcao = document.createElement("li");
+      opcao.id = `${lista.id}-${i}`;
+      opcao.setAttribute("role", "option");
+      opcao.textContent = nome; // via textContent: nunca como HTML
+      lista.appendChild(opcao);
+    });
+    lista.scrollTop = 0;
+    lista.hidden = false;
+    campo.setAttribute("aria-expanded", "true");
+  };
+
+  const escolher = (nome) => {
+    campo.value = nome;
+    anterior = nome;
+    campo.blur(); // o blur fecha a lista e redesenha
+  };
+
+  // mousedown com preventDefault: clicar num nome ou na barra de rolagem não tira o foco do campo
+  lista.addEventListener("mousedown", (evento) => evento.preventDefault());
+  lista.addEventListener("click", (evento) => {
+    const opcao = evento.target.closest('[role="option"]');
+    if (opcao) escolher(opcao.textContent);
+  });
 
   campo.addEventListener("focus", () => {
     anterior = campo.value;
     campo.placeholder = anterior || "Digite um nome";
     campo.value = "";
+    mostrar();
   });
 
   campo.addEventListener("blur", () => {
+    fechar();
     if (!campo.value.trim()) campo.value = anterior;
     campo.placeholder = "Digite um nome";
     desenharComparador();
   });
 
-  // Atualiza assim que o texto bate com um nome (ao escolher da lista ou terminar de digitar),
-  // sem esperar o usuário sair do campo
   campo.addEventListener("input", () => {
+    mostrar();
+    // Atualiza assim que o texto bate com um nome, sem esperar o usuário sair do campo
     if (porNome.has(campo.value.trim().toLowerCase())) {
       anterior = campo.value.trim();
       desenharComparador();
@@ -482,7 +556,19 @@ function configurarCampoLutador(campo) {
   });
 
   campo.addEventListener("keydown", (evento) => {
-    if (evento.key === "Enter") campo.blur();
+    if (evento.key === "ArrowDown" || evento.key === "ArrowUp") {
+      evento.preventDefault();
+      if (lista.hidden) mostrar();
+      marcar(ativo + (evento.key === "ArrowDown" ? 1 : -1));
+    } else if (evento.key === "Enter") {
+      evento.preventDefault();
+      if (ativo >= 0) escolher(itens[ativo]);
+      else if (itens.length === 1) escolher(itens[0]);
+      else campo.blur();
+    } else if (evento.key === "Escape") {
+      campo.value = "";
+      campo.blur(); // volta o nome anterior
+    }
   });
 }
 
@@ -836,12 +922,8 @@ async function iniciar() {
     `${fmt0.format(dados.lutas)} lutas de ${dados.eventos} eventos do UFC${periodo}, ${fmt0.format(lutadores.length)} lutadores. `
     + "Compare dois lutadores quaisquer ou monte o seu próprio ranking.";
 
-  const lista = document.getElementById("lista-lutadores");
-  [...lutadores].sort((x, y) => x.nome.localeCompare(y.nome)).forEach((l) => {
-    const opcao = document.createElement("option");
-    opcao.value = l.nome;
-    lista.appendChild(opcao);
-  });
+  nomesOrdenados = lutadores.map((l) => ({ nome: l.nome, chave: normalizar(l.nome) }))
+    .sort((x, y) => x.nome.localeCompare(y.nome));
 
   const seletor = document.getElementById("metrica");
   for (const [chave, metrica] of Object.entries(METRICAS)) {

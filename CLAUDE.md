@@ -323,9 +323,12 @@ atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
   `js/interativo.js`). Rodar de novo sempre que o dataset mudar.
 - Comparador: 2 lutadores (datalist com autocomplete), cartões com cartel e
   um painel Chart.js por métrica (escalas diferentes, sem eixo único).
-  O `<datalist>` filtra pelo texto do campo, então com um nome preenchido
-  só ele aparece na lista: por isso `configurarCampoLutador` esvazia o
-  campo no foco (nome vira placeholder) e restaura ao sair sem escolher.
+  Lista de sugestões própria (`ul.sugestoes` role=listbox, input role=combobox), no
+  lugar do `<datalist>`, que abria os 964 nomes sem limite de altura: ~7 nomes visíveis
+  (max-height 238px) com rolagem; `filtrarNomes` ignora acento/maiúscula e prioriza quem
+  começa com o termo. `configurarCampoLutador` esvazia o campo no foco (nome vira
+  placeholder) e restaura ao sair sem escolher; setas/Enter/Esc; mousedown com
+  preventDefault na lista para o clique (e a barra de rolagem) não tirar o foco.
   Redesenha no evento `input` quando o texto bate com um nome. Cartões:
   categoria em PT (`CATEGORIAS`), cartel, e linha física (idade, altura,
   envergadura, base em PT via `BASES`; `linhaFisico`).

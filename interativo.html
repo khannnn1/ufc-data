@@ -62,7 +62,30 @@
     min-width: 0;
   }
   .campo input:focus, .campo select:focus { outline: 2px solid var(--azul); outline-offset: 1px; }
+  .campo.lutador { position: relative; }
   .campo.lutador input { width: 260px; max-width: 100%; }
+  /* Sugestões de lutador: ~7 nomes visíveis, o resto com rolagem */
+  .sugestoes {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    margin: 4px 0 0;
+    padding: 4px 0;
+    list-style: none;
+    max-height: 238px;
+    overflow-y: auto;
+    background: var(--card-bg);
+    border: 1px solid var(--grid-line);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    scrollbar-color: #555 var(--card-bg);  /* barra de rolagem escura, no tom do site */
+  }
+  .sugestoes li { padding: 7px 12px; font-size: 0.92rem; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sugestoes li:hover, .sugestoes li.ativo { background: var(--grid-line); }
+  .sugestoes li.vazio { color: var(--muted); cursor: default; white-space: normal; }
+  .sugestoes li.vazio:hover { background: none; }
   .campo.lutador.a input { border-left: 4px solid var(--azul); }
   .campo.lutador.b input { border-left: 4px solid var(--vermelho); }
   .campo.metrica select { width: 360px; max-width: 100%; }
@@ -181,18 +204,19 @@
     <div class="controles">
       <div class="campo lutador a">
         <label for="lutador-a">Lutador 1</label>
-        <input id="lutador-a" list="lista-lutadores" autocomplete="off" placeholder="Digite um nome">
+        <input id="lutador-a" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugestoes-a" autocomplete="off" placeholder="Digite um nome">
+        <ul class="sugestoes" id="sugestoes-a" role="listbox" aria-label="Lutadores" hidden></ul>
       </div>
       <div class="campo lutador b">
         <label for="lutador-b">Lutador 2</label>
-        <input id="lutador-b" list="lista-lutadores" autocomplete="off" placeholder="Digite um nome">
+        <input id="lutador-b" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugestoes-b" autocomplete="off" placeholder="Digite um nome">
+        <ul class="sugestoes" id="sugestoes-b" role="listbox" aria-label="Lutadores" hidden></ul>
       </div>
       <div class="compartilhar">
         <button type="button" class="copiar" data-secao="comparador">Copiar link</button>
         <span class="copiado" role="status"></span>
       </div>
     </div>
-    <datalist id="lista-lutadores"></datalist>
     <p class="aviso" id="aviso-comparador" role="status"></p>
 
     <div class="cartoes">
@@ -286,6 +310,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <!-- ?v=N: aumente a cada mudança no JS, para o navegador não usar a versão antiga em cache -->
-<script src="js/interativo.js?v=12"></script>
+<script src="js/interativo.js?v=13"></script>
 </body>
 </html>
