@@ -4,7 +4,7 @@ Projeto de portfólio de estatísticas de MMA/UFC (estilo @DataFut), cobrindo
 scraping, limpeza e visualização de dados em Python. Objetivo: portfólio para
 transição de carreira para Análise de Dados / BI.
 
-Repositório: github.com/khannnn1/ufc-data (privado)
+Repositório (público): https://github.com/khannnn1/ufc-data — CI dos testes no GitHub Actions
 Site publicado (público): https://khannnn1.github.io/ufc-data/
 
 ## Stack
