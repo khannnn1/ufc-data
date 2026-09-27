@@ -17,11 +17,12 @@ Recorte de **149 eventos recentes do UFC, de abril de 2023 (UFC 287) a setembro 
 - **Volume e precisão quase não se relacionam** (correlação de −0,15): há lutadores de todos os estilos, de quem arrisca muito a quem espera o golpe certo.
 - **63% dos golpes significativos acertam a cabeça**, mas há especialistas que acertam mais nas pernas do que em qualquer outro alvo.
 - **Idade pesa mais que envergadura:** o lutador mais novo vence 60% das lutas (73% quando a diferença passa de 8 anos); quem tem mais envergadura, tão citada nas transmissões, vence só 51%, quase cara ou coroa.
+- **A vantagem do canhoto é pequena:** contra ortodoxos, o canhoto vence 53% de 465 lutas, mas o intervalo de 95% (48% a 57%) inclui os 50%. Com essa amostra, não dá para descartar o acaso.
 - **O meio-pesado é a divisão que mais encerra lutas antes da decisão (68%)**, à frente até do peso-pesado (53%). Nas divisões mais leves e nas femininas, os nocautes caem pela metade e a finalização passa a pesar tanto quanto eles.
 
 ## O site
 
-- **[Gráficos](https://khannnn1.github.io/ufc-data/)** (`index.html`): 19 gráficos com a leitura de cada um.
+- **[Gráficos](https://khannnn1.github.io/ufc-data/)** (`index.html`): 20 gráficos com a leitura de cada um.
 - **[Explorar os dados](https://khannnn1.github.io/ufc-data/interativo.html)** (`interativo.html`):
   - **Comparar lutadores:** escolha dois lutadores quaisquer e veja categoria, cartel, idade, altura, envergadura, base e médias por luta lado a lado.
   - **Round a round:** como os dois lutadores do comparador rendem do 1º ao 5º round (golpes, precisão, quedas ou controle), contra a média de todos.
@@ -60,6 +61,7 @@ Alguns cuidados que mudam o resultado e que estão aplicados nos gráficos:
 - **Uma linha por luta** quando a pergunta é sobre lutas. O dataset tem uma linha por lutador em cada luta, e contar direto dobraria tudo (um erro que o projeto teve e corrigiu).
 - **Volume por minuto, não por luta**, para não penalizar quem finaliza cedo.
 - **Associação não é causa**, e isso aparece nas legendas: um knockdown muitas vezes já é o começo do fim da luta; a taxa de finalização de um árbitro reflete as lutas que ele recebe, não o estilo dele.
+- **Intervalo de confiança quando a diferença é pequena**: no confronto de bases, 53% contra 50% parece vantagem, mas o intervalo de 95% mostra que a amostra não sustenta a conclusão.
 - **Viés de sobrevivência**: rounds avançados só existem em lutas longas, então médias por round não comparam as mesmas lutas.
 - **Nome não é identificador**: existem dois "Bruno Silva" diferentes no período (um peso-médio e um peso-mosca). O link da página de cada lutador é a chave; quando dois nomes coincidem, o nome exibido ganha o ano de nascimento, "Bruno Silva (1989)" e "Bruno Silva (1990)", para as estatísticas não se misturarem.
 - **Desempate estável nos rankings**: com 15 lutadores empatados em 7 vitórias disputando 8 vagas, quem aparecia no top 10 mudava a cada atualização. Nos totais, em empate vem antes quem precisou de menos lutas; em médias e taxas, quem tem mais lutas (amostra maior); por último, a ordem alfabética.

@@ -253,6 +253,12 @@ str. %, Td %) indicam zero tentativas, tratados como NaN (não 0%).
     `Fighter_URL` com `data/processed/lutadores.csv`; idade na data do
     evento; envergadura igual fica de fora. Mais novo vence 60% (73% com 8+
     anos), envergadura 51% (55% com 4"+); tracejado em 50%
+20. `base_canhoto_vs_ortodoxo.png` — barras verticais por confronto de bases
+    diferentes (canhoto × ortodoxo, troca de base × ortodoxo, troca de base
+    × canhoto), % de vitórias do 1º lado com intervalo de 95% (Wilson),
+    lutas com vencedor, base via `Fighter_URL`. Canhoto 53% (245 de 465,
+    IC 48–57%, não descarta o acaso), switch × ortodoxo 52%, switch ×
+    canhoto 62% em só 55 lutas; tracejado em 50%
 
 ## Workflow de Git
 Usamos Git Flow: `main` (estável) + `develop` (integração) + `feature/*`
