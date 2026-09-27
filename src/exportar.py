@@ -97,10 +97,12 @@ FAIXAS_VANTAGEM = {"idade": [2, 5, 8, None], "env": [1, 2, 3, None]}
 
 
 def historico_vantagens(df, lutadores, datas_eventos):
-    """Em lutas com vencedor, % de vitórias de quem era mais novo / tinha mais envergadura, por faixa.
+    """Em lutas com vencedor, % de vitórias de quem era mais novo / tinha mais envergadura, por faixa,
+    e de cada lado nos confrontos de bases diferentes.
 
     Mesma conta do gráfico idade_vs_envergadura.png (e da consulta SQL idade_envergadura).
-    Devolve {"idade": [[limite, pct, lutas], ...], "env": [...]} para o comparador do site.
+    Devolve {"idade": [[limite, pct, lutas], ...], "env": [...], "bases": [[a, b, vitorias_a, lutas], ...]}
+    para o comparador do site.
     """
     fisico = df.merge(lutadores, on="Fighter_URL").merge(datas_eventos[["Event_URL", "Event_Date"]], on="Event_URL")
     fisico["idade"] = (pd.to_datetime(fisico["Event_Date"]) - pd.to_datetime(fisico["DOB"])).dt.days / 365.25
@@ -119,6 +121,18 @@ def historico_vantagens(df, lutadores, datas_eventos):
         venceu = (dif > 0).groupby(faixas).agg(["mean", "size"])
         historico[chave] = [[limite, round(float(venceu.loc[i, "mean"]) * 100, 1), int(venceu.loc[i, "size"])]
                             for i, limite in enumerate(limites)]
+
+    # Confrontos de bases diferentes (gráfico base_canhoto_vs_ortodoxo.png / SQL confronto_bases):
+    # [base_a, base_b, vitórias de base_a, lutas]
+    base_v = df.merge(lutadores[["Fighter_URL", "Stance"]], on="Fighter_URL")
+    bases = pd.concat([
+        base_v[base_v["Resultado"] == "W"].set_index("Fight_URL")["Stance"].rename("v"),
+        base_v[base_v["Resultado"] == "L"].set_index("Fight_URL")["Stance"].rename("p"),
+    ], axis=1, join="inner").dropna()
+    historico["bases"] = []
+    for a, b in [("Southpaw", "Orthodox"), ("Switch", "Orthodox"), ("Switch", "Southpaw")]:
+        no_confronto = ((bases["v"] == a) & (bases["p"] == b)) | ((bases["v"] == b) & (bases["p"] == a))
+        historico["bases"].append([a, b, int((no_confronto & (bases["v"] == a)).sum()), int(no_confronto.sum())])
     return historico
 
 

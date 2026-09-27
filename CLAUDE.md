@@ -313,8 +313,9 @@ atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
   Caixa "No papel" (`#no-papel`, `desenharNoPapel`/`linhasNoPapel`): quem é
   mais novo / tem mais envergadura e a taxa histórica de vitória de quem tem
   essa vantagem na mesma faixa, lida de `vantagens` no JSON
-  (`{"idade": [[limite, pct, lutas], ...], "env": [...]}`, limite null = última
-  faixa), gerado por `historico_vantagens` em `src/exportar.py` com as faixas do
+  (`{"idade": [[limite, pct, lutas], ...], "env": [...], "bases": [[a, b,
+  vitorias_a, lutas], ...]}`, limite null = última faixa; bases com aviso de
+  acaso quando o intervalo de Wilson inclui 50%, `intervaloWilson`), gerado por `historico_vantagens` em `src/exportar.py` com as faixas do
   gráfico 19 (`FAIXAS_VANTAGEM`). Oculta sem os 2 lutadores ou com o mesmo nos dois.
 - Rankings: métrica + categoria + base + idade + mín. de lutas + top N; clique na barra leva o lutador
   ao comparador; tabela equivalente em `<details>`. Precisões exigem
@@ -354,4 +355,8 @@ atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
 - Chart.js 4.4.1 via jsdelivr; plugin próprio `valoresNaPonta` escreve o
   valor na ponta da barra (mesmo padrão dos PNGs).
 - Testar localmente com `python -m http.server` (o `fetch` do JSON não
-  funciona abrindo o HTML direto do disco).
+  funciona abrindo o HTML direto do disco). Subir o servidor como tarefa em
+  segundo plano própria: lançado com `( ... &)` dentro de outro comando ele
+  trava e o `fetch` do JSON fica pendente no Chrome.
+- Textos sobre lutadores no JS: formas neutras ("tem 3 anos a menos", "quem é
+  mais novo"), porque há lutadoras no mesmo comparador.

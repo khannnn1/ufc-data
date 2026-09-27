@@ -195,7 +195,7 @@ function linhasNoPapel(a, b) {
       const inteiro = Math.round(Math.abs(anos));
       linhas.push({
         nome: novo.nome,
-        texto: ` é ${inteiro} ${inteiro === 1 ? "ano" : "anos"} mais novo. Com ${faixa} de diferença, o mais novo venceu ${fmt0.format(pct)}% das lutas do período (${fmt0.format(n)} lutas).`,
+        texto: ` tem ${inteiro} ${inteiro === 1 ? "ano" : "anos"} a menos. Com ${faixa} de diferença, quem é mais novo venceu ${fmt0.format(pct)}% das lutas do período (${fmt0.format(n)} lutas).`,
       });
     }
   }
@@ -217,7 +217,35 @@ function linhasNoPapel(a, b) {
       });
     }
   }
+  if (a.base && b.base && vantagens.bases) {
+    if (a.base === b.base) {
+      linhas.push({ texto: `Os dois lutam na mesma base (${BASES[a.base] || a.base.toLowerCase()}).` });
+    } else {
+      const confronto = vantagens.bases.find(([x, y]) => (x === a.base && y === b.base) || (x === b.base && y === a.base));
+      if (confronto) {
+        // Conta sempre pelo lado do 1º lutador do comparador
+        const [x, , vitoriasX, n] = confronto;
+        const vitorias = x === a.base ? vitoriasX : n - vitoriasX;
+        const [inf, sup] = intervaloWilson(vitorias, n);
+        const acaso = inf <= 0.5 && sup >= 0.5 ? " Diferença dentro da margem do acaso (intervalo de 95%)." : "";
+        const baseA = BASES[a.base] || a.base.toLowerCase();
+        const baseB = BASES[b.base] || b.base.toLowerCase();
+        linhas.push({
+          nome: a.nome,
+          texto: ` (${baseA}) contra ${baseB}: nesse confronto, o lado ${a.base === "Switch" ? "que troca de base" : baseA} venceu ${fmt0.format(vitorias / n * 100)}% das lutas do período (${fmt0.format(n)} lutas).${acaso}`,
+        });
+      }
+    }
+  }
   return linhas;
+}
+
+// Intervalo de confiança de 95% (Wilson) para uma proporção, como no gráfico de bases
+function intervaloWilson(acertos, n, z = 1.96) {
+  const p = acertos / n;
+  const centro = (p + z * z / (2 * n)) / (1 + z * z / n);
+  const margem = z * Math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / (1 + z * z / n);
+  return [centro - margem, centro + margem];
 }
 
 function desenharNoPapel(a, b) {
@@ -243,7 +271,7 @@ function desenharNoPapel(a, b) {
   }
   const nota = document.createElement("p");
   nota.className = "rodape";
-  nota.textContent = "Taxas históricas de todas as lutas com vencedor no período, não uma previsão: idade pesa bem mais que envergadura.";
+  nota.textContent = "Taxas históricas de todas as lutas com vencedor no período, não uma previsão: idade pesa bem mais que envergadura e base.";
   caixa.appendChild(nota);
 }
 
