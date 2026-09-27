@@ -39,6 +39,8 @@ ProjetoUFC/
 │   └── lutadores.json  # totais por lutador (VERSIONADO: o site lê daqui)
 ├── js/
 │   └── interativo.js   # lógica da página interativa (Chart.js)
+├── tests/              # pytest: conftest.py (mini-dataset de 3 lutas) + test_*.py
+├── pytest.ini          # testpaths = tests, pythonpath = .
 ├── index.html          # página estática publicada via GitHub Pages
 ├── interativo.html     # comparador de lutadores + montador de rankings
 ├── requirements.txt
@@ -112,6 +114,13 @@ Definido em `src/visualizacao.py`:
   `python -m src.banco` na raiz
 - **consultas.py**: `carregar_consultas()` ({nome: sql}),
   `consultar(nome)` (DataFrame)
+
+## Testes
+`python -m pytest` na raiz (22 testes, ~1 s, sem rede e sem data/). `tests/conftest.py`
+tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos CSVs
+limpos; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
+e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
+Função nova em src/ com lógica pura (limpeza, parsing, agregação): adicionar teste.
 
 ## Banco SQL (SQLite)
 Tabelas: `eventos` (evento_id, url, nome) → `lutas` (luta_id, url,

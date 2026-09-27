@@ -53,6 +53,7 @@ data/processed/*.csv
 3. **Análise e gráficos** (`notebooks/02_visualizacao.ipynb` + `src/visualizacao.py`): padrão visual único (fundo escuro, barras com o valor escrito na ponta, sem eixo quando ele não acrescenta).
 4. **Exportação** (`src/exportar.py`): agrega os totais por lutador (no geral e por round) e os dados físicos em um JSON pequeno (≈360 KB); médias, percentuais e idade são calculados no navegador.
 5. **SQL** (`src/banco.py`, `sql/`, `notebooks/03_sql.ipynb`): os CSVs, com uma linha por lutador em cada luta e os dados da luta repetidos, viram um banco SQLite com cinco tabelas relacionadas — `eventos` → `lutas` → `desempenho` → `desempenho_round`, mais `lutadores` ligada a `desempenho` —, com chaves primárias e estrangeiras. As perguntas dos gráficos são respondidas de novo em SQL (JOINs, inclusive *self-join* para pôr o vencedor e o perdedor de cada luta lado a lado, `GROUP BY`/`HAVING` para as amostras mínimas, datas com `julianday()` para a idade de cada lutador no dia da luta, CTEs e funções de janela como `RANK`, `ROW_NUMBER` e `SUM() OVER (PARTITION BY ...)`), e o notebook **confere cada resposta com o resultado em Pandas**. Três consultas só existem em SQL: o destaque de cada evento, a maior sequência de vitórias de cada lutador (*gaps and islands*) e como as lutas terminam ano a ano — onde aparece, por exemplo, a taxa de nocaute subindo de 28% (2024) para 37,5% (2026, parcial).
+6. **Testes** (`tests/`, `pytest`): 22 testes rodam em ~1 s, sem internet e sem os dados coletados. Eles usam páginas HTML mínimas no formato do ufcstats e um mini-dataset sintético com 3 lutas. Cobrem a limpeza (`"X of Y"`, `"---"` como ausente, `M:SS`, pés e polegadas), o parsing das páginas de evento e de listagem, o desempate dos rankings, a separação de homônimos e as faixas do comparador. Também montam o banco SQLite em memória com o `schema.sql` real, com chaves estrangeiras ligadas, e rodam todas as consultas nomeadas.
 
 ## Decisões de análise
 
@@ -82,7 +83,7 @@ Todas as imagens estão em [`figures/`](figures/), e o código de cada uma em [`
 
 ## Stack
 
-**Python** (Pandas, NumPy, Matplotlib, Selenium, BeautifulSoup, Jupyter) · **SQL** (SQLite) · **JavaScript** (Chart.js) · **HTML/CSS** · **Git** (Git Flow) · **GitHub Pages**
+**Python** (Pandas, NumPy, Matplotlib, Selenium, BeautifulSoup, Jupyter, pytest) · **SQL** (SQLite) · **JavaScript** (Chart.js) · **HTML/CSS** · **Git** (Git Flow) · **GitHub Pages**
 
 ## Estrutura do projeto
 
@@ -108,6 +109,7 @@ Todas as imagens estão em [`figures/`](figures/), e o código de cada uma em [`
 │   ├── banco.py           # monta o banco SQLite
 │   ├── consultas.py       # executa as consultas de sql/consultas.sql
 │   └── config.py          # constantes
+├── tests/                 # testes automatizados (pytest)
 ├── index.html             # página com os gráficos
 ├── interativo.html        # comparador e rankings
 └── requirements.txt
@@ -126,6 +128,7 @@ pip install -r requirements.txt
 - **Gráficos:** `notebooks/02_visualizacao.ipynb`.
 - **SQL:** `notebooks/03_sql.ipynb` recria o banco (`data/ufc.db`) e roda as consultas. Para só gerar o banco: `python -m src.banco`.
 - **Dados do site interativo:** `python -m src.exportar` (na raiz do projeto) regenera `dados/lutadores.json`.
+- **Testes:** `python -m pytest` (na raiz do projeto).
 - **Ver o site localmente:** `python -m http.server` e abrir `http://localhost:8000`. Abrir o HTML direto do disco não funciona, porque o navegador bloqueia a leitura do JSON.
 
 ## Próximos passos
