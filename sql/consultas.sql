@@ -267,3 +267,90 @@ SELECT
 FROM por_luta
 GROUP BY disputa_titulo
 ORDER BY disputa_titulo DESC;
+
+
+-- nome: finalizacoes_por_categoria
+-- Lutas encerradas antes da decisão, por categoria de peso: nocaute (inclui TKO médico) e
+-- finalização. Fora o peso casado (acordo entre os lutadores, não é divisão) e, via HAVING,
+-- categorias com menos de 20 lutas. media_geral: todas as lutas fora o peso casado.
+WITH por_categoria AS (
+    SELECT
+        categoria,
+        COUNT(*)                                                               AS lutas,
+        100.0 * AVG(metodo LIKE '%KO/TKO%' OR metodo LIKE 'TKO - Doctor%')     AS nocaute_pct,
+        100.0 * AVG(metodo LIKE '%Submission%')                                AS finalizacao_pct
+    FROM lutas
+    WHERE categoria <> 'Catch Weight'
+    GROUP BY categoria
+    HAVING COUNT(*) >= 20
+)
+SELECT
+    RANK() OVER (ORDER BY nocaute_pct + finalizacao_pct DESC)  AS posicao,
+    categoria,
+    lutas,
+    ROUND(nocaute_pct, 1)                                      AS nocaute_pct,
+    ROUND(finalizacao_pct, 1)                                  AS finalizacao_pct,
+    ROUND(nocaute_pct + finalizacao_pct, 1)                    AS antes_da_decisao_pct,
+    (SELECT ROUND(100.0 * AVG(metodo LIKE '%KO/TKO%' OR metodo LIKE 'TKO - Doctor%' OR metodo LIKE '%Submission%'), 1)
+       FROM lutas WHERE categoria IS NOT 'Catch Weight')       AS media_geral
+FROM por_categoria
+ORDER BY posicao;
+
+
+-- nome: idade_envergadura
+-- Em lutas com vencedor, quem tinha a vantagem venceu com que frequência? Idade na data do
+-- evento com julianday(); envergadura em polegadas (1" = 2,54 cm). Self-join do vencedor com o
+-- perdedor da mesma luta; cada diferença cai numa faixa (CASE) e AVG da condição dá a taxa.
+-- ordem 0 = todas as lutas do painel. Diferença zero fica de fora.
+WITH fisico AS (
+    SELECT
+        d.luta_id,
+        d.resultado,
+        (julianday(e.data) - julianday(f.nascimento)) / 365.25  AS idade,
+        ROUND(f.envergadura_cm / 2.54, 1)                       AS envergadura_pol
+    FROM desempenho AS d
+    JOIN lutas      AS l USING (luta_id)
+    JOIN eventos    AS e USING (evento_id)
+    JOIN lutadores  AS f ON f.url = d.lutador_url
+    WHERE d.resultado IN ('W', 'L')
+),
+duelos AS (
+    SELECT
+        v.idade - p.idade                                       AS dif_idade,  -- negativo = vencedor mais novo
+        ROUND(v.envergadura_pol - p.envergadura_pol, 1)         AS dif_env     -- positivo = vencedor com mais alcance
+    FROM fisico AS v
+    JOIN fisico AS p ON p.luta_id = v.luta_id AND p.resultado = 'L'
+    WHERE v.resultado = 'W'
+),
+classificado AS (
+    SELECT 'Mais novo' AS vantagem,
+           CASE WHEN ABS(dif_idade) <= 2 THEN 1 WHEN ABS(dif_idade) <= 5 THEN 2
+                WHEN ABS(dif_idade) <= 8 THEN 3 ELSE 4 END      AS ordem,
+           dif_idade < 0                                        AS venceu
+    FROM duelos WHERE dif_idade <> 0
+    UNION ALL
+    SELECT 'Mais envergadura',
+           CASE WHEN ABS(dif_env) <= 1 THEN 1 WHEN ABS(dif_env) <= 2 THEN 2
+                WHEN ABS(dif_env) <= 3 THEN 3 ELSE 4 END,
+           dif_env > 0
+    FROM duelos WHERE dif_env <> 0
+),
+com_total AS (
+    SELECT vantagem, ordem, venceu FROM classificado
+    UNION ALL
+    SELECT vantagem, 0, venceu FROM classificado  -- linha de todas as lutas de cada painel
+)
+SELECT
+    vantagem,
+    ordem,
+    CASE ordem WHEN 0 THEN 'todas'
+         ELSE CASE vantagem WHEN 'Mais novo'
+                  THEN CASE ordem WHEN 1 THEN 'até 2 anos' WHEN 2 THEN '2 a 5 anos' WHEN 3 THEN '5 a 8 anos' ELSE 'mais de 8 anos' END
+                  ELSE CASE ordem WHEN 1 THEN '1"' WHEN 2 THEN '2"' WHEN 3 THEN '3"' ELSE '4" ou mais' END
+              END
+    END                                   AS diferenca,
+    COUNT(*)                              AS lutas,
+    ROUND(100.0 * AVG(venceu), 1)         AS pct_vantagem_venceu
+FROM com_total
+GROUP BY vantagem, ordem
+ORDER BY vantagem DESC, ordem;
