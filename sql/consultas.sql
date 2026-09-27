@@ -354,3 +354,37 @@ SELECT
 FROM com_total
 GROUP BY vantagem, ordem
 ORDER BY vantagem DESC, ordem;
+
+
+-- nome: luta_da_noite
+-- O que as Lutas da Noite têm de diferente. por_luta soma os dois lutadores; perdedor traz a linha
+-- de quem perdeu (LEFT JOIN: lutas sem vencedor ficam com NULL e o AVG as ignora, então "ida e
+-- volta" e "equilibradas" contam só lutas com vencedor). Ritmo e controle por minuto de luta.
+WITH por_luta AS (
+    SELECT l.luta_id, l.bonus_luta, l.duracao_seg, l.metodo, l.round_final,
+           SUM(d.sig_acertados) AS golpes,
+           SUM(d.kd)            AS kd,
+           SUM(d.controle_seg)  AS controle
+    FROM lutas AS l
+    JOIN desempenho AS d USING (luta_id)
+    GROUP BY l.luta_id
+),
+perdedor AS (
+    SELECT luta_id, sig_acertados AS golpes_perdedor, kd AS kd_perdedor
+    FROM desempenho
+    WHERE resultado = 'L'
+)
+SELECT
+    CASE pl.bonus_luta WHEN 1 THEN 'Luta da Noite' ELSE 'Demais lutas' END  AS tipo,
+    COUNT(*)                                                              AS lutas,
+    ROUND(SUM(pl.golpes) / (SUM(pl.duracao_seg) / 60.0 * 2), 2)           AS golpes_por_min,
+    ROUND(100.0 * AVG(pl.kd > 0), 1)                                      AS com_knockdown_pct,
+    ROUND(100.0 * AVG(p.kd_perdedor > 0), 1)                              AS ida_e_volta_pct,
+    ROUND(100.0 * AVG(p.golpes_perdedor >= 0.4 * pl.golpes), 1)           AS equilibradas_pct,
+    ROUND(100.0 * SUM(pl.controle) / SUM(pl.duracao_seg), 1)              AS controle_pct,
+    ROUND(100.0 * AVG(pl.metodo LIKE 'Decision%'), 1)                     AS decisao_pct,
+    ROUND(100.0 * AVG(pl.round_final = 1), 1)                             AS primeiro_round_pct
+FROM por_luta AS pl
+LEFT JOIN perdedor AS p USING (luta_id)
+GROUP BY pl.bonus_luta
+ORDER BY pl.bonus_luta DESC;

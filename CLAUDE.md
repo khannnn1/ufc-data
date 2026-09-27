@@ -128,8 +128,9 @@ ordem de data decrescente (1 = mais recente, UFC 331; 149 = UFC 287).
 Consultas novas vão em `sql/consultas.sql` com `-- nome: x` na linha acima.
 O `03_sql.ipynb` confere com Pandas (assert) cada gráfico refeito em SQL, inclusive
 `confronto_bases` (self-join vencedor × perdedor + `lutadores`), `disputas_titulo`,
-`finalizacoes_por_categoria` (HAVING + RANK) e `idade_envergadura` (julianday + faixas
-em CASE). Conferir com `nbconvert --execute` e checar que TODAS as células rodaram:
+`finalizacoes_por_categoria` (HAVING + RANK), `idade_envergadura` (julianday + faixas
+em CASE) e `luta_da_noite` (CTE do perdedor + LEFT JOIN; AVG ignora NULL das lutas
+sem vencedor). Conferir com `nbconvert --execute` e checar que TODAS as células rodaram:
 se uma falha, o nbconvert não grava e as saídas antigas enganam na contagem de "OK".
 Em assert entre Series, alinhar a ordem (`reindex`) — o SQL ordena diferente do Pandas.
 
