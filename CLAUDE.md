@@ -121,6 +121,9 @@ tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos 
 limpos; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
 e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
 Função nova em src/ com lógica pura (limpeza, parsing, agregação): adicionar teste.
+CI: `.github/workflows/testes.yml` roda o pytest no GitHub Actions (Ubuntu, Python 3.14)
+a cada push em main/develop, instalando só `requirements-test.txt` (o requirements.txt
+tem pywinpty, só Windows). Import novo em src/ -> incluir no requirements-test.txt.
 
 ## Banco SQL (SQLite)
 Tabelas: `eventos` (evento_id, url, nome) → `lutas` (luta_id, url,

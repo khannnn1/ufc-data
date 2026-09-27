@@ -1,5 +1,7 @@
 # UFC Data — Análise Estatística de MMA
 
+[![Testes](https://github.com/khannnn1/ufc-data/actions/workflows/testes.yml/badge.svg)](https://github.com/khannnn1/ufc-data/actions/workflows/testes.yml)
+
 🔗 **[Ver os gráficos](https://khannnn1.github.io/ufc-data/)** · **[Explorar os dados (interativo)](https://khannnn1.github.io/ufc-data/interativo.html)**
 
 Projeto de ponta a ponta com dados de lutas do UFC: **coleta** por web scraping, **limpeza** e **análise** em Python e **SQL**, **visualização** em estilo editorial (inspirado em contas de dados esportivos como @DataFut) e um **site interativo** em JavaScript, onde o visitante compara lutadores e monta os próprios rankings.
@@ -110,6 +112,7 @@ Todas as imagens estão em [`figures/`](figures/), e o código de cada uma em [`
 │   ├── consultas.py       # executa as consultas de sql/consultas.sql
 │   └── config.py          # constantes
 ├── tests/                 # testes automatizados (pytest)
+├── .github/workflows/     # CI: roda os testes a cada push
 ├── index.html             # página com os gráficos
 ├── interativo.html        # comparador e rankings
 └── requirements.txt
@@ -128,7 +131,7 @@ pip install -r requirements.txt
 - **Gráficos:** `notebooks/02_visualizacao.ipynb`.
 - **SQL:** `notebooks/03_sql.ipynb` recria o banco (`data/ufc.db`) e roda as consultas. Para só gerar o banco: `python -m src.banco`.
 - **Dados do site interativo:** `python -m src.exportar` (na raiz do projeto) regenera `dados/lutadores.json`.
-- **Testes:** `python -m pytest` (na raiz do projeto).
+- **Testes:** `python -m pytest` (na raiz do projeto). O GitHub Actions roda os mesmos testes a cada push em `main` e `develop` (`.github/workflows/testes.yml`), instalando só o `requirements-test.txt`.
 - **Ver o site localmente:** `python -m http.server` e abrir `http://localhost:8000`. Abrir o HTML direto do disco não funciona, porque o navegador bloqueia a leitura do JSON.
 
 ## Próximos passos

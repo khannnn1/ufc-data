@@ -1,0 +1,7 @@
+# Dependências mínimas para rodar os testes (usado no GitHub Actions). O requirements.txt completo
+# inclui Jupyter e pacotes só de Windows (pywinpty), desnecessários e lentos na CI.
+beautifulsoup4==4.15.0
+matplotlib==3.11.2
+pandas==3.0.6
+selenium==4.49.0
+pytest==9.1.1
