@@ -1,0 +1,123 @@
+// Medidas DAX do painel UFC Data. Criar cada uma em fato_desempenho (Ferramentas de tabela >
+// Nova medida), colando a linha "Nome = expressão". Mesmas regras dos gráficos do projeto:
+// médias POR LUTA ou POR MINUTO (nunca somas para comparar lutadores), percentuais de luta
+// contados UMA vez por luta (DISTINCTCOUNT de luta_id) e amostra mínima nos rankings.
+
+
+// ---------- Contagens ----------
+
+Lutas = DISTINCTCOUNT ( fato_desempenho[luta_id] )
+
+// SUMMARIZE agrupa a fato pela coluna da dimensão: respeita filtros de lutador, categoria e data
+Eventos = COUNTROWS ( SUMMARIZE ( fato_desempenho, dim_luta[evento_id] ) )
+
+Lutadores = DISTINCTCOUNT ( fato_desempenho[lutador_id] )
+
+// Uma linha por lutador em cada luta: com um lutador filtrado, é o número de lutas dele
+Participações = COUNTROWS ( fato_desempenho )
+
+
+// ---------- Cartel ----------
+
+Vitórias = SUM ( fato_desempenho[vitoria] )
+
+Derrotas = SUM ( fato_desempenho[derrota] )
+
+Empates = SUM ( fato_desempenho[empate] )
+
+// Sem resultado (NC) fica fora do denominador, como no gráfico de taxa de vitória
+Taxa de vitória = DIVIDE ( [Vitórias], [Vitórias] + [Derrotas] + [Empates] )
+
+Cartel = [Vitórias] & "-" & [Derrotas] & IF ( [Empates] > 0, "-" & [Empates] )
+
+Vitórias por nocaute = CALCULATE ( [Vitórias], dim_luta[metodo_grupo] = "Nocaute" )
+
+Vitórias por finalização = CALCULATE ( [Vitórias], dim_luta[metodo_grupo] = "Finalização" )
+
+
+// ---------- Desempenho (por luta e por minuto) ----------
+
+Golpes sig. por luta = DIVIDE ( SUM ( fato_desempenho[sig_acertados] ), [Participações] )
+
+Golpes sig. por minuto = DIVIDE ( SUM ( fato_desempenho[sig_acertados] ), SUM ( fato_desempenho[duracao_seg] ) / 60 )
+
+Golpes sig. tentados por minuto = DIVIDE ( SUM ( fato_desempenho[sig_tentados] ), SUM ( fato_desempenho[duracao_seg] ) / 60 )
+
+Precisão de golpes = DIVIDE ( SUM ( fato_desempenho[sig_acertados] ), SUM ( fato_desempenho[sig_tentados] ) )
+
+Quedas por luta = DIVIDE ( SUM ( fato_desempenho[quedas] ), [Participações] )
+
+Precisão de quedas = DIVIDE ( SUM ( fato_desempenho[quedas] ), SUM ( fato_desempenho[quedas_tentadas] ) )
+
+Controle por luta (min) = DIVIDE ( SUM ( fato_desempenho[controle_seg] ), [Participações] ) / 60
+
+Knockdowns = SUM ( fato_desempenho[kd] )
+
+Knockdowns por luta = DIVIDE ( [Knockdowns], [Participações] )
+
+Tentativas de finalização por luta = DIVIDE ( SUM ( fato_desempenho[tent_finalizacao] ), [Participações] )
+
+// Cada linha traz a duração da luta: a média das linhas é a duração média das lutas no filtro
+Duração média (min) = DIVIDE ( SUM ( fato_desempenho[duracao_seg] ), [Participações] ) / 60
+
+
+// ---------- Alvo e origem dos golpes (% dos significativos acertados) ----------
+
+% Cabeça = DIVIDE ( SUM ( fato_desempenho[cabeca] ), SUM ( fato_desempenho[cabeca] ) + SUM ( fato_desempenho[corpo] ) + SUM ( fato_desempenho[perna] ) )
+
+% Corpo = DIVIDE ( SUM ( fato_desempenho[corpo] ), SUM ( fato_desempenho[cabeca] ) + SUM ( fato_desempenho[corpo] ) + SUM ( fato_desempenho[perna] ) )
+
+% Perna = DIVIDE ( SUM ( fato_desempenho[perna] ), SUM ( fato_desempenho[cabeca] ) + SUM ( fato_desempenho[corpo] ) + SUM ( fato_desempenho[perna] ) )
+
+% Chão = DIVIDE ( SUM ( fato_desempenho[chao] ), SUM ( fato_desempenho[distancia] ) + SUM ( fato_desempenho[clinch] ) + SUM ( fato_desempenho[chao] ) )
+
+
+// ---------- Como as lutas terminam (uma vez por luta) ----------
+
+% Nocaute = DIVIDE ( CALCULATE ( [Lutas], dim_luta[metodo_grupo] = "Nocaute" ), [Lutas] )
+
+% Finalização = DIVIDE ( CALCULATE ( [Lutas], dim_luta[metodo_grupo] = "Finalização" ), [Lutas] )
+
+% Decisão = DIVIDE ( CALCULATE ( [Lutas], dim_luta[metodo_grupo] = "Decisão" ), [Lutas] )
+
+% Antes da decisão = [% Nocaute] + [% Finalização]
+
+% Luta da Noite = DIVIDE ( CALCULATE ( [Lutas], dim_luta[bonus_luta] = 1 ), [Lutas] )
+
+% Disputa de cinturão = DIVIDE ( CALCULATE ( [Lutas], dim_luta[disputa_titulo] = 1 ), [Lutas] )
+
+
+// ---------- Referência: média de todos os lutadores (ignora o filtro de lutador) ----------
+
+Média geral - golpes sig. por minuto = CALCULATE ( [Golpes sig. por minuto], REMOVEFILTERS ( dim_lutador ) )
+
+Média geral - precisão de golpes = CALCULATE ( [Precisão de golpes], REMOVEFILTERS ( dim_lutador ) )
+
+Média geral - quedas por luta = CALCULATE ( [Quedas por luta], REMOVEFILTERS ( dim_lutador ) )
+
+Média geral - controle por luta (min) = CALCULATE ( [Controle por luta (min)], REMOVEFILTERS ( dim_lutador ) )
+
+
+// ---------- Rankings com amostra mínima ----------
+// Antes, criar a tabela do parâmetro (Modelagem > Nova tabela):
+//   Mínimo de lutas = GENERATESERIES ( 1, 12, 1 )
+// e usar a coluna 'Mínimo de lutas'[Value] numa segmentação de seleção única.
+
+Mínimo de lutas selecionado = SELECTEDVALUE ( 'Mínimo de lutas'[Value], 4 )
+
+// Em branco quando não atinge o mínimo: o lutador some do gráfico
+Taxa de vitória (ranking) = IF ( [Participações] >= [Mínimo de lutas selecionado], [Taxa de vitória] )
+
+Golpes sig. por minuto (ranking) = IF ( [Participações] >= [Mínimo de lutas selecionado], [Golpes sig. por minuto] )
+
+// Mesmos filtros dos PNGs: 50+ golpes tentados; quedas com 15+ tentativas e 3+ lutas
+Precisão de golpes (ranking) = IF ( SUM ( fato_desempenho[sig_tentados] ) >= 50 && [Participações] >= [Mínimo de lutas selecionado], [Precisão de golpes] )
+
+Precisão de quedas (ranking) = IF ( SUM ( fato_desempenho[quedas_tentadas] ) >= 15 && [Participações] >= MAX ( 3, [Mínimo de lutas selecionado] ), [Precisão de quedas] )
+
+
+// ---------- Round a round (em fato_round) ----------
+
+Golpes sig. por round = DIVIDE ( SUM ( fato_round[sig_acertados] ), COUNTROWS ( fato_round ) )
+
+Média geral - golpes sig. por round = CALCULATE ( [Golpes sig. por round], REMOVEFILTERS ( dim_lutador ) )

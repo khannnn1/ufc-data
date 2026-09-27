@@ -34,11 +34,13 @@ ProjetoUFC/
 │   ├── exportar.py       # gera dados/lutadores.json para o site interativo
 │   ├── banco.py          # monta data/ufc.db (SQLite) a partir dos CSVs limpos
 │   ├── consultas.py      # lê e executa as consultas de sql/consultas.sql
+│   ├── powerbi.py        # modelo estrela em CSV para o Power BI (powerbi/dados/)
 │   └── config.py         # constantes (COLUNAS_OF, COLUNAS_PCT)
 ├── dados/
 │   └── lutadores.json  # totais por lutador (VERSIONADO: o site lê daqui)
 ├── js/
 │   └── interativo.js   # lógica da página interativa (Chart.js)
+├── powerbi/            # dados/*.csv (VERSIONADOS), medidas.dax, tema_ufc.json, README (roteiro)
 ├── tests/              # pytest: conftest.py (mini-dataset de 3 lutas) + test_*.py
 ├── pytest.ini          # testpaths = tests, pythonpath = .
 ├── index.html          # página estática publicada via GitHub Pages
@@ -116,7 +118,7 @@ Definido em `src/visualizacao.py`:
   `consultar(nome)` (DataFrame)
 
 ## Testes
-`python -m pytest` na raiz (22 testes, ~1 s, sem rede e sem data/). `tests/conftest.py`
+`python -m pytest` na raiz (24 testes, ~1 s, sem rede e sem data/). `tests/conftest.py`
 tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos CSVs
 limpos; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
 e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
@@ -124,6 +126,17 @@ Função nova em src/ com lógica pura (limpeza, parsing, agregação): adiciona
 CI: `.github/workflows/testes.yml` roda o pytest no GitHub Actions (Ubuntu, Python 3.14)
 a cada push em main/develop, instalando só `requirements-test.txt` (o requirements.txt
 tem pywinpty, só Windows). Import novo em src/ -> incluir no requirements-test.txt.
+
+## Power BI
+`python -m src.powerbi` (também chamado pelo `src.atualizar`) grava em `powerbi/dados/` o
+modelo estrela a partir de `montar_tabelas`: `fato_desempenho` (lutador × luta, com
+vitoria/derrota/empate 0/1, duracao_seg, idade_na_luta, adversario_id), `fato_round`,
+`dim_luta` (categoria em PT, `metodo_grupo` Nocaute/Finalização/Decisão/Outro), `dim_lutador`
+(lutador_id inteiro, base em PT) e `dim_calendario`. CSV com `;`, vírgula decimal e
+UTF-8 com BOM (Power BI em pt-BR). Medidas em `powerbi/medidas.dax` (nomes sem "." nem
+":" em tabela/parâmetro); percentuais de luta via DISTINCTCOUNT(luta_id). O DAX não é
+testado automaticamente: só vale depois de conferido no Power BI Desktop (roteiro e
+números de conferência em `powerbi/README.md`).
 
 ## Banco SQL (SQLite)
 Tabelas: `eventos` (evento_id, url, nome) → `lutas` (luta_id, url,

@@ -213,9 +213,11 @@ def atualizar(pasta_dados=RAIZ / "data", exportar_site=True, max_paginas=10, dri
     if exportar_site:
         from src.banco import criar_banco
         from src.exportar import exportar_lutadores
+        from src.powerbi import exportar_powerbi
 
         exportar_lutadores()
         print("Banco SQL:", criar_banco())
+        print("CSVs do Power BI:", exportar_powerbi())
 
     return novos
 

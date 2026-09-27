@@ -1,0 +1,31 @@
+{
+  "name": "UFC Data (escuro)",
+  "dataColors": ["#e63946", "#457b9d", "#c08a1e", "#9a9a9a", "#f5f5f5", "#6c2a2f", "#274a60", "#7a5812"],
+  "background": "#161616",
+  "foreground": "#f5f5f5",
+  "tableAccent": "#e63946",
+  "good": "#457b9d",
+  "neutral": "#c08a1e",
+  "bad": "#e63946",
+  "textClasses": {
+    "callout": { "color": "#f5f5f5", "fontFace": "Segoe UI Semibold" },
+    "title": { "color": "#f5f5f5", "fontFace": "Segoe UI Semibold" },
+    "header": { "color": "#f5f5f5" },
+    "label": { "color": "#9a9a9a" }
+  },
+  "visualStyles": {
+    "page": {
+      "*": {
+        "background": [{ "color": { "solid": { "color": "#0d0d0d" } }, "transparency": 0 }],
+        "outspace": [{ "color": { "solid": { "color": "#0d0d0d" } } }]
+      }
+    },
+    "*": {
+      "*": {
+        "background": [{ "show": true, "color": { "solid": { "color": "#161616" } }, "transparency": 0 }],
+        "border": [{ "show": true, "color": { "solid": { "color": "#2a2a2a" } }, "radius": 10 }],
+        "title": [{ "fontColor": { "solid": { "color": "#f5f5f5" } } }]
+      }
+    }
+  }
+}

@@ -1,0 +1,965 @@
+﻿lutador_id;nome;altura_cm;envergadura_cm;base;nascimento
+1;Joshua Van;165,1;165,1;Ortodoxo;2001-10-10
+2;Alexandre Pantoja;165,1;170,2;Ortodoxo;1990-04-16
+3;Arman Tsarukyan;170,2;182,9;Ortodoxo;1996-10-11
+4;Mauricio Ruffy;180,3;190,5;Ortodoxo;1996-06-17
+5;Patricio Pitbull;167,6;170,2;Ortodoxo;1987-07-07
+6;Dooho Choi;177,8;177,8;Ortodoxo;1991-04-10
+7;Gable Steveson;180,3;188,0;Ortodoxo;2000-05-31
+8;Sean Sharaf;190,5;195,6;Ortodoxo;1993-07-11
+9;Alonzo Menifield;182,9;193,0;Ortodoxo;1987-10-18
+10;Iwo Baraniewski;182,9;185,4;Ortodoxo;1998-11-20
+11;Marlon Vera;172,7;177,8;Troca de base;1992-12-02
+12;Charles Jourdain;175,3;175,3;Troca de base;1995-11-27
+13;Tai Tuivasa;188,0;190,5;Canhoto;1993-03-16
+14;Robelis Despaigne;200,7;213,4;Ortodoxo;1988-08-09
+15;Michael Aswell Jr.;172,7;175,3;Ortodoxo;2000-09-27
+16;JooSang Yoo;170,2;180,3;Ortodoxo;1994-01-21
+17;Ryan Gandra;185,4;188,0;Ortodoxo;1995-05-08
+18;Ozzy Diaz;193,0;200,7;Ortodoxo;1990-11-22
+19;Edmen Shahbazyan;188,0;188,0;Ortodoxo;1997-11-20
+20;Brunno Ferreira;177,8;182,9;Ortodoxo;1992-11-04
+21;Casey O'Neill;167,6;175,3;Ortodoxo;1997-10-07
+22;Eduarda Moura;167,6;170,2;Ortodoxo;1994-02-28
+23;Giga Chikadze;182,9;188,0;Ortodoxo;1988-08-25
+24;Joanderson Brito;172,7;182,9;Ortodoxo;1995-02-11
+25;Jean Silva;170,2;175,3;Ortodoxo;1996-12-13
+26;Jose Delgado;180,3;185,4;Troca de base;1998-04-21
+27;Brandon Moreno;170,2;177,8;Ortodoxo;1993-12-07
+28;Joseph Morales;167,6;175,3;Troca de base;1994-08-22
+29;Tommy McMillen;182,9;188,0;Ortodoxo;1997-12-15
+30;Marwan Rahiki;172,7;182,9;Ortodoxo;2002-05-10
+31;Manon Fiorot;170,2;165,1;Ortodoxo;1990-02-17
+32;Alexa Grasso;165,1;167,6;Ortodoxo;1993-08-09
+33;Waldo Cortes Acosta;193,0;198,1;Ortodoxo;1991-10-03
+34;Curtis Blaydes;193,0;203,2;Ortodoxo;1991-02-18
+35;David Martinez;165,1;170,2;Ortodoxo;1998-08-03
+36;Dan Ige;170,2;180,3;Ortodoxo;1991-08-06
+37;Tim Elliott;170,2;167,6;Canhoto;1986-12-24
+38;Edgar Chairez;170,2;180,3;Ortodoxo;1996-01-27
+39;Ignacio Bahamondes;190,5;190,5;Ortodoxo;1997-08-27
+40;Muslim Salikhov;180,3;177,8;Ortodoxo;1984-06-09
+41;Yousri Belgaroui;198,1;200,7;Ortodoxo;1992-06-02
+42;Djorden Santos;182,9;190,5;Ortodoxo;1997-08-01
+43;Drakkar Klose;175,3;177,8;Ortodoxo;1988-03-09
+44;Tommy Gantt;180,3;193,0;Ortodoxo;1993-01-09
+45;Rafa Garcia;170,2;177,8;Ortodoxo;1994-08-05
+46;Rongzhu;175,3;180,3;Ortodoxo;2000-03-07
+47;Sean King III;180,3;182,9;Ortodoxo;2003-10-17
+48;Jessie Rosas;170,2;172,7;Canhoto;2002-12-04
+49;JJ Aldrich;165,1;170,2;Canhoto;1992-09-29
+50;Regina Tarin;170,2;167,6;Canhoto;2004-10-19
+51;Dan Hooker;182,9;190,5;Troca de base;1990-02-13
+52;Salahdine Parnasse;177,8;180,3;Canhoto;1997-12-04
+53;Fares Ziam;185,4;190,5;Ortodoxo;1997-03-21
+54;Axel Sola;182,9;188,0;Canhoto;1997-09-17
+55;Michael Page;190,5;200,7;Troca de base;1987-04-07
+56;Nursulton Ruziboev;195,6;193,0;Ortodoxo;1993-11-19
+57;Daniil Donchenko;180,3;180,3;Ortodoxo;2001-08-04
+58;Punahele Soriano;180,3;182,9;Canhoto;1992-11-22
+59;Kurtis Campbell;175,3;182,9;Troca de base;2002-07-29
+60;Trevor Peek;175,3;177,8;Troca de base;1995-01-09
+61;Losene Keita;170,2;182,9;Ortodoxo;1997-12-30
+62;Muhammad Naimov;175,3;177,8;Ortodoxo;1994-08-07
+63;Morgan Charriere;172,7;175,3;Ortodoxo;1995-10-26
+64;Felipe Lima;167,6;172,7;Ortodoxo;1998-05-07
+65;Mario Pinto;195,6;200,7;Ortodoxo;1998-03-14
+66;Ryan Spann;195,6;200,7;Ortodoxo;1991-08-24
+67;Oumar Sy;193,0;210,8;Ortodoxo;1995-11-21
+68;Modestas Bukauskas;190,5;193,0;Troca de base;1994-02-10
+69;Nathaniel Wood;167,6;175,3;Ortodoxo;1993-05-08
+70;Pavel Andrusca;170,2;167,6;Ortodoxo;2002-05-08
+71;Michael Aljarouj;165,1;167,6;Ortodoxo;1997-08-21
+72;Fabia Sintes;170,2;165,1;Ortodoxo;1994-07-27
+73;Nora Cornolle;170,2;170,2;Ortodoxo;1989-12-06
+74;Klaudia Sygula;172,7;175,3;Ortodoxo;1998-12-30
+75;Matthieu Duclos;190,5;193,0;Ortodoxo;1995-04-04
+76;Luis Felipe Dias;177,8;188,0;;1995-01-17
+77;Delphine Benouaich;160,0;160,0;Ortodoxo;1995-03-21
+78;Sofia Montenegro;167,6;170,2;Ortodoxo;1999-06-18
+79;Umar Nurmagomedov;172,7;175,3;Ortodoxo;1996-01-03
+80;Song Yadong;172,7;170,2;Ortodoxo;1997-12-02
+81;Yan Xiaonan;165,1;160,0;Ortodoxo;1989-06-16
+82;Denise Gomes;157,5;160,0;Ortodoxo;1999-12-30
+83;Aoriqileng;170,2;175,3;Ortodoxo;1993-06-25
+84;Kai Asakura;172,7;175,3;Ortodoxo;1993-10-31
+85;Alex Perez;167,6;165,1;Ortodoxo;1992-03-21
+86;Sumudaerji;172,7;182,9;Canhoto;1996-01-20
+87;Liu Ce;190,5;195,6;Ortodoxo;1996-09-04
+88;Levi Rodrigues Jr.;182,9;193,0;Ortodoxo;1996-10-15
+89;Bilal Hasan;170,2;177,8;Troca de base;2001-07-16
+90;Nilson Rojas;167,6;160,0;Ortodoxo;1999-04-21
+91;Namsrai Batbayar;162,6;172,7;Ortodoxo;2000-12-29
+92;Andre Lima;170,2;170,2;Ortodoxo;1999-02-04
+93;Rei Tsuruya;167,6;172,7;Ortodoxo;2002-06-22
+94;Kevin Borjas;165,1;172,7;Ortodoxo;1997-12-06
+95;Jack Jenkins;170,2;172,7;Troca de base;1993-11-03
+96;Sean Woodson;188,0;198,1;Ortodoxo;1992-06-07
+97;Xiao Long;172,7;177,8;Ortodoxo;1998-04-13
+98;Francesco Nuzzi;167,6;180,3;Canhoto;1996-08-28
+99;Lawrence Lui;170,2;182,9;Ortodoxo;1996-08-04
+100;Hector Santiago;165,1;172,7;Ortodoxo;1993-03-21
+101;Xiong Jingnan;162,6;160,0;Troca de base;1988-01-12
+102;Julia Polastri;157,5;160,0;Ortodoxo;1998-03-05
+103;Ding Meng;188,0;185,4;Ortodoxo;1994-09-27
+104;Cam Nelson;180,3;182,9;Ortodoxo;1998-07-28
+105;Anthony Hernandez;182,9;190,5;Ortodoxo;1993-10-18
+106;Gregory Rodrigues;190,5;190,5;Ortodoxo;1992-02-17
+107;Serghei Spivac;190,5;198,1;Ortodoxo;1995-01-24
+108;Vitor Petrino;188,0;195,6;Ortodoxo;1997-08-28
+109;Reinier de Ridder;193,0;198,1;Canhoto;1990-09-07
+110;Roman Dolidze;188,0;193,0;Ortodoxo;1988-07-15
+111;MarQuel Mederos;177,8;175,3;Ortodoxo;1996-11-30
+112;Mason Jones;177,8;188,0;Ortodoxo;1995-04-26
+113;Carli Judice;170,2;172,7;Canhoto;1999-03-02
+114;Jeisla Chaves;167,6;172,7;Ortodoxo;1997-02-02
+115;Anthony Wint;180,3;198,1;Ortodoxo;1995-09-14
+116;Terrance Chatman;182,9;193,0;Ortodoxo;1997-05-05
+117;Jamall Emmers;177,8;188,0;Ortodoxo;1989-07-24
+118;Lerryan Douglas;175,3;182,9;Ortodoxo;1995-04-27
+119;Kennedy Nzechukwu;195,6;210,8;Canhoto;1992-06-13
+120;Shamil Gaziev;193,0;198,1;Ortodoxo;1990-02-10
+121;Chris Padilla;175,3;188,0;Ortodoxo;1995-09-14
+122;Nasrat Haqparast;177,8;182,9;Canhoto;1995-08-22
+123;Marcio Barbosa;167,6;177,8;Ortodoxo;1998-05-22
+124;Ryan Kuse;172,7;180,3;Ortodoxo;1994-06-24
+125;Gauge Young;175,3;177,8;Ortodoxo;2000-07-14
+126;Stan Dorsainvil;175,3;193,0;Ortodoxo;2000-05-12
+127;Wes Schultz;182,9;195,6;Ortodoxo;1996-08-09
+128;Jackson McVey;193,0;195,6;Canhoto;1999-03-25
+129;Shanelle Dyer;167,6;165,1;Ortodoxo;2001-04-23
+130;Elise Reed;160,0;160,0;Ortodoxo;1992-12-05
+131;Islam Makhachev;177,8;177,8;Canhoto;1991-10-27
+132;Ian Machado Garry;190,5;188,0;Ortodoxo;1997-11-17
+133;Mackenzie Dern;162,6;160,0;Ortodoxo;1993-03-24
+134;Gillian Robertson;165,1;160,0;Ortodoxo;1995-05-17
+135;Jalin Turner;190,5;195,6;Canhoto;1995-05-18
+136;Kaue Fernandes;175,3;185,4;Ortodoxo;1995-03-17
+137;Mansur Abdul-Malik;188,0;203,2;Ortodoxo;1997-10-07
+138;Dustin Stoltzfus;182,9;190,5;Ortodoxo;1991-11-15
+139;Edson Barboza;180,3;190,5;Ortodoxo;1986-01-21
+140;Esteban Ribovics;177,8;175,3;Ortodoxo;1996-04-27
+141;Chidi Njokuani;190,5;203,2;Ortodoxo;1988-12-31
+142;Joel Alvarez;190,5;195,6;Ortodoxo;1993-03-02
+143;Charles Johnson;175,3;177,8;Troca de base;1991-01-10
+144;Eduardo Chapolin;170,2;170,2;Ortodoxo;1995-11-23
+145;Donte Johnson;172,7;188,0;Canhoto;1999-01-25
+146;Eric McConico;182,9;195,6;Canhoto;1990-05-09
+147;Vicente Luque;180,3;190,5;Ortodoxo;1991-11-27
+148;Tresean Gore;182,9;190,5;Troca de base;1994-06-21
+149;Rafael Tobias;188,0;188,0;Ortodoxo;2003-03-20
+150;Lucas Fernando;190,5;203,2;Ortodoxo;1997-01-10
+151;Neil Magny;190,5;203,2;Ortodoxo;1987-08-03
+152;Ramiz Brahimaj;177,8;182,9;Ortodoxo;1992-11-17
+153;Jeremiah Wells;175,3;188,0;Troca de base;1986-10-30
+154;Myktybek Orolbai;177,8;188,0;Ortodoxo;1998-02-10
+155;Mateusz Gamrot;177,8;177,8;Canhoto;1990-12-11
+156;Quillan Salkilld;182,9;190,5;Ortodoxo;1999-12-28
+157;Diego Ferreira;175,3;188,0;Ortodoxo;1985-01-18
+158;Billy Quarantillo;177,8;177,8;Ortodoxo;1988-12-08
+159;Darren Elkins;177,8;180,3;Ortodoxo;1984-05-16
+160;Yadier del Valle;175,3;175,3;Canhoto;1996-07-29
+161;Amanda Lemos;162,6;165,1;Canhoto;1987-05-22
+162;Alexia Thainara;162,6;170,2;Ortodoxo;1995-11-20
+163;Billy Ray Goff;177,8;182,9;Troca de base;1998-06-18
+164;Ty Miller;188,0;195,6;Ortodoxo;2000-06-04
+165;Steven Asplund;195,6;198,1;Ortodoxo;1998-07-16
+166;Guilherme Pat;198,1;205,7;Ortodoxo;1994-04-20
+167;Diyar Nurgozhay;188,0;188,0;Canhoto;1997-04-22
+168;Bruno Lopes;188,0;188,0;Ortodoxo;1993-04-24
+169;Louie Sutherland;190,5;193,0;Ortodoxo;1994-02-08
+170;Jose Montanha;193,0;193,0;Ortodoxo;1996-08-25
+171;Manoel Sousa;175,3;177,8;Ortodoxo;1997-06-04
+172;Richie Miranda;172,7;190,5;Canhoto;1994-08-12
+173;Miles Johns;170,2;172,7;Ortodoxo;1994-03-30
+174;Gianni Vazquez;170,2;180,3;Ortodoxo;1994-07-17
+175;Juliana Miller;170,2;167,6;Ortodoxo;1996-05-07
+176;Ravena Oliveira;165,1;165,1;Ortodoxo;1997-02-20
+177;Gigi Canuto;157,5;162,6;Ortodoxo;2002-11-16
+178;Carol Foro;157,5;154,9;Ortodoxo;1997-03-21
+179;Uros Medic;185,4;180,3;Canhoto;1993-04-25
+180;Daniel Rodriguez;185,4;188,0;Canhoto;1986-12-31
+181;Jan Blachowicz;188,0;198,1;Ortodoxo;1983-02-24
+182;Navajo Stirling;193,0;200,7;Ortodoxo;1997-11-07
+183;Aleksandar Rakic;193,0;198,1;Ortodoxo;1992-02-06
+184;Marcin Tybura;190,5;198,1;Ortodoxo;1985-11-09
+185;Dusko Todorovic;185,4;188,0;Ortodoxo;1994-05-19
+186;Robert Valentin;188,0;195,6;Ortodoxo;1995-03-31
+187;Vlasto Cepo;182,9;185,4;Ortodoxo;1995-01-25
+188;Gilbert Urbina;190,5;190,5;Ortodoxo;1996-04-05
+189;Milos Janicic;180,3;180,3;Ortodoxo;1997-05-03
+190;Noah Gugnon;180,3;180,3;Ortodoxo;2000-10-18
+191;Ludovit Klein;170,2;182,9;Canhoto;1995-02-22
+192;Tofiq Musayev;175,3;175,3;Ortodoxo;1989-12-15
+193;Oban Elliott;182,9;182,9;Ortodoxo;1997-12-19
+194;Michael Oliveira;185,4;198,1;Ortodoxo;1998-01-21
+195;Borislav Nikolic;175,3;182,9;Ortodoxo;1993-01-29
+196;Mark Vologdin;160,0;165,1;Ortodoxo;2000-04-18
+197;Dennis Buzukja;175,3;177,8;Troca de base;1997-10-01
+198;Bogdan Grad;172,7;177,8;Ortodoxo;1995-09-28
+199;Mateusz Rebecki;170,2;167,6;Canhoto;1992-10-03
+200;Kyle Prepolec;177,8;177,8;Canhoto;1989-08-30
+201;Nina Milosevic;165,1;170,2;Ortodoxo;1996-08-08
+202;Hailey Cowan;172,7;170,2;Canhoto;1992-02-12
+203;Jovan Leka;193,0;190,5;Ortodoxo;2002-03-15
+204;Alexander Poppeck;188,0;190,5;Ortodoxo;1992-04-06
+205;Marina Spasic;162,6;162,6;Ortodoxo;1994-07-11
+206;Stephanie Luciano;167,6;165,1;Ortodoxo;1999-12-16
+207;Magomed Ankalaev;190,5;190,5;Ortodoxo;1992-06-02
+208;Bogdan Guskov;190,5;193,0;Ortodoxo;1992-09-12
+209;Steve Erceg;172,7;172,7;Ortodoxo;1995-07-27
+210;Ramazan Temirov;162,6;160,0;Ortodoxo;1997-01-31
+211;Magomed Zaynukov;177,8;172,7;Ortodoxo;1995-01-02
+212;Damian Rzepecki;177,8;180,3;Ortodoxo;2001-11-23
+213;Rizvan Kuniev;193,0;193,0;Ortodoxo;1992-03-10
+214;Tyrell Fortune;190,5;190,5;Ortodoxo;1990-07-04
+215;Abubakar Vagaev;180,3;185,4;Ortodoxo;1993-04-14
+216;Saygid Izagakhmaev;182,9;188,0;Ortodoxo;1994-09-03
+217;Valter Walker;198,1;198,1;Ortodoxo;1997-12-14
+218;Thomas Petersen;185,4;188,0;Canhoto;1995-03-30
+219;Dustin Jacoby;190,5;193,0;Ortodoxo;1988-04-04
+220;Muhammad Saidov;188,0;185,4;Ortodoxo;1996-01-10
+221;Santiago Ponzinibbio;182,9;185,4;Ortodoxo;1986-09-26
+222;Sam Patterson;190,5;198,1;Ortodoxo;1996-04-30
+223;Ismael Bonfim;172,7;180,3;Ortodoxo;1995-12-28
+224;Magomed Tuchalov;190,5;198,1;Ortodoxo;1999-12-30
+225;Brendson Ribeiro;190,5;205,7;Ortodoxo;1996-09-08
+226;Nurullo Aliev;177,8;182,9;Ortodoxo;2000-12-08
+227;Mike Davis;182,9;182,9;Ortodoxo;1992-10-07
+228;Cody Gibson;177,8;180,3;Ortodoxo;1987-09-11
+229;Abdul Hussein;170,2;170,2;Ortodoxo;1997-08-02
+230;Dricus Du Plessis;185,4;193,0;Troca de base;1994-01-14
+231;Kamaru Usman;182,9;193,0;Troca de base;1987-05-11
+232;Jared Cannonier;180,3;195,6;Troca de base;1984-03-16
+233;Christian Leroy Duncan;188,0;200,7;Troca de base;1995-07-24
+234;Chase Hooper;185,4;188,0;Canhoto;1999-09-13
+235;Mitch Ramirez;180,3;177,8;Ortodoxo;1992-11-03
+236;Tabatha Ricci;154,9;154,9;Ortodoxo;1995-02-21
+237;Fatima Kline;167,6;170,2;Ortodoxo;2000-07-12
+238;Alberto Montes;170,2;175,3;Ortodoxo;1994-05-31
+239;Austin Bashi;167,6;177,8;Ortodoxo;2001-09-29
+240;Jean-Paul Lebosnoyani;180,3;182,9;Troca de base;1999-01-27
+241;Seokhyeon Ko;177,8;180,3;Canhoto;1993-09-24
+242;Felipe Franco;185,4;193,0;Ortodoxo;2001-01-22
+243;Ezra Elliott;175,3;182,9;Ortodoxo;2000-05-18
+244;Damien Anderson;172,7;175,3;Canhoto;1997-01-04
+245;Alden Coria;172,7;170,2;Ortodoxo;1998-04-24
+246;Stewart Nicoll;165,1;165,1;Ortodoxo;1994-11-04
+247;RJ Harris;190,5;198,1;Ortodoxo;1998-10-01
+248;Alvin Hines;188,0;188,0;Ortodoxo;1991-10-20
+249;Anna Melisano;162,6;172,7;Ortodoxo;1997-05-20
+250;Dione Barbosa;167,6;167,6;Ortodoxo;1992-05-08
+251;Conor McGregor;175,3;188,0;Canhoto;1988-07-14
+252;Max Holloway;180,3;175,3;Ortodoxo;1991-12-04
+253;Benoit Saint Denis;180,3;185,4;Canhoto;1995-12-18
+254;Paddy Pimblett;177,8;185,4;Ortodoxo;1995-01-03
+255;Cory Sandhagen;180,3;177,8;Troca de base;1992-04-20
+256;Mario Bautista;175,3;175,3;Troca de base;1993-07-01
+257;Brandon Royval;175,3;172,7;Canhoto;1992-08-16
+258;Lone'er Kavanagh;167,6;170,2;Ortodoxo;1999-06-09
+259;King Green;177,8;180,3;Ortodoxo;1986-09-09
+260;Terrance McKinney;177,8;185,4;Troca de base;1994-09-15
+261;Nikita Krylov;190,5;195,6;Ortodoxo;1992-03-07
+262;Robert Whittaker;182,9;185,4;Ortodoxo;1990-12-20
+263;Elisha Ellison;182,9;198,1;Ortodoxo;1997-03-05
+264;Cody Garbrandt;172,7;165,1;Ortodoxo;1991-07-07
+265;Adrian Yanez;170,2;177,8;Ortodoxo;1993-11-29
+266;Luke Riley;175,3;175,3;Ortodoxo;1999-06-30
+267;Kai Kamaka III;170,2;175,3;Ortodoxo;1995-01-05
+268;Tracy Cortez;165,1;165,1;Ortodoxo;1993-12-10
+269;Wang Cong;167,6;165,1;Canhoto;1992-05-15
+270;Damian Pinas;185,4;200,7;Ortodoxo;2002-03-12
+271;Cesar Almeida;185,4;188,0;Ortodoxo;1988-03-28
+272;Farid Basharat;172,7;180,3;Ortodoxo;1997-08-02
+273;John Garza;170,2;172,7;Ortodoxo;2002-10-30
+274;Zach Reese;193,0;195,6;Troca de base;1994-03-24
+275;Alessandro Costa;162,6;170,2;Ortodoxo;1996-01-28
+276;Cody Durden;170,2;170,2;Canhoto;1991-03-29
+277;Rafael Fiziev;172,7;180,3;Troca de base;1993-03-05
+278;Manuel Torres;177,8;185,4;Troca de base;1995-03-25
+279;Shara Magomedov;188,0;185,4;Ortodoxo;1994-05-16
+280;Michel Pereira;185,4;185,4;Ortodoxo;1993-10-06
+281;Nazim Sadykhov;177,8;175,3;Canhoto;1994-05-16
+282;Matheus Camilo;177,8;175,3;Ortodoxo;2001-01-02
+283;Asu Almabayev;162,6;165,1;Ortodoxo;1994-01-25
+284;Ikram Aliskerov;182,9;193,0;Canhoto;1992-12-07
+285;Abus Magomedov;188,0;198,1;Ortodoxo;1990-09-02
+286;Michal Oleksiejczuk;182,9;188,0;Canhoto;1995-02-22
+287;Farman Hasanov;180,3;188,0;Ortodoxo;1995-08-01
+288;Eric Nolan;188,0;188,0;Ortodoxo;1997-09-13
+289;Abdul Rakhman Yakhyaev;188,0;198,1;Ortodoxo;2001-01-03
+290;Julius Walker;193,0;198,1;Ortodoxo;1999-07-16
+291;Andrey Pulyaev;193,0;198,1;Canhoto;1997-09-10
+292;Kaan Ofli;170,2;167,6;Ortodoxo;1993-06-19
+293;Javier Reyes;170,2;185,4;Ortodoxo;1993-10-13
+294;Theodor Berggren;180,3;190,5;Troca de base;2000-04-09
+295;Bekzat Almakhan;170,2;172,7;Ortodoxo;1997-10-08
+296;Jean Matsumoto;167,6;172,7;Ortodoxo;1999-09-09
+297;Tahir Abdullayev;172,7;185,4;Ortodoxo;1997-02-02
+298;Jefferson Nascimento;172,7;177,8;Ortodoxo;1998-11-19
+299;Manel Kape;165,1;172,7;Canhoto;1993-11-14
+300;Kyoji Horiguchi;162,6;160,0;Ortodoxo;1990-10-12
+301;Ion Cutelaba;185,4;190,5;Canhoto;1993-12-14
+302;Hyder Amil;175,3;177,8;Troca de base;1990-05-28
+303;Christian Rodriguez;170,2;180,3;Ortodoxo;1997-12-17
+304;Melsik Baghdasaryan;175,3;177,8;Canhoto;1992-01-28
+305;Murtazali Magomedov;175,3;177,8;Ortodoxo;1999-08-26
+306;Vinicius Oliveira;175,3;177,8;Troca de base;1995-11-30
+307;Andre Fili;180,3;188,0;Ortodoxo;1990-06-25
+308;Bia Mesquita;162,6;170,2;Ortodoxo;1991-04-07
+309;Melissa Mullins;170,2;172,7;Ortodoxo;1991-07-23
+310;Allan Nascimento;172,7;175,3;Ortodoxo;1991-09-11
+311;Mitch Raposo;165,1;162,6;Troca de base;1998-10-16
+312;Gaston Bolanos;170,2;175,3;Ortodoxo;1992-09-14
+313;Leon Shahbazyan;193,0;188,0;Ortodoxo;1995-11-18
+314;Levan Chokheli;180,3;182,9;Ortodoxo;1996-10-02
+315;Karol Rosa;165,1;170,2;Ortodoxo;1994-12-30
+316;Luana Santos;167,6;170,2;Ortodoxo;2000-04-16
+317;Shane Collins;175,3;180,3;Ortodoxo;2000-03-08
+318;Otari Tanzilovi;175,3;177,8;Ortodoxo;1998-04-09
+319;Ilia Topuria;170,2;175,3;Ortodoxo;1997-01-21
+320;Justin Gaethje;180,3;177,8;Ortodoxo;1988-11-14
+321;Alex Pereira;193,0;200,7;Ortodoxo;1987-07-07
+322;Ciryl Gane;193,0;205,7;Ortodoxo;1990-04-12
+323;Sean O'Malley;180,3;182,9;Troca de base;1994-10-24
+324;Aiemann Zahabi;172,7;172,7;Ortodoxo;1987-11-19
+325;Josh Hokit;185,4;185,4;Ortodoxo;1997-11-12
+326;Derrick Lewis;190,5;200,7;Ortodoxo;1985-02-07
+327;Michael Chandler;172,7;180,3;Ortodoxo;1986-04-24
+328;Bo Nickal;185,4;193,0;Canhoto;1996-01-14
+329;Kyle Daukaus;188,0;193,0;Canhoto;1993-02-27
+330;Diego Lopes;180,3;182,9;Ortodoxo;1994-12-30
+331;Steve Garcia;182,9;190,5;Canhoto;1992-05-22
+332;Belal Muhammad;180,3;182,9;Ortodoxo;1988-07-09
+333;Gabriel Bonfim;185,4;182,9;Ortodoxo;1997-08-20
+334;Brendan Allen;188,0;190,5;Ortodoxo;1995-12-28
+335;Tom Nolan;190,5;185,4;Canhoto;2000-03-08
+336;Bryce Mitchell;177,8;177,8;Canhoto;1994-10-04
+337;Santiago Luna;175,3;188,0;Ortodoxo;2004-08-06
+338;Junior Tafa;190,5;190,5;Ortodoxo;1996-09-21
+339;Matt Schnell;172,7;177,8;Ortodoxo;1990-01-15
+340;Marcus McGhee;172,7;175,3;Ortodoxo;1990-05-07
+341;John Yannis;170,2;177,8;Canhoto;1994-07-07
+342;Bruno Silva (1990);162,6;165,1;Ortodoxo;1990-03-16
+343;Priscila Cachoeira;170,2;165,1;Ortodoxo;1988-08-19
+344;Chelsea Chandler;172,7;172,7;Canhoto;1990-11-23
+345;Jordan Leavitt;175,3;180,3;Canhoto;1995-06-02
+346;Yuneisy Duben;162,6;165,1;Ortodoxo;1996-07-08
+347;Ketlen Souza;160,0;160,0;Ortodoxo;1994-08-18
+348;Ariane Carnelossi;157,5;154,9;Ortodoxo;1992-11-17
+349;Deiveson Figueiredo;165,1;172,7;Ortodoxo;1987-12-18
+350;Zhang Mingyang;188,0;190,5;Ortodoxo;1998-08-16
+351;Sergei Pavlovich;190,5;213,4;Canhoto;1992-05-13
+352;Tallison Teixeira;200,7;210,8;Ortodoxo;1999-12-07
+353;Cameron Smotherman;175,3;175,3;Ortodoxo;1997-09-17
+354;Jake Matthews;180,3;185,4;Ortodoxo;1994-08-19
+355;Carlston Harris;182,9;193,0;Ortodoxo;1987-07-09
+356;YiSak Lee;182,9;182,9;Ortodoxo;2000-01-01
+357;Jose Souza;190,5;200,7;Ortodoxo;2002-05-23
+358;Cody Haddon;170,2;175,3;Ortodoxo;1998-09-08
+359;Luis Gurule;165,1;162,6;Ortodoxo;1993-11-16
+360;Angela Hill;160,0;162,6;Ortodoxo;1985-01-12
+361;Zhu Kangjie;167,6;177,8;Ortodoxo;1996-01-16
+362;Rodrigo Vera;172,7;172,7;Ortodoxo;1995-10-18
+363;Loma Lookboonmee;154,9;154,9;Ortodoxo;1996-01-18
+364;Jaqueline Amorim;160,0;172,7;Ortodoxo;1995-06-24
+365;Arnold Allen;172,7;177,8;Canhoto;1994-01-22
+366;Melquizael Costa;177,8;180,3;Canhoto;1996-09-14
+367;Daniel Santos;170,2;170,2;Ortodoxo;1995-03-12
+368;Malcolm Wellmaker;177,8;180,3;Troca de base;1994-06-04
+369;Juan Diaz;172,7;175,3;Ortodoxo;1998-06-03
+370;Christian Edwards;195,6;198,1;Canhoto;1998-11-05
+371;Timmy Cuamba;175,3;180,3;Ortodoxo;1999-02-08
+372;Benardo Sopaj;167,6;167,6;Ortodoxo;2000-09-25
+373;Nikolay Veretennikov;185,4;188,0;Ortodoxo;1989-12-22
+374;Khaos Williams;182,9;195,6;Ortodoxo;1994-03-30
+375;Tuco Tokkos;193,0;193,0;Ortodoxo;1990-06-30
+376;Ivan Erslan;188,0;182,9;Ortodoxo;1991-11-15
+377;Artur Minev;175,3;175,3;Ortodoxo;2003-09-27
+378;Ketlen Vieira;172,7;172,7;Ortodoxo;1991-08-26
+379;Jacqueline Cavalcanti;172,7;177,8;Ortodoxo;1997-08-29
+380;Cody Brundage;182,9;182,9;Ortodoxo;1994-05-16
+381;Andre Petroski;182,9;185,4;Troca de base;1991-06-12
+382;Alice Ardelean;160,0;157,5;Ortodoxo;1992-04-19
+383;Polyana Viana;165,1;170,2;Ortodoxo;1992-06-14
+384;Daniel Barez;167,6;167,6;Ortodoxo;1988-12-10
+385;Shauna Bannon;165,1;165,1;Troca de base;1993-10-23
+386;Nicolle Caliari;160,0;157,5;Ortodoxo;1996-11-04
+387;Khamzat Chimaev;188,0;190,5;Ortodoxo;1994-05-01
+388;Sean Strickland;185,4;193,0;Ortodoxo;1991-02-27
+389;Tatsuro Taira;170,2;177,8;Ortodoxo;2000-01-27
+390;Alexander Volkov;200,7;203,2;Ortodoxo;1988-10-24
+391;Sean Brady;177,8;182,9;Ortodoxo;1992-11-23
+392;Joaquin Buckley;177,8;193,0;Canhoto;1994-04-27
+393;Jeremy Stephens;175,3;180,3;Ortodoxo;1986-05-25
+394;Ateba Gautier;193,0;205,7;Troca de base;2002-04-10
+395;Yaroslav Amosov;182,9;190,5;Ortodoxo;1993-09-09
+396;Grant Dawson;177,8;182,9;Troca de base;1994-02-20
+397;Jim Miller;172,7;180,3;Canhoto;1983-08-30
+398;Jared Gordon;175,3;172,7;Ortodoxo;1988-09-06
+399;Roman Kopylov;182,9;190,5;Canhoto;1992-05-04
+400;Marco Tulio;182,9;188,0;Ortodoxo;1994-06-13
+401;Pat Sabatini;172,7;177,8;Ortodoxo;1990-11-09
+402;William Gomis;182,9;185,4;Canhoto;1997-06-13
+403;Baisangur Susurkaev;188,0;200,7;Ortodoxo;2001-01-08
+404;Clayton Carpenter;167,6;167,6;Ortodoxo;1996-06-09
+405;Jose Ochoa;170,2;170,2;Canhoto;2000-12-31
+406;Jack Della Maddalena;180,3;185,4;Troca de base;1996-09-10
+407;Carlos Prates;185,4;198,1;Troca de base;1993-08-17
+408;Beneil Dariush;177,8;182,9;Canhoto;1989-05-06
+409;Ollie Schmid;182,9;180,3;Ortodoxo;2000-12-28
+410;Brando Pericic;195,6;200,7;Ortodoxo;1994-08-03
+411;Cam Rowston;190,5;198,1;Ortodoxo;1995-01-19
+412;Robert Bryczek;182,9;190,5;Ortodoxo;1990-07-04
+413;Kevin Christian;200,7;203,2;Ortodoxo;1995-01-21
+414;Jacob Malkoun;175,3;185,4;Ortodoxo;1995-08-26
+415;Gerald Meerschaert;185,4;195,6;Canhoto;1987-12-18
+416;Colby Thicknesse;170,2;175,3;Ortodoxo;1999-06-23
+417;Vince Morales;170,2;177,8;Ortodoxo;1990-11-12
+418;Ben Johnston;193,0;193,0;Ortodoxo;1990-10-11
+419;Jonathan Micallef;182,9;195,6;Canhoto;1999-03-05
+420;Themba Gorimbo;185,4;195,6;Ortodoxo;1991-01-23
+421;Dom Mar Fan;180,3;190,5;Ortodoxo;2000-03-19
+422;Kody Steele;175,3;180,3;Ortodoxo;1995-04-21
+423;Aljamain Sterling;170,2;180,3;Ortodoxo;1989-07-31
+424;Youssef Zalal;177,8;182,9;Troca de base;1996-09-04
+425;Norma Dumont;170,2;170,2;Ortodoxo;1990-10-01
+426;Joselyne Edwards;172,7;177,8;Ortodoxo;1995-09-29
+427;Alexander Hernandez;175,3;182,9;Ortodoxo;1992-10-01
+428;Davey Grant;172,7;175,3;Ortodoxo;1985-12-18
+429;Adrian Luna Martinetti;172,7;180,3;Ortodoxo;1995-08-20
+430;Montel Jackson;177,8;190,5;Canhoto;1992-04-24
+431;Raoni Barcelos;170,2;170,2;Ortodoxo;1987-05-01
+432;Marcus Buchecha;188,0;195,6;Ortodoxo;1990-01-08
+433;Rodolfo Vieira;182,9;185,4;Ortodoxo;1989-09-25
+434;Sedriques Dumas;188,0;200,7;Ortodoxo;1995-08-06
+435;Mayra Bueno Silva;167,6;167,6;Ortodoxo;1991-08-22
+436;Michelle Montague;175,3;172,7;Canhoto;1993-11-25
+437;Jafel Filho;170,2;172,7;Ortodoxo;1993-05-05
+438;Francis Marshall;175,3;182,9;Ortodoxo;1999-03-03
+439;Lucas Brennan;177,8;182,9;Canhoto;2000-06-03
+440;Max Griffin;180,3;193,0;Ortodoxo;1985-11-29
+441;Victor Valenzuela;175,3;180,3;Ortodoxo;1994-02-09
+442;Talita Alencar;154,9;147,3;Ortodoxo;1990-10-17
+443;Gilbert Burns;177,8;180,3;Ortodoxo;1986-07-20
+444;Mike Malott;185,4;185,4;Ortodoxo;1991-11-07
+445;Kyler Phillips;172,7;182,9;Ortodoxo;1995-06-12
+446;Mandel Nallo;182,9;190,5;Ortodoxo;1989-07-26
+447;Jai Herbert;185,4;195,6;Ortodoxo;1988-05-13
+448;Jasmine Jasudavicius;170,2;172,7;Ortodoxo;1989-03-01
+449;Karine Silva;165,1;170,2;Ortodoxo;1993-12-02
+450;Thiago Moises;175,3;177,8;Ortodoxo;1995-03-23
+451;Julien Leblanc;188,0;188,0;Canhoto;1992-01-21
+452;Tanner Boser;188,0;190,5;Ortodoxo;1991-08-02
+453;Gokhan Saricam;190,5;190,5;Ortodoxo;1991-02-28
+454;Melissa Croden;175,3;172,7;Ortodoxo;1991-04-12
+455;Daria Zhelezniakova;175,3;172,7;Ortodoxo;1996-01-23
+456;Jamey-Lyn Horth;170,2;167,6;Ortodoxo;1990-03-30
+457;John Castaneda;167,6;180,3;Troca de base;1991-12-18
+458;Jamie Siraj;170,2;167,6;Ortodoxo;1994-06-28
+459;Jiri Prochazka;190,5;203,2;Ortodoxo;1992-10-14
+460;Carlos Ulberg;193,0;195,6;Ortodoxo;1990-11-07
+461;Azamat Murzakanov;177,8;180,3;Canhoto;1989-04-12
+462;Paulo Costa;185,4;182,9;Ortodoxo;1991-04-21
+463;Dominick Reyes;193,0;195,6;Canhoto;1989-12-26
+464;Johnny Walker;198,1;208,3;Ortodoxo;1992-03-30
+465;Cub Swanson;172,7;177,8;Ortodoxo;1983-11-02
+466;Nate Landwehr;175,3;182,9;Ortodoxo;1988-06-06
+467;Aaron Pico;172,7;177,8;Ortodoxo;1996-09-23
+468;Kevin Holland;190,5;205,7;Ortodoxo;1992-11-05
+469;Randy Brown;190,5;198,1;Ortodoxo;1990-07-08
+470;Tatiana Suarez;165,1;167,6;Canhoto;1990-12-19
+471;Loopy Godinez;157,5;154,9;Ortodoxo;1993-09-06
+472;Kelvin Gastelum;175,3;180,3;Canhoto;1991-10-24
+473;Charles Radtke;175,3;182,9;Ortodoxo;1990-07-09
+474;Francisco Prado;177,8;175,3;Ortodoxo;2002-06-16
+475;Renato Moicano;180,3;182,9;Ortodoxo;1989-05-21
+476;Chris Duncan;177,8;180,3;Ortodoxo;1993-05-10
+477;Virna Jandiroba;160,0;162,6;Ortodoxo;1988-05-30
+478;Ethyn Ewing;167,6;175,3;Ortodoxo;1996-02-19
+479;Rafael Estevam;172,7;175,3;Ortodoxo;1996-08-10
+480;Manolo Zecchini;172,7;172,7;Ortodoxo;1996-10-22
+481;Jose Delano;172,7;177,8;Ortodoxo;1996-09-11
+482;Robert Ruchala;172,7;182,9;Troca de base;1998-05-15
+483;Lando Vannata;175,3;180,3;Ortodoxo;1992-03-14
+484;Darrius Flowers;175,3;180,3;Ortodoxo;1994-08-25
+485;Alice Pereira;172,7;180,3;Ortodoxo;2005-12-20
+486;Azamat Bekoev;182,9;182,9;Ortodoxo;1995-12-30
+487;Melissa Gatto;165,1;175,3;Ortodoxo;1996-05-02
+488;Dakota Hope;167,6;172,7;;1997-01-29
+489;Israel Adesanya;193,0;203,2;Troca de base;1989-07-22
+490;Joe Pyfer;188,0;190,5;Ortodoxo;1996-09-17
+491;Maycee Barber;165,1;165,1;Troca de base;1998-05-18
+492;Michael Chiesa;185,4;190,5;Canhoto;1987-12-07
+493;Niko Price;182,9;193,0;Ortodoxo;1989-09-29
+494;Julian Erosa;185,4;188,0;Canhoto;1989-07-31
+495;Kyle Nelson;180,3;180,3;Troca de base;1991-04-20
+496;Lance Gibson Jr.;175,3;182,9;Troca de base;1995-02-02
+497;Gabriella Fernandes;167,6;167,6;Canhoto;1993-08-13
+498;Ricky Simon;167,6;175,3;Ortodoxo;1992-08-31
+499;Bruna Brasil;167,6;165,1;Ortodoxo;1993-09-07
+500;Movsar Evloev;170,2;182,9;Ortodoxo;1994-02-11
+501;Lerone Murphy;175,3;185,4;Ortodoxo;1991-07-22
+502;Austen Lane;198,1;203,2;Ortodoxo;1987-11-09
+503;Danny Silva;170,2;175,3;Troca de base;1997-01-30
+504;Mantas Kondratavicius;188,0;190,5;Ortodoxo;1999-07-17
+505;Antonio Trocoli;195,6;203,2;Ortodoxo;1990-12-06
+506;Shem Rock;180,3;185,4;Canhoto;1993-11-05
+507;Abdul-Kareem Al-Selwady;172,7;175,3;Ortodoxo;1995-04-10
+508;Josh Emmett;167,6;177,8;Ortodoxo;1985-03-04
+509;Kevin Vallejos;170,2;172,7;Troca de base;2001-12-08
+510;Harry Hardwick;172,7;180,3;Troca de base;1994-09-29
+511;Chris Curtis;177,8;190,5;Ortodoxo;1987-07-15
+512;Elijah Smith;175,3;180,3;Ortodoxo;2002-09-05
+513;SuYoung You;167,6;165,1;Ortodoxo;1995-12-11
+514;Bolaji Oki;177,8;185,4;Ortodoxo;1995-11-15
+515;Brad Tavares;185,4;188,0;Ortodoxo;1987-12-21
+516;Eryk Anders;185,4;190,5;Canhoto;1987-04-21
+517;Montse Rendon;172,7;172,7;Ortodoxo;1989-03-16
+518;Luan Lacerda;170,2;180,3;Ortodoxo;1993-01-07
+519;Hecher Sosa;175,3;177,8;Ortodoxo;1995-08-25
+520;Piera Rodriguez;160,0;160,0;Ortodoxo;1992-11-11
+521;Sam Hughes;165,1;162,6;Ortodoxo;1992-06-28
+522;Charles Oliveira;177,8;188,0;Ortodoxo;1989-10-17
+523;Caio Borralho;185,4;190,5;Canhoto;1993-01-16
+524;Rob Font;172,7;180,3;Ortodoxo;1987-06-25
+525;Raul Rosas Jr.;175,3;170,2;Troca de base;2004-10-08
+526;Drew Dober;172,7;177,8;Canhoto;1988-10-19
+527;Michael Johnson;177,8;185,4;Canhoto;1986-06-04
+528;Ricky Turcios;175,3;180,3;Ortodoxo;1993-06-05
+529;Nyamjargal Tumendemberel;170,2;180,3;Ortodoxo;1998-03-22
+530;Jesus Aguilar;162,6;157,5;Ortodoxo;1996-03-13
+531;Luke Fernandez;185,4;193,0;Ortodoxo;1995-06-29
+532;Rodolfo Bellato;190,5;195,6;Ortodoxo;1996-02-05
+533;Daniel Zellhuber;185,4;195,6;Troca de base;1999-07-07
+534;Felipe Bunes;170,2;175,3;Ortodoxo;1989-10-29
+535;Imanol Rodriguez;162,6;162,6;Ortodoxo;1999-11-15
+536;Angel Pacheco;172,7;177,8;Ortodoxo;1992-01-13
+537;Jose Daniel Medina;182,9;188,0;Ortodoxo;1991-05-17
+538;Ailin Perez;165,1;167,6;Troca de base;1994-10-05
+539;Macy Chiasson;180,3;182,9;Ortodoxo;1991-07-27
+540;Cristian Quinonez;172,7;177,8;Ortodoxo;1996-04-26
+541;Kris Moutinho;170,2;172,7;Canhoto;1992-08-09
+542;Douglas Silva de Andrade;170,2;172,7;Ortodoxo;1985-06-22
+543;Ernesta Kareckaite;175,3;180,3;Ortodoxo;1998-07-05
+544;Erik Silva;175,3;180,3;Ortodoxo;1987-03-16
+545;Geoff Neal;180,3;190,5;Canhoto;1990-08-28
+546;Ante Delija;190,5;198,1;Ortodoxo;1990-08-07
+547;Jacobe Smith;177,8;182,9;Canhoto;1996-01-17
+548;Josiah Harrell;170,2;172,7;Canhoto;1998-11-13
+549;Carlos Leal;180,3;188,0;Ortodoxo;1994-05-04
+550;Ode Osbourne;170,2;185,4;Canhoto;1992-01-09
+551;Alibi Idiris;167,6;172,7;Ortodoxo;1994-10-22
+552;Phil Rowe;190,5;203,2;Ortodoxo;1990-07-18
+553;Amir Albazi;165,1;172,7;Ortodoxo;1993-10-27
+554;Jailton Almeida;190,5;200,7;Ortodoxo;1991-06-26
+555;Marc-Andre Barriault;185,4;188,0;Ortodoxo;1990-02-18
+556;Alex Morono;180,3;182,9;Ortodoxo;1990-08-16
+557;Javid Basharat;175,3;175,3;Ortodoxo;1995-09-07
+558;Muin Gafurov;170,2;172,7;Ortodoxo;1996-05-17
+559;Jakub Wiklacz;177,8;182,9;Ortodoxo;1996-09-10
+560;Alexander Volkanovski;167,6;180,3;Ortodoxo;1988-09-29
+561;Jamie Mullarkey;182,9;188,0;Ortodoxo;1994-08-17
+562;Billy Elekana;190,5;195,6;Canhoto;1995-05-28
+563;Torrez Finney;172,7;190,5;Ortodoxo;1998-10-24
+564;Yizha;170,2;180,3;Ortodoxo;1997-01-08
+565;Sangwook Kim;182,9;180,3;Ortodoxo;1993-10-17
+566;Keiichiro Nakamura;177,8;177,8;Canhoto;1998-12-02
+567;Sebastian Szalay;167,6;167,6;Ortodoxo;1994-02-03
+568;Sulangrangbo;175,3;167,6;Canhoto;2005-07-17
+569;Natalia Silva;162,6;165,1;Canhoto;1997-02-03
+570;Rose Namajunas;165,1;165,1;Ortodoxo;1992-06-29
+571;Denzel Freeman;185,4;195,6;Canhoto;1991-11-10
+572;Adam Fugitt;185,4;195,6;Canhoto;1989-01-12
+573;Cezary Oleksiejczuk;190,5;190,5;Canhoto;2000-01-06
+574;Isaac Thomson;177,8;175,3;;2002-05-03
+575;Allen Frye Jr.;195,6;203,2;Ortodoxo;1998-04-15
+576;Tereza Bleda;175,3;180,3;Ortodoxo;2001-11-30
+577;Merab Dvalishvili;167,6;172,7;Ortodoxo;1991-01-10
+578;Petr Yan;170,2;170,2;Troca de base;1993-02-11
+579;Henry Cejudo;162,6;162,6;Ortodoxo;1987-02-09
+580;Payton Talbott;177,8;177,8;Troca de base;1998-09-09
+581;Marvin Vettori;182,9;188,0;Canhoto;1993-09-20
+582;Ibo Aslan;190,5;195,6;Ortodoxo;1996-04-23
+583;Mairon Santos;170,2;182,9;Ortodoxo;2000-06-10
+584;Volkan Oezdemir;188,0;190,5;Ortodoxo;1989-09-19
+585;Jack Hermansson;185,4;195,6;Ortodoxo;1988-06-10
+586;Tagir Ulanbekov;170,2;177,8;Canhoto;1991-08-07
+587;Nicolas Dalby;180,3;188,0;Ortodoxo;1984-11-16
+588;Rafael Cerqueira;190,5;193,0;Canhoto;1990-03-15
+589;Aleksandre Topuria;170,2;172,7;Ortodoxo;1996-01-28
+590;Ismail Naurdiev;177,8;188,0;Ortodoxo;1996-08-18
+591;Ryan Loder;188,0;193,0;Canhoto;1991-06-05
+592;Marek Bujlo;193,0;195,6;Ortodoxo;1992-10-10
+593;Valentina Shevchenko;165,1;167,6;Canhoto;1988-03-07
+594;Zhang Weili;162,6;160,0;Troca de base;1989-08-13
+595;Michael Morales;182,9;200,7;Ortodoxo;1999-06-24
+596;Leon Edwards;188,0;188,0;Canhoto;1991-08-25
+597;Erin Blanchfield;162,6;167,6;Ortodoxo;1999-05-04
+598;Chepe Mariscal;170,2;175,3;Ortodoxo;1992-10-27
+599;Viacheslav Borshchev;180,3;175,3;Ortodoxo;1992-01-08
+600;Max Gimenis;188,0;190,5;Ortodoxo;1993-04-14
+601;Tecia Pennington;154,9;152,4;Ortodoxo;1989-08-16
+602;Daniel Marcos;170,2;175,3;Ortodoxo;1993-03-07
+603;David Onama;180,3;188,0;Ortodoxo;1994-06-07
+604;Isaac Dulgarian;170,2;180,3;Ortodoxo;1996-07-04
+605;Daniel Frunza;185,4;185,4;Ortodoxo;1994-04-13
+606;ChangHo Lee;172,7;175,3;Ortodoxo;1994-05-09
+607;Montserrat Conejo Ruiz;152,4;154,9;Canhoto;1993-02-03
+608;Tom Aspinall;195,6;198,1;Ortodoxo;1993-04-11
+609;JunYong Park;177,8;185,4;Ortodoxo;1991-02-27
+610;Hamdy Abdelwahab;188,0;182,9;Canhoto;1993-01-22
+611;Chris Barnett;175,3;190,5;Ortodoxo;1986-06-14
+612;Azat Maksum;170,2;177,8;Canhoto;1995-02-02
+613;Mizuki;160,0;165,1;Ortodoxo;1994-08-19
+614;Matt Frevola;175,3;180,3;Ortodoxo;1990-06-11
+615;HyunSung Park;170,2;167,6;Ortodoxo;1995-11-04
+616;Danny Barlow;188,0;200,7;Canhoto;1995-08-02
+617;Tainara Lisboa;170,2;170,2;Ortodoxo;1991-03-02
+618;Jhonata Diniz;193,0;200,7;Ortodoxo;1991-06-23
+619;Ricardo Ramos;175,3;182,9;Ortodoxo;1995-08-01
+620;Lucas Almeida;180,3;180,3;Ortodoxo;1991-01-31
+621;Irina Alekseeva;172,7;170,2;Ortodoxo;1990-06-27
+622;Lucas Rocha;160,0;162,6;Ortodoxo;2000-08-12
+623;Karolina Kowalkiewicz;160,0;162,6;Ortodoxo;1985-10-15
+624;Saimon Oliveira;162,6;182,9;Ortodoxo;1991-04-21
+625;Khalil Rountree Jr.;185,4;193,0;Canhoto;1990-02-26
+626;Tre'ston Vines;182,9;200,7;Ortodoxo;1996-06-18
+627;Patchy Mix;180,3;177,8;Canhoto;1993-08-16
+628;Andre Muniz;185,4;198,1;Canhoto;1990-02-17
+629;Yana Santos;167,6;172,7;Ortodoxo;1989-11-11
+630;Chris Gutierrez;175,3;170,2;Ortodoxo;1991-04-22
+631;Austin Vanderford;180,3;188,0;Ortodoxo;1990-03-21
+632;Veronica Hardy;162,6;162,6;Canhoto;1995-10-30
+633;Brogan Walker;162,6;170,2;Troca de base;1988-08-02
+634;Jimmy Crute;188,0;188,0;Ortodoxo;1996-03-04
+635;Ramon Taveras;172,7;177,8;Canhoto;1994-01-09
+636;Charlie Campbell;182,9;182,9;Ortodoxo;1995-07-03
+637;Rolando Bedoya;180,3;188,0;Ortodoxo;1997-01-13
+638;Josias Musasa;172,7;188,0;Canhoto;1998-10-10
+639;Luana Carolina;167,6;175,3;Ortodoxo;1993-06-11
+640;Quang Le;170,2;177,8;Ortodoxo;1991-10-18
+641;Claudio Puelles;177,8;182,9;Canhoto;1996-04-21
+642;Joaquim Silva;172,7;175,3;Canhoto;1989-02-05
+643;Rodrigo Sezinando;175,3;180,3;Ortodoxo;1997-12-11
+644;Nassourdine Imavov;190,5;190,5;Ortodoxo;1996-03-01
+645;Paul Craig;190,5;193,0;Ortodoxo;1987-11-27
+646;Rhys McKee;188,0;198,1;Ortodoxo;1995-09-10
+647;Trey Waters;195,6;195,6;Ortodoxo;1995-02-21
+648;Andreas Gustafsson;185,4;185,4;Ortodoxo;1991-02-20
+649;Rinat Fakhretdinov;182,9;188,0;Ortodoxo;1991-09-28
+650;Brian Ortega;172,7;175,3;Troca de base;1991-02-21
+651;Taiyilake Nueraji;188,0;190,5;Canhoto;2001-01-12
+652;Kiefer Crosbie;180,3;177,8;Troca de base;1990-04-05
+653;Maheshate;182,9;180,3;Ortodoxo;1999-12-01
+654;Austin Hubbard;177,8;180,3;Ortodoxo;1991-12-22
+655;Westin Wilson;185,4;185,4;Canhoto;1989-01-24
+656;Uran Satybaldiev;193,0;200,7;Ortodoxo;1994-08-10
+657;Jessica Andrade;154,9;157,5;Ortodoxo;1991-09-25
+658;Iasmin Lucindo;160,0;167,6;Ortodoxo;2002-01-08
+659;Toshiomi Kazama;170,2;175,3;Ortodoxo;1997-05-15
+660;Julija Stoliarenko;170,2;167,6;Ortodoxo;1993-04-08
+661;Elves Brener;177,8;182,9;Ortodoxo;1997-09-27
+662;Elizeu Zaleski dos Santos;180,3;185,4;Ortodoxo;1986-12-11
+663;Rinya Nakamura;170,2;172,7;Canhoto;1995-03-23
+664;Nathan Fletcher;170,2;177,8;Ortodoxo;1998-01-03
+665;Nick Klein;185,4;195,6;Ortodoxo;1995-09-08
+666;Said Nurmagomedov;172,7;177,8;Ortodoxo;1992-04-05
+667;Da'Mon Blackshear;177,8;182,9;Troca de base;1994-08-12
+668;Amanda Ribas;162,6;167,6;Ortodoxo;1993-08-26
+669;Mohammad Yahya;175,3;185,4;Troca de base;1994-05-23
+670;Steven Nguyen;180,3;185,4;Troca de base;1993-05-19
+671;Martin Buday;193,0;195,6;Ortodoxo;1991-11-11
+672;Dustin Poirier;175,3;182,9;Canhoto;1989-01-19
+673;Islam Dulatov;190,5;190,5;Ortodoxo;1998-08-02
+674;Marcin Prachnio;190,5;185,4;Ortodoxo;1988-07-14
+675;Lukasz Brzeski;190,5;198,1;Ortodoxo;1992-05-17
+676;Stephen Thompson;182,9;190,5;Ortodoxo;1983-02-11
+677;Calvin Kattar;180,3;182,9;Ortodoxo;1988-03-26
+678;Lauren Murphy;165,1;170,2;Ortodoxo;1983-07-27
+679;Melissa Martinez;157,5;167,6;Canhoto;1997-08-18
+680;Kai Kara-France;162,6;175,3;Ortodoxo;1993-03-26
+681;Viviane Araujo;162,6;172,7;Ortodoxo;1986-11-21
+682;Jamahal Hill;193,0;200,7;Canhoto;1991-05-19
+683;Nikolas Motta;175,3;177,8;Ortodoxo;1993-02-08
+684;Mohammed Usman;188,0;200,7;Ortodoxo;1989-04-01
+685;Miranda Maverick;160,0;165,1;Canhoto;1997-07-01
+686;Court McGee;180,3;190,5;Ortodoxo;1984-12-12
+687;Ange Loosa;177,8;188,0;Ortodoxo;1993-03-18
+688;Vanessa Demopoulos;157,5;149,9;Ortodoxo;1988-09-22
+689;Julianna Pena;167,6;175,3;Ortodoxo;1989-08-19
+690;Kayla Harrison;172,7;167,6;Canhoto;1990-07-02
+691;Ariane da Silva;167,6;170,2;Ortodoxo;1994-01-26
+692;Jeka Saragih;172,7;175,3;Ortodoxo;1995-01-01
+693;Yanal Ashmouz;175,3;175,3;Ortodoxo;1995-03-31
+694;Mark Choinski;172,7;175,3;Ortodoxo;1995-10-22
+695;Kurt Holobaugh;180,3;177,8;Ortodoxo;1986-09-08
+696;Rayanne dos Santos;157,5;157,5;Ortodoxo;1995-06-08
+697;Sodiq Yusuff;175,3;180,3;Ortodoxo;1993-05-19
+698;Gabe Green;177,8;185,4;Troca de base;1993-05-02
+699;Connor Matthews;172,7;180,3;Troca de base;1992-05-31
+700;Carlos Hernandez;172,7;170,2;Ortodoxo;1993-10-25
+701;Luana Pinheiro;157,5;157,5;Ortodoxo;1992-11-18
+702;Jose Aldo;170,2;177,8;Ortodoxo;1986-09-09
+703;Bruno Silva (1989);182,9;188,0;Ortodoxo;1989-07-13
+704;JeongYeong Lee;177,8;185,4;Ortodoxo;1995-11-13
+705;Brad Katona;167,6;162,6;Ortodoxo;1991-12-19
+706;Serhiy Sidey;180,3;182,9;Troca de base;1996-07-04
+707;Miesha Tate;167,6;165,1;Ortodoxo;1986-08-18
+708;Marina Rodriguez;167,6;165,1;Ortodoxo;1987-04-29
+709;Don'Tale Mayes;198,1;205,7;Ortodoxo;1992-01-16
+710;Ivana Petrovic;172,7;177,8;Canhoto;1994-06-11
+711;Anthony Smith;193,0;193,0;Ortodoxo;1988-07-26
+712;Jimmy Flick;170,2;172,7;Ortodoxo;1990-09-07
+713;Evan Elder;177,8;182,9;Troca de base;1997-04-11
+714;Alatengheili;165,1;167,6;Ortodoxo;1991-12-14
+715;Cameron Saaiman;172,7;170,2;Canhoto;2000-12-20
+716;Roberto Romero;172,7;177,8;Ortodoxo;2000-01-30
+717;Yair Rodriguez;180,3;180,3;Ortodoxo;1992-10-06
+718;Cortavious Romious;162,6;172,7;Canhoto;1994-01-06
+719;Diana Belbita;170,2;172,7;Ortodoxo;1996-06-26
+720;Istela Nunes;162,6;167,6;Ortodoxo;1992-07-23
+721;Victor Henry;170,2;172,7;Troca de base;1987-05-04
+722;Pedro Falcao;167,6;167,6;Ortodoxo;1992-07-30
+723;CJ Vergara;167,6;172,7;Ortodoxo;1991-06-18
+724;Ronaldo Rodriguez;167,6;165,1;Ortodoxo;1999-05-07
+725;Vinc Pichel;177,8;182,9;Ortodoxo;1982-11-23
+726;Gabriel Miranda;180,3;180,3;Ortodoxo;1990-03-25
+727;Gunnar Nelson;180,3;182,9;Troca de base;1988-07-28
+728;Molly McCann;162,6;157,5;Ortodoxo;1990-05-04
+729;Jordan Vucenic;177,8;185,4;Ortodoxo;1996-03-02
+730;Felipe dos Santos;170,2;177,8;Ortodoxo;2000-09-11
+731;Mick Parkin;193,0;200,7;Ortodoxo;1995-10-02
+732;Puja Tomar;154,9;149,9;Canhoto;1993-12-05
+733;Caolan Loughran;167,6;172,7;Ortodoxo;1996-05-18
+734;Guram Kutateladze;180,3;182,9;Ortodoxo;1992-01-08
+735;SeungWoo Choi;182,9;188,0;Ortodoxo;1992-11-03
+736;AJ Cunningham;177,8;180,3;Ortodoxo;1994-09-07
+737;Carlos Vera;167,6;175,3;Ortodoxo;1987-11-05
+738;Josiane Nunes;157,5;170,2;Canhoto;1993-12-23
+739;Armen Petrosyan;190,5;180,3;Ortodoxo;1990-11-03
+740;Julian Marquez;188,0;182,9;Ortodoxo;1990-05-08
+741;Andrea Lee;167,6;175,3;Ortodoxo;1989-02-11
+742;Dylan Budka;182,9;190,5;Troca de base;2000-01-14
+743;Julia Avila;170,2;172,7;Ortodoxo;1988-05-11
+744;Justin Tafa;182,9;188,0;Canhoto;1993-12-13
+745;Gabriel Santos;175,3;177,8;Ortodoxo;1996-11-28
+746;Kevin Jousset;188,0;190,5;Ortodoxo;1993-05-02
+747;Anshul Jubli;182,9;175,3;Troca de base;1995-01-13
+748;Jairzinho Rozenstruik;188,0;198,1;Ortodoxo;1988-03-17
+749;Damir Hadzovic;175,3;177,8;Ortodoxo;1986-08-08
+750;Lucas Alexander;180,3;185,4;Ortodoxo;1995-07-28
+751;Jamal Pogues;190,5;195,6;Ortodoxo;1995-12-01
+752;Abdul Razak Alhassan;177,8;185,4;Ortodoxo;1985-08-11
+753;Jose Johnson;182,9;180,3;Ortodoxo;1995-05-20
+754;Ihor Potieria;190,5;190,5;Canhoto;1996-05-29
+755;Trey Ogden;180,3;182,9;Ortodoxo;1989-11-14
+756;Preston Parsons;180,3;180,3;Ortodoxo;1995-07-15
+757;Magomed Gadzhiyasulov;188,0;190,5;Ortodoxo;1993-11-04
+758;Viktoriia Dudakova;165,1;170,2;Ortodoxo;1999-01-26
+759;Joe Solecki;175,3;177,8;Ortodoxo;1993-08-27
+760;Colby Covington;180,3;182,9;Ortodoxo;1988-02-22
+761;Ottman Azaitar;172,7;180,3;Troca de base;1990-02-20
+762;Fernando Padilla;185,4;193,0;Ortodoxo;1996-12-15
+763;Josefine Knutsson;160,0;152,4;Ortodoxo;1996-01-16
+764;Shavkat Rakhmonov;185,4;195,6;Ortodoxo;1994-10-23
+765;Kron Gracie;175,3;177,8;Canhoto;1988-07-11
+766;Bryan Battle;185,4;195,6;Ortodoxo;1994-09-21
+767;Chris Weidman;188,0;198,1;Ortodoxo;1984-06-17
+768;Clay Guida;170,2;177,8;Ortodoxo;1981-12-08
+769;Song Kenan;182,9;180,3;Ortodoxo;1990-03-10
+770;Baergeng Jieleyisi;175,3;180,3;Ortodoxo;1995-11-24
+771;Kiru Sahota;177,8;185,4;Ortodoxo;1995-05-28
+772;DongHun Choi;165,1;167,6;Troca de base;1999-01-02
+773;Shi Ming;157,5;152,4;Ortodoxo;1994-11-14
+774;Feng Xiaocan;167,6;170,2;Canhoto;2001-10-27
+775;Jon Jones;193,0;213,4;Ortodoxo;1987-07-19
+776;Stipe Miocic;193,0;203,2;Ortodoxo;1982-08-19
+777;James Llontop;182,9;185,4;Ortodoxo;1999-08-02
+778;Jonathan Martinez;172,7;177,8;Canhoto;1994-04-20
+779;Damon Jackson;180,3;180,3;Troca de base;1988-08-08
+780;Mickey Gall;188,0;188,0;Troca de base;1992-01-22
+781;Bassil Hafez;180,3;182,9;Ortodoxo;1992-01-31
+782;Zachary Scroggin;190,5;188,0;Ortodoxo;1996-03-09
+783;Matthew Semelsberger;185,4;190,5;Troca de base;1992-11-23
+784;Cody Stamann;167,6;162,6;Ortodoxo;1989-11-09
+785;Caio Machado;193,0;198,1;Canhoto;1994-07-20
+786;Trevin Giles;182,9;188,0;Ortodoxo;1992-08-06
+787;Pedro Munhoz;167,6;165,1;Ortodoxo;1986-09-07
+788;Jack Shore;172,7;180,3;Ortodoxo;1995-02-06
+789;Alexandr Romanov;188,0;190,5;Canhoto;1990-12-11
+790;Rodrigo Nascimento;188,0;203,2;Ortodoxo;1992-11-26
+791;Garrett Armfield;167,6;177,8;Ortodoxo;1996-10-09
+792;Chad Anheliger;167,6;162,6;Ortodoxo;1986-12-01
+793;Rafael Dos Anjos;172,7;177,8;Canhoto;1984-10-26
+794;Victor Hugo;170,2;180,3;Ortodoxo;1992-11-22
+795;Jake Hadley;170,2;177,8;Canhoto;1996-08-03
+796;Daniel Pineda;170,2;175,3;Ortodoxo;1985-08-06
+797;Matheus Nicolau;167,6;167,6;Ortodoxo;1993-01-06
+798;Tamires Vidal;167,6;172,7;Ortodoxo;1998-07-27
+799;Jessica Penne;165,1;170,2;Ortodoxo;1983-01-30
+800;Jared Gooden;182,9;195,6;Ortodoxo;1993-12-05
+801;Jonathan Pearce;182,9;180,3;Troca de base;1992-05-01
+802;Cory McKenna;160,0;147,3;Ortodoxo;1999-07-11
+803;Dan Argueta;170,2;172,7;Canhoto;1993-08-13
+804;Raquel Pennington;170,2;170,2;Ortodoxo;1988-09-05
+805;Ovince Saint Preux;190,5;203,2;Canhoto;1983-04-08
+806;Carla Esparza;154,9;160,0;Ortodoxo;1987-10-10
+807;Tim Means;188,0;190,5;Ortodoxo;1984-02-20
+808;Da Woon Jung;193,0;198,1;Ortodoxo;1993-12-07
+809;Roosevelt Roberts;188,0;185,4;Ortodoxo;1994-02-11
+810;Taylor Lapilus;167,6;185,4;Canhoto;1992-04-08
+811;Victor Altamirano;172,7;177,8;Troca de base;1991-01-23
+812;Irene Aldana;175,3;172,7;Ortodoxo;1988-03-26
+813;Yazmin Jauregui;160,0;162,6;Ortodoxo;1999-02-28
+814;Brendon Marotte;175,3;177,8;Ortodoxo;1996-01-12
+815;Zygimantas Ramaska;180,3;180,3;Ortodoxo;1996-12-27
+816;Victoria Leonardo;165,1;162,6;Ortodoxo;1990-02-16
+817;Li Jingliang;182,9;180,3;Ortodoxo;1988-03-20
+818;Josh Culibao;177,8;185,4;Ortodoxo;1994-05-24
+819;Herbert Burns;175,3;185,4;Ortodoxo;1988-02-02
+820;Alex Reyes;180,3;185,4;Ortodoxo;1986-10-02
+821;Ricky Glenn;182,9;177,8;Canhoto;1989-04-12
+822;Charalampos Grigoriou;170,2;170,2;Ortodoxo;1992-03-31
+823;Pannie Kianzad;170,2;167,6;Ortodoxo;1991-12-08
+824;Karl Williams;190,5;200,7;Ortodoxo;1990-01-06
+825;Jarno Errens;180,3;185,4;Ortodoxo;1994-11-17
+826;Tony Ferguson;180,3;193,0;Ortodoxo;1984-02-12
+827;Denis Tiuliulin;185,4;195,6;Ortodoxo;1988-05-17
+828;Muhammad Mokaev;170,2;177,8;Ortodoxo;2000-07-30
+829;Kaynan Kruschewsky;182,9;185,4;Ortodoxo;1991-04-04
+830;Bill Algeo;182,9;185,4;Troca de base;1989-06-09
+831;Brian Kelleher;167,6;167,6;Troca de base;1986-08-19
+832;Loik Radzhabov;180,3;175,3;Ortodoxo;1990-09-17
+833;Lucie Pudilova;172,7;170,2;Ortodoxo;1994-06-13
+834;Mariya Agapova;167,6;172,7;Canhoto;1997-04-07
+835;Josh Fremd;193,0;193,0;Ortodoxo;1994-01-15
+836;Yanis Ghemmouri;175,3;175,3;Ortodoxo;1995-01-24
+837;Michelle Waterson-Gomez;160,0;157,5;Ortodoxo;1986-01-06
+838;Andrei Arlovski;190,5;195,6;Ortodoxo;1979-02-04
+839;Kyung Ho Kang;175,3;185,4;Ortodoxo;1987-09-09
+840;Brady Hiestand;172,7;180,3;Ortodoxo;1999-04-30
+841;Josh Quinlan;182,9;182,9;Ortodoxo;1993-02-06
+842;Nate Maness;177,8;182,9;Ortodoxo;1991-06-27
+843;Shayilan Nuerdanbieke;172,7;175,3;Ortodoxo;1994-05-04
+844;Miguel Baeza;188,0;188,0;Ortodoxo;1992-08-23
+845;Jesse Butler;177,8;185,4;Ortodoxo;1992-05-24
+846;Montana De La Rosa;170,2;172,7;Ortodoxo;1995-02-14
+847;Vinicius Salvador;170,2;177,8;Canhoto;1996-07-24
+848;Victor Martinez;170,2;177,8;Ortodoxo;1991-07-17
+849;Warlley Alves;180,3;182,9;Ortodoxo;1991-01-04
+850;Kleydson Rodrigues;165,1;170,2;Ortodoxo;1995-10-22
+851;Emily Ducote;157,5;160,0;Ortodoxo;1994-01-01
+852;Alex Caceres;177,8;185,4;Canhoto;1988-06-20
+853;Rani Yahya;167,6;170,2;Ortodoxo;1984-09-12
+854;Michal Figlak;177,8;177,8;Ortodoxo;1996-08-15
+855;Marnic Mann;152,4;162,6;Canhoto;1993-03-05
+856;Liang Na;165,1;170,2;Ortodoxo;1996-07-27
+857;Gabriel Benitez;172,7;180,3;Canhoto;1988-06-15
+858;Holly Holm;172,7;175,3;Canhoto;1981-10-17
+859;Christos Giagos;177,8;180,3;Ortodoxo;1990-01-23
+860;Germaine de Randamie;175,3;180,3;Ortodoxo;1984-04-24
+861;Julio Arce;170,2;177,8;Canhoto;1989-10-27
+862;Anton Turkalj;193,0;198,1;Ortodoxo;1996-06-10
+863;AJ Dobson;185,4;193,0;Ortodoxo;1992-01-18
+864;Luis Pajuelo;177,8;175,3;Ortodoxo;1994-12-18
+865;Igor Severino;170,2;175,3;Ortodoxo;2003-04-21
+866;Bryan Barberena;182,9;182,9;Canhoto;1989-05-03
+867;Natan Levy;175,3;180,3;Canhoto;1991-09-30
+868;Katlyn Cerminara;175,3;172,7;Ortodoxo;1988-12-28
+869;Philipe Lins;188,0;198,1;Ortodoxo;1985-08-17
+870;Josh Parisian;193,0;200,7;Ortodoxo;1989-06-28
+871;Joanne Wood;167,6;165,1;Ortodoxo;1985-12-23
+872;Maryna Moroz;170,2;170,2;Ortodoxo;1991-09-08
+873;Tyson Pedro;190,5;200,7;Ortodoxo;1991-09-17
+874;Jamie Pickett;188,0;203,2;Ortodoxo;1988-08-29
+875;Claudio Ribeiro;185,4;195,6;Ortodoxo;1992-07-17
+876;Mateus Mendonca;167,6;180,3;Ortodoxo;1999-01-17
+877;Daniel Lacerda;167,6;177,8;Troca de base;1996-06-05
+878;Denys Bondar;167,6;175,3;Ortodoxo;1992-06-27
+879;Marcos Rogerio de Lima;185,4;190,5;Ortodoxo;1985-06-25
+880;Val Woodburn;172,7;188,0;Ortodoxo;1993-08-10
+881;Devin Clark;182,9;190,5;Ortodoxo;1990-04-12
+882;Zac Pauga;188,0;193,0;Ortodoxo;1988-02-25
+883;Fernie Garcia;170,2;170,2;Ortodoxo;1992-04-12
+884;Aliaskhab Khizriev;175,3;188,0;Canhoto;1990-08-24
+885;Makhmud Muradov;188,0;190,5;Ortodoxo;1990-02-08
+886;Pete Rodriguez;175,3;180,3;Troca de base;1996-11-13
+887;Blake Bilder;172,7;172,7;Troca de base;1990-07-12
+888;Landon Quinones;175,3;177,8;Canhoto;1995-11-21
+889;Yohan Lainesse;185,4;193,0;Ortodoxo;1992-08-14
+890;Malcolm Gordon;170,2;180,3;Troca de base;1990-05-19
+891;Phil Hawes;182,9;195,6;Ortodoxo;1989-01-08
+892;Shannon Ross;167,6;167,6;Troca de base;1989-05-12
+893;Stephanie Egger;167,6;172,7;Ortodoxo;1988-08-12
+894;Wellington Turman;182,9;182,9;Ortodoxo;1996-07-22
+895;Nick Aguirre;175,3;188,0;Canhoto;1996-01-15
+896;Mark Madsen;172,7;182,9;Ortodoxo;1984-09-23
+897;Marc Diakiese;177,8;185,4;Ortodoxo;1993-03-16
+898;Abu Azaitar;175,3;193,0;Ortodoxo;1986-03-10
+899;Mike Breeden;177,8;177,8;Ortodoxo;1989-04-21
+900;Jinh Yu Frey;160,0;165,1;Canhoto;1985-05-20
+901;Jennifer Maia;162,6;162,6;Ortodoxo;1988-10-06
+902;TJ Brown;175,3;182,9;Troca de base;1990-05-22
+903;Ashley Yoder;170,2;175,3;Canhoto;1987-10-20
+904;Kanako Murata;154,9;157,5;Ortodoxo;1993-08-10
+905;Johnny Munoz;175,3;180,3;Ortodoxo;1993-02-16
+906;AJ Fletcher;177,8;170,2;Troca de base;1997-02-18
+907;Andre Fialho;182,9;188,0;Ortodoxo;1994-04-07
+908;Jake Collier;190,5;198,1;Ortodoxo;1988-10-25
+909;Hannah Goldy;162,6;154,9;Ortodoxo;1992-05-18
+910;Terrence Mitchell;177,8;188,0;Ortodoxo;1989-12-30
+911;John Makdessi;172,7;172,7;Ortodoxo;1985-05-03
+912;Blood Diamond;180,3;193,0;Troca de base;1988-07-10
+913;Shane Young;172,7;182,9;Ortodoxo;1993-07-31
+914;Zarah Fairn;172,7;182,9;Ortodoxo;1983-12-10
+915;Chan Sung Jung;170,2;182,9;Ortodoxo;1987-03-17
+916;Taila Santos;167,6;172,7;Ortodoxo;1993-06-22
+917;Parker Porter;182,9;190,5;Ortodoxo;1985-04-22
+918;Yusaku Kinoshita;182,9;180,3;Canhoto;2000-08-21
+919;Hakeem Dawodu;172,7;185,4;Ortodoxo;1991-07-02
+920;Chris Daukaus;190,5;193,0;Ortodoxo;1989-09-25
+921;Tafon Nchukwi;182,9;195,6;Ortodoxo;1994-10-14
+922;JP Buys;165,1;170,2;Ortodoxo;1996-04-30
+923;Gavin Tucker;167,6;167,6;Canhoto;1986-06-17
+924;Aleksa Camur;185,4;188,0;Ortodoxo;1995-09-25
+925;Danny Roberts;185,4;188,0;Canhoto;1987-07-14
+926;Jonny Parsons;175,3;175,3;Ortodoxo;1991-09-06
+927;Albert Duraev;180,3;190,5;Ortodoxo;1989-01-05
+928;Tucker Lutz;172,7;182,9;Ortodoxo;1994-07-12
+929;Austin Lingo;177,8;177,8;Ortodoxo;1994-07-10
+930;Genaro Valdez;175,3;182,9;Ortodoxo;1992-01-16
+931;Tyson Nam;170,2;172,7;Ortodoxo;1983-10-06
+932;Alexander Munoz;175,3;182,9;Troca de base;1990-02-27
+933;Carl Deaton;170,2;175,3;Ortodoxo;1989-11-24
+934;Ashlee Evans-Smith;172,7;170,2;Ortodoxo;1987-07-09
+935;Robbie Lawler;180,3;188,0;Canhoto;1982-03-20
+936;Kamuela Kirk;177,8;190,5;Troca de base;1994-04-13
+937;Damir Ismagulov;177,8;188,0;Ortodoxo;1991-02-03
+938;Kevin Lee;175,3;195,6;Ortodoxo;1992-09-04
+939;Blagoy Ivanov;180,3;185,4;Canhoto;1986-10-09
+940;Zhalgas Zhumagulov;162,6;167,6;Troca de base;1988-08-29
+941;Ronnie Lawrence;172,7;172,7;Troca de base;1992-06-13
+942;Amanda Nunes;172,7;175,3;Ortodoxo;1988-05-30
+943;David Dvorak;165,1;172,7;Ortodoxo;1992-06-05
+944;Maria Oliveira;167,6;175,3;Ortodoxo;1996-12-12
+945;Abubakar Nurmagomedov;180,3;182,9;Ortodoxo;1989-11-13
+946;Maxim Grishin;190,5;198,1;Ortodoxo;1984-05-02
+947;Orion Cosce;180,3;180,3;Troca de base;1994-07-15
+948;Ilir Latifi;177,8;185,4;Ortodoxo;1982-07-28
+949;Nick Fiore;177,8;182,9;Ortodoxo;1997-12-10
+950;Takashi Sato;177,8;185,4;Canhoto;1990-06-09
+951;Matt Brown;182,9;190,5;Ortodoxo;1981-01-10
+952;Chase Sherman;193,0;198,1;Ortodoxo;1989-11-16
+953;Ji Yeon Kim;170,2;182,9;Ortodoxo;1989-10-18
+954;Mandy Bohm;170,2;180,3;Ortodoxo;1989-07-30
+955;Jessica-Rose Clark;165,1;162,6;Ortodoxo;1987-11-28
+956;Braxton Smith;180,3;182,9;Ortodoxo;1990-01-01
+957;Joseph Holmes;193,0;203,2;Ortodoxo;1995-07-04
+958;Journey Newson;165,1;170,2;Ortodoxo;1989-03-07
+959;Batgerel Danaa;170,2;177,8;Ortodoxo;1989-07-04
+960;Zak Cummings;182,9;190,5;Canhoto;1984-08-02
+961;Ed Herman;185,4;195,6;Ortodoxo;1980-10-02
+962;Aaron Phillips;175,3;180,3;Canhoto;1989-08-05
+963;Jorge Masvidal;180,3;188,0;Ortodoxo;1984-11-12
+964;Cynthia Calvillo;162,6;162,6;Ortodoxo;1987-07-13
