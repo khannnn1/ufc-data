@@ -299,13 +299,16 @@ atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
   Redesenha no evento `input` quando o texto bate com um nome. Cartões:
   categoria em PT (`CATEGORIAS`), cartel, e linha física (idade, altura,
   envergadura, base em PT via `BASES`; `linhaFisico`).
-- Rankings: métrica + categoria + mín. de lutas + top N; clique na barra leva o lutador
+- Rankings: métrica + categoria + base + idade + mín. de lutas + top N; clique na barra leva o lutador
   ao comparador; tabela equivalente em `<details>`. Precisões exigem
   amostra mínima de tentativas (`requisito` em cada métrica). Filtro de
   categoria (`CATEGORIAS_RANKING`, sem peso casado) usa `l.cat`, a categoria
   da luta mais recente: quem mudou de divisão entra com todas as lutas.
   Desempate: métricas com `total: true` (vitórias, KO, sub, KD) por MENOS
   lutas, como nos PNGs; médias/taxas por MAIS lutas; depois nome.
+  Filtro de base (`BASES_RANKING`, usa `l.base`) e de faixa de idade
+  (`FAIXAS_IDADE`: ate25/26a30/31a35/36mais, idade de HOJE via `idade(l.nasc)`,
+  como nos cartões; quem não tem nascimento sai quando filtrado).
 - Round a round (`#rounds`): cada lutador no JSON tem `r` =
   `[[round, rounds, sl, sa, tdl, tda, ctrl, kd], ...]` (lista compacta,
   ordem fixa em `COLUNAS_ROUND` de `src/exportar.py` e em `roundsDe` no JS —
@@ -318,7 +321,7 @@ atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
   `desenharDispersao`, então link compartilhável também destaca. Plugin
   `guiasDispersao` desenha medianas, quadrantes e nomes. Clique leva ao
   comparador; destacado com <4 lutas aparece com aviso na nota.
-- Link compartilhável: o estado vai para a URL (`?a=&b=&m=&min=&top=&rm=&cat=`; `cat` só se filtrado, via
+- Link compartilhável: o estado vai para a URL (`?a=&b=&m=&min=&top=&rm=&cat=&base=&idade=`; `cat`, `base` e `idade` só se filtrados, via
   `history.replaceState`, sem poluir o histórico) e é lido na abertura por
   `lerEstadoDaUrl` (valores inválidos caem em `PADROES`). Botões "Copiar
   link" por seção (âncora `#comparador` / `#ranking`); título da aba mostra

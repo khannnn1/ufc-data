@@ -215,7 +215,7 @@
 
   <section id="ranking">
     <h2>Monte o seu ranking</h2>
-    <p class="intro">Escolha a métrica, a categoria e o mínimo de lutas no período. Clique numa barra para levar o lutador ao comparador.</p>
+    <p class="intro">Escolha a métrica e filtre por categoria, base, idade e mínimo de lutas no período. Clique numa barra para levar o lutador ao comparador.</p>
 
     <div class="controles">
       <div class="campo metrica">
@@ -225,6 +225,14 @@
       <div class="campo categoria">
         <label for="categoria">Categoria</label>
         <select id="categoria"><option value="">Todas</option></select>
+      </div>
+      <div class="campo">
+        <label for="base">Base</label>
+        <select id="base"><option value="">Todas</option></select>
+      </div>
+      <div class="campo">
+        <label for="idade">Idade</label>
+        <select id="idade"><option value="">Todas</option></select>
       </div>
       <div class="campo numero">
         <label for="min-lutas">Mín. de lutas</label>
@@ -263,6 +271,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <!-- ?v=N: aumente a cada mudança no JS, para o navegador não usar a versão antiga em cache -->
-<script src="js/interativo.js?v=9"></script>
+<script src="js/interativo.js?v=10"></script>
 </body>
 </html>

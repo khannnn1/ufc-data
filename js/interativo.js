@@ -117,6 +117,14 @@ const CATEGORIAS = {
 // Filtro do ranking: divisões do mais pesado ao mais leve, masculinas e depois femininas (sem peso casado)
 const CATEGORIAS_RANKING = Object.keys(CATEGORIAS).filter((c) => c !== "Catch Weight");
 const BASES = { Orthodox: "ortodoxo", Southpaw: "canhoto", Switch: "troca de base" };
+// Filtros do ranking por base e por faixa de idade (idade de hoje, como nos cartões)
+const BASES_RANKING = { Orthodox: "Ortodoxo", Southpaw: "Canhoto", Switch: "Troca de base" };
+const FAIXAS_IDADE = {
+  ate25: { rotulo: "Até 25 anos", min: 0, max: 25 },
+  "26a30": { rotulo: "26 a 30 anos", min: 26, max: 30 },
+  "31a35": { rotulo: "31 a 35 anos", min: 31, max: 35 },
+  "36mais": { rotulo: "36 anos ou mais", min: 36, max: 200 },
+};
 
 function idade(nasc) {
   const n = new Date(nasc + "T00:00:00");
@@ -240,9 +248,17 @@ function desenharRanking() {
   campoMin.value = minLutas; // corrige no campo o que foi digitado fora do intervalo
   const tamanho = parseInt(document.getElementById("tamanho").value, 10);
   const categoria = document.getElementById("categoria").value;
+  const base = document.getElementById("base").value;
+  const faixa = FAIXAS_IDADE[document.getElementById("idade").value];
+  const naFaixa = (l) => {
+    if (!faixa) return true;
+    if (!l.nasc) return false;
+    const anos = idade(l.nasc);
+    return anos >= faixa.min && anos <= faixa.max;
+  };
 
   const elegiveis = lutadores
-    .filter((l) => l.n >= minLutas && (!categoria || l.cat === categoria))
+    .filter((l) => l.n >= minLutas && (!categoria || l.cat === categoria) && (!base || l.base === base) && naFaixa(l))
     .filter((l) => !metrica.requisito || metrica.requisito(l))
     .map((l) => ({ l, v: calcular(metrica, l) }))
     .filter((x) => x.v !== null);
@@ -254,7 +270,9 @@ function desenharRanking() {
   const top = elegiveis.slice(0, tamanho);
 
   const doPeso = categoria ? ` do ${CATEGORIAS[categoria].toLowerCase()}` : "";
-  const nota = `${elegiveis.length} lutadores${doPeso} com pelo menos ${minLutas} ${minLutas === 1 ? "luta" : "lutas"} no período.`
+  const daBase = base ? ` ${{ Orthodox: "ortodoxos", Southpaw: "canhotos", Switch: "que trocam de base" }[base]}` : "";
+  const daIdade = faixa ? ` (${faixa.rotulo.toLowerCase()} hoje)` : "";
+  const nota = `${elegiveis.length} lutadores${daBase}${doPeso}${daIdade} com pelo menos ${minLutas} ${minLutas === 1 ? "luta" : "lutas"} no período.`
     + (categoria ? " Categoria = a da luta mais recente de cada um; quem mudou de divisão entra com todas as lutas." : "")
     + (metrica.nota ? " " + metrica.nota : "");
   document.getElementById("nota-ranking").textContent = nota;
@@ -607,10 +625,10 @@ function desenharDispersao() {
 }
 
 // ---------- Link compartilhável ----------
-// O estado da página fica na URL (?a=...&b=...&m=...&min=...&top=...&cat=...): quem abre o link vê a mesma
+// O estado da página fica na URL (?a=...&b=...&m=...&min=...&top=...&cat=...&base=...&idade=...): quem abre o link vê a mesma
 // comparação e o mesmo ranking. Valores inválidos na URL são ignorados e ficam os padrões.
 
-const PADROES = { a: "Islam Makhachev", b: "Merab Dvalishvili", m: "taxa_vitoria", min: 4, top: 10, rm: "sig", cat: "" };
+const PADROES = { a: "Islam Makhachev", b: "Merab Dvalishvili", m: "taxa_vitoria", min: 4, top: 10, rm: "sig", cat: "", base: "", idade: "" };
 const TAMANHOS_TOP = [10, 15, 20];
 let urlPronta = false; // só escreve na URL depois de aplicar o estado inicial
 
@@ -632,6 +650,8 @@ function lerEstadoDaUrl() {
     min: inteiro(p.get("min"), 1, 12, PADROES.min),
     top: TAMANHOS_TOP.includes(top) ? top : PADROES.top,
     cat: CATEGORIAS_RANKING.includes(p.get("cat")) ? p.get("cat") : PADROES.cat,
+    base: p.get("base") in BASES_RANKING ? p.get("base") : PADROES.base,
+    idade: p.get("idade") in FAIXAS_IDADE ? p.get("idade") : PADROES.idade,
   };
 }
 
@@ -650,6 +670,11 @@ function atualizarUrl() {
   p.set("rm", document.getElementById("metrica-round").value);
   const cat = document.getElementById("categoria").value;
   if (cat) p.set("cat", cat);
+  // base e idade, como a categoria, só entram na URL quando filtradas
+  for (const id of ["base", "idade"]) {
+    const valor = document.getElementById(id).value;
+    if (valor) p.set(id, valor);
+  }
   // replaceState: atualiza o endereço sem criar uma entrada nova no histórico a cada mudança
   history.replaceState(null, "", `${location.pathname}?${p}${location.hash}`);
 
@@ -730,8 +755,18 @@ async function iniciar() {
     seletorCategoria.appendChild(opcao);
   });
 
+  const preencher = (id, opcoes) => {
+    const select = document.getElementById(id);
+    for (const [valor, rotulo] of opcoes) select.add(new Option(rotulo, valor));
+    return select;
+  };
+  preencher("base", Object.entries(BASES_RANKING));
+  preencher("idade", Object.entries(FAIXAS_IDADE).map(([k, f]) => [k, f.rotulo]));
+
   const estado = lerEstadoDaUrl();
   seletorCategoria.value = estado.cat;
+  document.getElementById("base").value = estado.base;
+  document.getElementById("idade").value = estado.idade;
   seletorRound.value = estado.rm;
   seletor.value = estado.m;
   document.getElementById("min-lutas").value = estado.min;
@@ -740,7 +775,7 @@ async function iniciar() {
   document.getElementById("lutador-b").value = estado.b;
 
   ["lutador-a", "lutador-b"].forEach((id) => configurarCampoLutador(document.getElementById(id)));
-  ["metrica", "min-lutas", "tamanho", "categoria"].forEach((id) => document.getElementById(id).addEventListener("change", desenharRanking));
+  ["metrica", "min-lutas", "tamanho", "categoria", "base", "idade"].forEach((id) => document.getElementById(id).addEventListener("change", desenharRanking));
   prepararDispersao();
   prepararRounds();
   seletorRound.addEventListener("change", () => { desenharRounds(); atualizarUrl(); });

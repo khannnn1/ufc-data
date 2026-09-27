@@ -27,7 +27,7 @@ Recorte de **149 eventos recentes do UFC, de abril de 2023 (UFC 287) a setembro 
   - **Comparar lutadores:** escolha dois lutadores quaisquer e veja categoria, cartel, idade, altura, envergadura, base e médias por luta lado a lado.
   - **Round a round:** como os dois lutadores do comparador rendem do 1º ao 5º round (golpes, precisão, quedas ou controle), contra a média de todos.
   - **Volume × precisão:** dispersão com todos os lutadores; os dois do comparador aparecem destacados, e passar o mouse mostra quem é cada ponto.
-  - **Monte o seu ranking:** escolha a métrica (13 opções), a categoria de peso, o mínimo de lutas e o tamanho do top. Clique numa barra para levar o lutador ao comparador. Exemplo: [knockdowns no peso-mosca](https://khannnn1.github.io/ufc-data/interativo.html?m=kd&cat=Flyweight#ranking).
+  - **Monte o seu ranking:** escolha a métrica (13 opções), filtre por categoria de peso, base (ortodoxo, canhoto, troca de base) e faixa de idade, e escolha o mínimo de lutas e o tamanho do top. Clique numa barra para levar o lutador ao comparador. Exemplo: [knockdowns no peso-mosca](https://khannnn1.github.io/ufc-data/interativo.html?m=kd&cat=Flyweight#ranking), [taxa de vitória dos canhotos](https://khannnn1.github.io/ufc-data/interativo.html?m=taxa_vitoria&base=Southpaw#ranking).
   - **Compartilhe:** a comparação e o ranking escolhidos ficam no endereço da página, e o botão "Copiar link" gera um link que abre exatamente aquela tela. Exemplo: [Alex Pereira × Jon Jones](https://khannnn1.github.io/ufc-data/interativo.html?a=Alex+Pereira&b=Jon+Jones#comparador).
 
 ## Pipeline
