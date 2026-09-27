@@ -270,6 +270,12 @@ str. %, Td %) indicam zero tentativas, tratados como NaN (não 0%).
     média 16,8 × 10,7 min, golpes sig. por minuto por lutador 4,0 × 4,0,
     KD a cada 15 min 0,21 × 0,31 (só 36 KDs), Luta da Noite 18% × 5%
     (3,7×), Performance 32% × 22%; rodapé: disputa fecha o card
+22. `luta_da_noite.png` — mesmos painéis, Luta da Noite (vermelho) × demais
+    (azul), uma linha por luta: golpes sig./min por lutador 5,8 × 3,8, lutas
+    com KD 50% × 37%, "ida e volta" (perdedor também derrubou) 12% × 4%,
+    equilibradas (perdedor com 40%+ dos golpes) 61% × 49%, tempo com alguém
+    no controle 27% × 38%, decisão 65% × 48% (só 3% no 1º round × 27%;
+    98% das Performances da Noite vão para finalizações)
 
 ## Workflow de Git
 Usamos Git Flow: `main` (estável) + `develop` (integração) + `feature/*`
