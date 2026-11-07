@@ -118,7 +118,7 @@ Definido em `src/visualizacao.py`:
   `consultar(nome)` (DataFrame)
 
 ## Testes
-`python -m pytest` na raiz (46 testes, ~1 s, sem rede e sem data/). `tests/conftest.py`
+`python -m pytest` na raiz (48 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
 tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos CSVs
 limpos; `test_atualizar_historico.py` roda `atualizar(historico=True)` com um navegador falso; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
 e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
