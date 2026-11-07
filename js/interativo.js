@@ -132,7 +132,7 @@ const CATEGORIAS = {
 };
 // Filtro do ranking: divisões do mais pesado ao mais leve, masculinas e depois femininas (sem peso casado)
 const CATEGORIAS_RANKING = Object.keys(CATEGORIAS).filter((c) => c !== "Catch Weight");
-const BASES = { Orthodox: "ortodoxo", Southpaw: "canhoto", Switch: "troca de base" };
+const BASES = { Orthodox: "ortodoxo", Southpaw: "canhoto", Switch: "troca de base", "Open Stance": "base aberta", Sideways: "base lateral" };
 // Filtros do ranking por base e por faixa de idade (idade de hoje, como nos cartões)
 const BASES_RANKING = { Orthodox: "Ortodoxo", Southpaw: "Canhoto", Switch: "Troca de base" };
 const FAIXAS_IDADE = {

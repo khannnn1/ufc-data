@@ -25,7 +25,8 @@ CATEGORIAS_PT = {
     "Women's Strawweight": "Palha (fem.)", "Catch Weight": "Peso casado",
     "Open Weight": "Peso aberto",
 }
-BASES_PT = {"Orthodox": "Ortodoxo", "Southpaw": "Canhoto", "Switch": "Troca de base"}
+BASES_PT = {"Orthodox": "Ortodoxo", "Southpaw": "Canhoto", "Switch": "Troca de base",
+            "Open Stance": "Base aberta", "Sideways": "Base lateral"}
 MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"]
 
 

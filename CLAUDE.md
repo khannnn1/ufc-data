@@ -118,7 +118,7 @@ Definido em `src/visualizacao.py`:
   `consultar(nome)` (DataFrame)
 
 ## Testes
-`python -m pytest` na raiz (51 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
+`python -m pytest` na raiz (52 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
 tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos CSVs
 limpos; `test_atualizar_historico.py` roda `atualizar(historico=True)` com um navegador falso; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
 e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
@@ -181,7 +181,11 @@ lutas antigas têm outras regras (sem limite de tempo, rounds de 10+ min) e às
 vezes não têm estatísticas, então médias sem recorte distorcem.
 Lutas antigas no ufcstats: algumas sem tabelas por round (só 2 tabelas na
 página) ou sem nenhuma estatística (0 tabelas): entram com o resultado e as
-estatísticas vazias (NaN), sem linhas no dataset por round. Categoria "Open
+estatísticas vazias (NaN), sem linhas no dataset por round. São 21 lutas (1994-1998);
+no SQLite as estatísticas de `desempenho` aceitam NULL (= não medido, não 0).
+Base completa (2026-11-07): 795 eventos (UFC 2, 1994-03-11, a 2026-10-31), 8.974 lutas,
+2.776 lutadores; resumo 17.948 linhas, por round 42.122. Faltam envergadura em 658 lutadores,
+nascimento em 104, altura em 24, base em 80; bases raras Open Stance (6) e Sideways (3). Categoria "Open
 Weight" (peso aberto, torneios) e "Super Heavyweight" existem só nos antigos.
 `Time_Format` ("3 Rnd (5-5-5)", "1 Rnd + OT (15-3)", "No Time Limit") vai no
 resumo bruto/limpo; a duração da luta sai de `adicionar_duracao` (limpeza.py),

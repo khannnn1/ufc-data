@@ -82,3 +82,29 @@ def test_duracao_usa_o_formato_de_tempo_das_lutas_antigas(resumo, por_round, dat
     lutas = montar_tabelas(resumo, por_round, datas_eventos, lutadores)["lutas"].set_index("url")
     assert lutas.loc["F3", "duracao_seg"] == 960
     assert lutas.loc["F1", "duracao_seg"] == 150  # sem formato: rounds de 5 min, como antes
+
+
+def test_luta_antiga_sem_estatisticas_entra_com_null(resumo, por_round, datas_eventos, lutadores):
+    # Como as 21 lutas de 1994-1998 sem estatísticas no ufcstats: resultado sim, números não
+    import numpy as np
+
+    from src.banco import ESTATISTICAS
+    resumo = resumo.copy()
+    sem = resumo["Fight_URL"] == "F1"
+    resumo.loc[sem, list(ESTATISTICAS)] = np.nan
+    resumo["Time_Format"] = resumo["Fight_URL"].map({"F1": "No Time Limit"})
+    por_round = por_round[por_round["Fight_URL"] != "F1"]  # sem tabelas por round
+
+    tabelas = montar_tabelas(resumo, por_round, datas_eventos, lutadores)
+    con = sqlite3.connect(":memory:")
+    con.execute("PRAGMA foreign_keys = ON")
+    con.executescript(ARQUIVO_SCHEMA.read_text(encoding="utf-8"))
+    for nome in ["eventos", "lutas", "lutadores", "desempenho", "desempenho_round"]:
+        tabelas[nome].to_sql(nome, con, if_exists="append", index=False)
+
+    linha = con.execute("""SELECT d.resultado, d.kd, d.sig_acertados, l.duracao_seg FROM desempenho d
+                           JOIN lutas l USING (luta_id) WHERE l.url = 'F1' AND d.lutador = 'A'""").fetchone()
+    assert linha == ("W", None, None, 150)  # NULL, não 0; sem limite de tempo: só o tempo final
+    for nome, sql in carregar_consultas().items():  # todas as consultas aceitam os NULL
+        pd.read_sql_query(sql, con)
+    con.close()
