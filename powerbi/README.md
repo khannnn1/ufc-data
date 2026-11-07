@@ -23,11 +23,11 @@ dim_lutador ◄── fato_desempenho ──► dim_luta
                (lutador × luta × round)
 ```
 
-- **fato_desempenho** (3.674 linhas): uma linha por lutador em cada luta. Traz o resultado (`vitoria`, `derrota`, `empate` em 0/1), as estatísticas, a duração da luta (para medidas por minuto), a idade na data da luta e o `adversario_id`.
-- **fato_round** (8.910 linhas): as mesmas estatísticas por round.
-- **dim_luta** (1.837 linhas): evento, data, categoria em português, método e `metodo_grupo` (Nocaute / Finalização / Decisão / Outro), round, duração, árbitro, cinturão e bônus.
-- **dim_lutador** (964 linhas): nome, altura, envergadura, base em português e nascimento.
-- **dim_calendario**: um dia por linha, de 2023 a 2026, com ano, trimestre e mês.
+- **fato_desempenho** (17.948 linhas): uma linha por lutador em cada luta. Traz o resultado (`vitoria`, `derrota`, `empate` em 0/1), as estatísticas, a duração da luta (para medidas por minuto), a idade na data da luta e o `adversario_id`.
+- **fato_round** (42.122 linhas): as mesmas estatísticas por round.
+- **dim_luta** (8.974 linhas): evento, data, categoria em português, método e `metodo_grupo` (Nocaute / Finalização / Decisão / Outro), round, duração, árbitro, cinturão e bônus.
+- **dim_lutador** (2.776 linhas): nome, altura, envergadura, base em português e nascimento.
+- **dim_calendario**: um dia por linha, de 1994 a 2026, com ano, trimestre e mês.
 
 ## Passo a passo
 
@@ -86,4 +86,4 @@ Depois:
 Salve como `powerbi/ufc.pbix` e exporte um print de cada página para `powerbi/prints/`. Os prints vão para o README do projeto.
 
 ## Conferência
-Com o painel sem filtros, os números devem bater com o resto do projeto: 1.837 lutas, 149 eventos, 964 lutadores, 49,5% das lutas antes da decisão, 32,5% por nocaute (597 lutas) e Luta da Noite em 5,5% (101 lutas).
+Com o painel sem filtros, os números devem bater com o resto do projeto: 8.974 lutas, 795 eventos, 2.776 lutadores, 52,4% das lutas antes da decisão, 33,1% por nocaute (2.967 lutas) e Luta da Noite em 6,8% (612 lutas).

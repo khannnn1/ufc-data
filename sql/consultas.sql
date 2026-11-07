@@ -200,7 +200,7 @@ LIMIT 10;
 
 -- nome: lutas_por_ano
 -- Como as lutas terminam a cada ano do período (strftime extrai o ano da data do evento).
--- 2023 e o ano corrente são parciais: o recorte começa em abril de 2023.
+-- O ano corrente é parcial; 1994 começa no UFC 2 (o UFC 1 não está no ufcstats).
 SELECT
     strftime('%Y', e.data)                                                          AS ano,
     COUNT(DISTINCT e.evento_id)                                                     AS eventos,
