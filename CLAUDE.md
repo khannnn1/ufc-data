@@ -278,7 +278,7 @@ str. %, Td %) indicam zero tentativas, tratados como NaN (não 0%).
     (escalas diferentes), com a razão "N× mais" no título de cada painel;
     exclui empates (D) e NC
 11. `volume_vs_precisao.png` — dispersão: golpes sig. TENTADOS por minuto
-    de luta (duração = (Final_Round-1)*300 + Time em segundos) × precisão,
+    de luta (duração por `adicionar_duracao`, pelo formato de tempo) × precisão,
     lutadores com >= 4 lutas, medianas tracejadas como quadrantes, extremos
     rotulados em vermelho. Único gráfico com eixos numéricos visíveis
 12. `top10_taxa_vitoria.png` — top 10 por taxa de vitória, W / (W+L+D), NC
@@ -303,8 +303,8 @@ str. %, Td %) indicam zero tentativas, tratados como NaN (não 0%).
 18. `finalizacoes_por_categoria.png` — barras empilhadas por categoria de
     peso: % de lutas encerradas por nocaute (azul, inclui TKO médico) e por
     finalização (vermelho), uma linha por luta, total na ponta, média geral
-    tracejada (50%); fora peso casado e categorias com < 20 lutas (pena
-    feminino). Meio-pesado lidera (68%), pesado só 53%, mosca fem. 31%
+    tracejada; fora peso casado, peso aberto (Open Weight, torneios antigos)
+    e categorias com < 20 lutas (mesmo filtro na consulta SQL). Meio-pesado lidera (68%), pesado só 53%, mosca fem. 31%
 19. `idade_vs_envergadura.png` — 2 painéis de barras verticais: % de
     vitória de quem é mais novo (vermelho) por faixa de diferença de idade
     (até 2 / 2–5 / 5–8 / 8+ anos) e de quem tem mais envergadura (azul) por

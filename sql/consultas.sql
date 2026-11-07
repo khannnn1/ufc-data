@@ -271,8 +271,9 @@ ORDER BY disputa_titulo DESC;
 
 -- nome: finalizacoes_por_categoria
 -- Lutas encerradas antes da decisão, por categoria de peso: nocaute (inclui TKO médico) e
--- finalização. Fora o peso casado (acordo entre os lutadores, não é divisão) e, via HAVING,
--- categorias com menos de 20 lutas. media_geral: todas as lutas fora o peso casado.
+-- finalização. Fora o peso casado (acordo entre os lutadores) e o peso aberto (torneios dos
+-- primeiros UFCs), que não são divisões, e, via HAVING, categorias com menos de 20 lutas.
+-- media_geral: todas as lutas fora esses dois.
 WITH por_categoria AS (
     SELECT
         categoria,
@@ -280,7 +281,7 @@ WITH por_categoria AS (
         100.0 * AVG(metodo LIKE '%KO/TKO%' OR metodo LIKE 'TKO - Doctor%')     AS nocaute_pct,
         100.0 * AVG(metodo LIKE '%Submission%')                                AS finalizacao_pct
     FROM lutas
-    WHERE categoria <> 'Catch Weight'
+    WHERE categoria NOT IN ('Catch Weight', 'Open Weight')
     GROUP BY categoria
     HAVING COUNT(*) >= 20
 )
@@ -292,7 +293,7 @@ SELECT
     ROUND(finalizacao_pct, 1)                                  AS finalizacao_pct,
     ROUND(nocaute_pct + finalizacao_pct, 1)                    AS antes_da_decisao_pct,
     (SELECT ROUND(100.0 * AVG(metodo LIKE '%KO/TKO%' OR metodo LIKE 'TKO - Doctor%' OR metodo LIKE '%Submission%'), 1)
-       FROM lutas WHERE categoria IS NOT 'Catch Weight')       AS media_geral
+       FROM lutas WHERE COALESCE(categoria, '') NOT IN ('Catch Weight', 'Open Weight'))  AS media_geral
 FROM por_categoria
 ORDER BY posicao;
 
