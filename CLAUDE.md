@@ -172,7 +172,9 @@ from src.config import COLUNAS_OF, COLUNAS_PCT
 ## Dados
 Escopo: até out/2026 a base era um recorte de 149 eventos recentes (UFC 287,
 2023-04-08, a UFC 331, 2026-09-19). Em 2026-11-07 decidimos ampliar para o
-HISTÓRICO COMPLETO (desde o UFC 1, 1993) com `python -m src.atualizar --historico`.
+HISTÓRICO COMPLETO com `python -m src.atualizar --historico`.
+O UFC 1 (12/11/1993) NÃO aparece na listagem do ufcstats (`?page=all`, 795 eventos em
+2026-11): a base começa no UFC 2 (1994-03-11).
 Apresentação decidida: gráficos e textos cobrem o histórico todo e o site ganha
 um filtro de período (ex.: só a era moderna) no comparador e nos rankings —
 lutas antigas têm outras regras (sem limite de tempo, rounds de 10+ min) e às

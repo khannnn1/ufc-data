@@ -3,7 +3,7 @@
 Uso (na raiz do projeto, com o venv):
     python -m src.atualizar              # coleta eventos novos, limpa, gera JSON do site e banco SQL
     python -m src.atualizar --graficos   # idem + roda os notebooks 02 e 03 (PNGs e SQL)
-    python -m src.atualizar --historico  # coleta TODOS os eventos que faltam, desde o UFC 1 (horas)
+    python -m src.atualizar --historico  # coleta TODOS os eventos que faltam, até os primeiros UFCs (horas)
     python -m src.atualizar --historico --limite 5   # só 5 eventos que faltam (para testar)
 
 Sem --historico, só entram eventos MAIS NOVOS que o último da base. Com --historico entram também
@@ -84,7 +84,7 @@ def listar_eventos(driver, urls_base, datas_conhecidas, max_paginas=10):
 
 
 def listar_todos_eventos(driver):
-    """Todos os eventos já realizados, numa página só (?page=all), do mais recente ao UFC 1."""
+    """Todos os eventos já realizados, numa página só (?page=all), do mais recente ao mais antigo da listagem."""
     print("Lendo a listagem completa de eventos...")
     driver.get(URL_LISTAGEM.format("all"))
     esperar(driver, SELETOR_LISTAGEM, espera_max=60)
