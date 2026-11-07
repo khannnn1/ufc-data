@@ -106,7 +106,11 @@ def coletar_fotos(limite=None, caminho=ARQUIVO_FOTOS, pausa=PAUSA):
         for i, linha in enumerate(fila.itertuples(index=False), 1):
             try:
                 resposta = sessao.get(URL_ATLETA.format(linha.Slug), timeout=30)
-                foto = extrair_foto(resposta.text, resposta.url) if resposta.ok else None
+                if not resposta.ok:  # 403/429/5xx: não grava, para tentar de novo na próxima execução
+                    print(f"  {linha.Name}: HTTP {resposta.status_code}")
+                    time.sleep(pausa)
+                    continue
+                foto = extrair_foto(resposta.text, resposta.url)
                 linhas.append((linha.Fighter_URL, linha.Slug, foto))
                 achadas += foto is not None
             except Exception as erro:  # falha isolada (rede): tenta de novo na próxima execução
