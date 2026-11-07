@@ -109,11 +109,12 @@ function cartel(l) {
 }
 
 const CATEGORIAS = {
-  "Heavyweight": "Peso-pesado", "Light Heavyweight": "Meio-pesado", "Middleweight": "Peso-médio",
+  "Super Heavyweight": "Superpesado", "Heavyweight": "Peso-pesado", "Light Heavyweight": "Meio-pesado", "Middleweight": "Peso-médio",
   "Welterweight": "Meio-médio", "Lightweight": "Peso-leve", "Featherweight": "Peso-pena",
   "Bantamweight": "Peso-galo", "Flyweight": "Peso-mosca", "Catch Weight": "Peso casado",
   "Women's Featherweight": "Peso-pena feminino", "Women's Bantamweight": "Peso-galo feminino",
   "Women's Flyweight": "Peso-mosca feminino", "Women's Strawweight": "Peso-palha feminino",
+  "Open Weight": "Peso aberto",  // torneios dos primeiros UFCs, sem divisão de peso
 };
 // Filtro do ranking: divisões do mais pesado ao mais leve, masculinas e depois femininas (sem peso casado)
 const CATEGORIAS_RANKING = Object.keys(CATEGORIAS).filter((c) => c !== "Catch Weight");

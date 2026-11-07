@@ -1,5 +1,7 @@
 """Funções de limpeza e transformação dos dados extraídos do ufcstats.com."""
 
+import re
+
 import pandas as pd
 
 from src.config import COLUNAS_OF, COLUNAS_PCT
@@ -67,3 +69,41 @@ def limpar_lutadores(df):
         "Stance": df["Stance"].replace("--", None),
         "DOB": pd.to_datetime(df["DOB"].replace("--", None), format="%b %d, %Y").dt.strftime("%Y-%m-%d"),
     })
+
+
+def duracoes_dos_rounds(formato):
+    """Duração de cada round (min) a partir do "Time format" do ufcstats.
+
+    "3 Rnd (5-5-5)" -> [5, 5, 5]; "1 Rnd + OT (15-3)" -> [15, 3]; "No Time Limit" -> [] (sem limite).
+    Sem formato (CSVs coletados antes de existir a coluna, todos da era de rounds de 5 min) -> None.
+    """
+    if pd.isna(formato) or not str(formato).strip():
+        return None
+    dentro = re.search(r"\(([^)]*)\)", str(formato))
+    if not dentro:
+        return []
+    return [int(n) for n in re.findall(r"\d+", dentro.group(1))]
+
+
+def duracao_segundos(round_final, tempo_seg, formato=None):
+    """Tempo total de luta: rounds completos anteriores (pelo formato) + o tempo do último round."""
+    if pd.isna(round_final) or pd.isna(tempo_seg):
+        return None
+    rounds = duracoes_dos_rounds(formato)
+    if rounds is None:
+        rounds = [5]
+    anteriores = int(round_final) - 1
+    if not rounds:  # sem limite de tempo: só existe um "round"
+        return tempo_seg
+    completos = rounds[:anteriores] + [rounds[-1]] * max(0, anteriores - len(rounds))
+    return sum(completos) * 60 + tempo_seg
+
+
+def adicionar_duracao(df, coluna_saida="Duracao_seg"):
+    """Coluna de duração da luta (s) a partir de Final_Round, Time ('M:SS') e Time_Format (se houver)."""
+    df = df.copy()
+    tempo = tempo_para_segundos(df[["Time"]].copy(), "Time")["Time_seconds"]
+    formatos = df["Time_Format"] if "Time_Format" in df.columns else pd.Series(None, index=df.index, dtype=object)
+    df[coluna_saida] = [duracao_segundos(r, t, f) for r, t, f in zip(df["Final_Round"], tempo, formatos)]
+    df[coluna_saida] = pd.to_numeric(df[coluna_saida])
+    return df

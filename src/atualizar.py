@@ -3,8 +3,13 @@
 Uso (na raiz do projeto, com o venv):
     python -m src.atualizar              # coleta eventos novos, limpa, gera JSON do site e banco SQL
     python -m src.atualizar --graficos   # idem + roda os notebooks 02 e 03 (PNGs e SQL)
+    python -m src.atualizar --historico  # coleta TODOS os eventos que faltam, desde o UFC 1 (horas)
+    python -m src.atualizar --historico --limite 5   # só 5 eventos que faltam (para testar)
 
-Só entram eventos MAIS NOVOS que o último da base (o recorte continua sendo "os mais recentes").
+Sem --historico, só entram eventos MAIS NOVOS que o último da base. Com --historico entram também
+os mais antigos. A coleta é retomável: cada evento é salvo ao terminar, então dá para interromper
+(Ctrl+C) e rodar de novo, que continua de onde parou. Lutas que falharam dentro de um evento já
+salvo são recoletadas na execução seguinte.
 Também mantém data/processed/eventos.csv com a data de cada evento, data/raw/lutas_evento.csv com
 lutadores (nome e link), categoria de peso, cinturão e bônus de cada luta (lidos da página do evento)
 e data/raw/lutadores.csv com altura, envergadura, base e nascimento (página de cada lutador). Os dois
@@ -19,11 +24,12 @@ from pathlib import Path
 import pandas as pd
 
 from src.limpeza import limpar_dataset, limpar_lutadores
-from src.scraper import (criar_driver, extrair_eventos_da_pagina, extrair_lutador, extrair_lutas_evento,
-                         extrair_varios_eventos)
+from src.scraper import (anexar_csv, criar_driver, esperar, extrair_dados_luta, extrair_eventos_da_pagina,
+                         extrair_lutador, extrair_lutas_evento, extrair_varios_eventos)
 
 RAIZ = Path(__file__).resolve().parent.parent
 URL_LISTAGEM = "http://ufcstats.com/statistics/events/completed?page={}"
+SELETOR_LISTAGEM = "tr.b-statistics__table-row a.b-link_style_black"
 
 
 def caminhos(pasta_dados):
@@ -62,6 +68,58 @@ def listar_eventos(driver, urls_base, datas_conhecidas, max_paginas=10):
             break
         time.sleep(2)
     return eventos
+
+
+def listar_todos_eventos(driver):
+    """Todos os eventos já realizados, numa página só (?page=all), do mais recente ao UFC 1."""
+    print("Lendo a listagem completa de eventos...")
+    driver.get(URL_LISTAGEM.format("all"))
+    esperar(driver, SELETOR_LISTAGEM, espera_max=60)
+    return extrair_eventos_da_pagina(driver.page_source)
+
+
+def eventos_a_coletar(listagem, urls_base, datas, hoje, historico=False):
+    """Eventos da listagem que ainda não estão na base.
+
+    Sem histórico: só os mais novos que o último da base. Com histórico: todos os que faltam.
+    Eventos sem data ou com data futura ficam de fora.
+    """
+    base = set(urls_base)
+    mais_recente = max((datas[u] for u in base if u in datas), default="")
+    vistos, novos = set(), []
+    for e in listagem:
+        if e["url"] in base or e["url"] in vistos or not e["data"] or e["data"] > hoje:
+            continue
+        if historico or e["data"] > mais_recente:
+            novos.append(e)
+            vistos.add(e["url"])
+    return novos
+
+
+def lutas_faltantes(lutas_evento, bruto_resumo):
+    """Lutas listadas na página do evento que não estão no resumo bruto (falharam na coleta)."""
+    ja_tem = set(bruto_resumo["Fight_URL"])
+    eventos_na_base = set(bruto_resumo["Event_URL"])
+    faltam = lutas_evento[~lutas_evento["Fight_URL"].isin(ja_tem) & lutas_evento["Event_URL"].isin(eventos_na_base)]
+    return faltam[["Event_URL", "Fight_URL"]].drop_duplicates("Fight_URL")
+
+
+def completar_lutas_faltantes(faltam, nomes_eventos, driver, arquivo_resumo, arquivo_round):
+    """Coleta de novo as lutas que falharam, acrescentando-as aos CSVs brutos (uma a uma)."""
+    if faltam.empty:
+        return
+    print(f"Lutas que faltam em eventos já coletados: {len(faltam)}.")
+    for i, (evento, luta) in enumerate(faltam.itertuples(index=False), start=1):
+        try:
+            resumo, por_round = extrair_dados_luta(luta, driver)
+            for df in (resumo, por_round):
+                df["Event_URL"] = evento
+                df["Event_Name"] = nomes_eventos.get(evento)
+            anexar_csv(resumo, arquivo_resumo)
+            anexar_csv(por_round, arquivo_round)
+            print(f"  ({i}/{len(faltam)}) ok  {luta}")
+        except Exception as e:
+            print(f"  ({i}/{len(faltam)}) Erro em {luta}: {e}")
 
 
 def completar_lutas_evento(urls_eventos, driver, arquivo):
@@ -128,16 +186,22 @@ def desambiguar_homonimos(resumo, por_round, lutadores):
     """Nomes iguais de pessoas diferentes ganham o ano de nascimento: "Bruno Silva (1989)".
 
     Tudo o que agrupa por Fighter (gráficos, JSON do site, consultas SQL) passa a separá-los.
-    O ano não muda com o tempo, então links do site com o nome continuam valendo.
+    O ano não muda com o tempo, então links do site com o nome continuam valendo. Se o ano não
+    basta (mesmo ano, ou nascimento desconhecido), entra também o início do código do link do
+    lutador no ufcstats, que também não muda: "Fulano (?, 1a2b)".
     """
     pessoas = resumo[["Fighter_URL", "Fighter"]].drop_duplicates("Fighter_URL")
     repetidos = pessoas[pessoas["Fighter"].duplicated(keep=False)]
     if repetidos.empty:
         return resumo, por_round
     ano = repetidos["Fighter_URL"].map(lutadores.set_index("Fighter_URL")["DOB"]).str[:4]
-    novo_nome = dict(zip(repetidos["Fighter_URL"], repetidos["Fighter"] + " (" + ano.fillna("?") + ")"))
+    rotulo = repetidos["Fighter"] + " (" + ano.fillna("?") + ")"
+    empatados = rotulo.duplicated(keep=False)
+    codigo = repetidos["Fighter_URL"].str.rstrip("/").str.rsplit("/", n=1).str[-1].str[:4]
+    rotulo[empatados] = repetidos["Fighter"] + " (" + ano.fillna("?") + ", " + codigo + ")"
+    novo_nome = dict(zip(repetidos["Fighter_URL"], rotulo))
     if len(set(novo_nome.values())) < len(novo_nome):
-        raise ValueError(f"Homônimos com o mesmo ano de nascimento: {novo_nome}")
+        raise ValueError(f"Homônimos que não deu para separar: {novo_nome}")
     print("Homônimos separados:", ", ".join(sorted(novo_nome.values())))
 
     resumo = resumo.copy()
@@ -155,8 +219,10 @@ def urls_de_lutadores(lutas_evento):
     return list(dict.fromkeys(pd.concat([lutas_evento["Fighter_1_URL"], lutas_evento["Fighter_2_URL"]])))
 
 
-def atualizar(pasta_dados=RAIZ / "data", exportar_site=True, max_paginas=10, driver=None):
-    """Coleta eventos novos, atualiza CSVs brutos/limpos e eventos.csv; opcionalmente JSON e banco."""
+def atualizar(pasta_dados=RAIZ / "data", exportar_site=True, max_paginas=10, driver=None, historico=False,
+              limite=None):
+    """Coleta eventos novos (ou, com historico, todos os que faltam), atualiza CSVs brutos/limpos e eventos.csv;
+    opcionalmente JSON e banco. limite = no máximo N eventos nesta execução."""
     arq = caminhos(pasta_dados)
     bruto_resumo = pd.read_csv(arq["bruto_resumo"])
     urls_base = list(dict.fromkeys(bruto_resumo["Event_URL"]))
@@ -167,7 +233,7 @@ def atualizar(pasta_dados=RAIZ / "data", exportar_site=True, max_paginas=10, dri
     driver_proprio = driver is None
     driver = driver or criar_driver()
     try:
-        listagem = listar_eventos(driver, urls_base, datas, max_paginas)
+        listagem = listar_todos_eventos(driver) if historico else listar_eventos(driver, urls_base, datas, max_paginas)
         for e in listagem:
             if e["data"]:
                 datas[e["url"]] = e["data"]
@@ -177,26 +243,33 @@ def atualizar(pasta_dados=RAIZ / "data", exportar_site=True, max_paginas=10, dri
             raise RuntimeError(f"{len(faltando)} eventos da base não apareceram na listagem; aumente max_paginas.")
 
         mais_recente = max(datas[u] for u in urls_base)
-        hoje = date.today().isoformat()
-        novos = [e for e in listagem
-                 if e["url"] not in set(urls_base) and e["data"] and mais_recente < e["data"] <= hoje]
+        novos = eventos_a_coletar(listagem, urls_base, datas, date.today().isoformat(), historico)
+        total = len(novos)
+        novos = novos[:limite] if limite else novos
 
-        print(f"Último evento na base: {mais_recente}. Eventos novos: {len(novos)}")
-        for e in novos:
+        print(f"Último evento na base: {mais_recente}. Eventos a coletar: {total}"
+              + (f" (nesta execução: {len(novos)})" if len(novos) < total else ""))
+        for e in novos[:20]:
             print(f"  + {e['data']}  {e['nome']}")
+        if len(novos) > 20:
+            print(f"  ... e mais {len(novos) - 20}")
         if novos:
             extrair_varios_eventos(novos, driver, arquivo_resumo=arq["bruto_resumo"], arquivo_round=arq["bruto_round"])
-        urls_atuais = list(dict.fromkeys(pd.read_csv(arq["bruto_resumo"])["Event_URL"]))
+        urls_atuais = list(dict.fromkeys(pd.read_csv(arq["bruto_resumo"], low_memory=False)["Event_URL"]))
         completar_lutas_evento(urls_atuais, driver, arq["lutas_evento"])
+        bruto_atual = pd.read_csv(arq["bruto_resumo"], low_memory=False)
+        nomes = dict(zip(bruto_atual["Event_URL"], bruto_atual["Event_Name"]))
+        completar_lutas_faltantes(lutas_faltantes(pd.read_csv(arq["lutas_evento"]), bruto_atual),
+                                  nomes, driver, arq["bruto_resumo"], arq["bruto_round"])
         completar_lutadores(urls_de_lutadores(pd.read_csv(arq["lutas_evento"])), driver, arq["bruto_lutadores"])
     finally:
         if driver_proprio:
             driver.quit()
 
     # Limpeza completa a partir dos brutos (mesmo resultado dos notebooks, conferido em limpar_dataset)
-    bruto_resumo = pd.read_csv(arq["bruto_resumo"])
+    bruto_resumo = pd.read_csv(arq["bruto_resumo"], low_memory=False)
     resumo = limpar_dataset(bruto_resumo)
-    por_round = limpar_dataset(pd.read_csv(arq["bruto_round"]))
+    por_round = limpar_dataset(pd.read_csv(arq["bruto_round"], low_memory=False))
     if arq["lutas_evento"].exists():
         resumo = adicionar_dados_das_lutas(resumo, pd.read_csv(arq["lutas_evento"]))
     if arq["bruto_lutadores"].exists():
@@ -244,9 +317,12 @@ def rodar_notebooks():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--graficos", action="store_true", help="também reexecuta os notebooks 02 e 03")
+    parser.add_argument("--historico", action="store_true",
+                        help="coleta todos os eventos que faltam, inclusive os mais antigos que a base (demora horas)")
+    parser.add_argument("--limite", type=int, help="no máximo N eventos nesta execução")
     args = parser.parse_args()
 
-    novos = atualizar()
+    novos = atualizar(historico=args.historico, limite=args.limite)
     if args.graficos:
         rodar_notebooks()
     if novos:

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.limpeza import tempo_para_segundos
+from src.limpeza import adicionar_duracao
 
 RAIZ = Path(__file__).resolve().parent.parent
 ARQUIVO_RESUMO = RAIZ / "data" / "processed" / "dataset_final_resumo_limpo.csv"
@@ -44,10 +44,10 @@ def montar_tabelas(resumo, por_round, datas_eventos, dados_lutadores):
     eventos.insert(0, "evento_id", range(1, len(eventos) + 1))
     eventos = eventos.rename(columns={"Event_URL": "url", "Event_Name": "nome"})
 
+    formato = ["Time_Format"] if "Time_Format" in resumo.columns else []  # duração certa de lutas antigas
     lutas = resumo.drop_duplicates("Fight_URL")[["Fight_URL", "Event_URL", "Method", "Final_Round", "Time", "Referee",
-                                                 *DADOS_DA_LUTA]]
-    lutas = tempo_para_segundos(lutas.assign(Tempo=lutas["Time"]), "Tempo").reset_index(drop=True)
-    lutas["duracao_seg"] = (lutas["Final_Round"] - 1) * 300 + lutas["Tempo_seconds"]
+                                                 *formato, *DADOS_DA_LUTA]]
+    lutas = adicionar_duracao(lutas, "duracao_seg").reset_index(drop=True)
     lutas.insert(0, "luta_id", range(1, len(lutas) + 1))
     lutas["evento_id"] = lutas["Event_URL"].map(eventos.set_index("url")["evento_id"])
     lutas = lutas.rename(columns={"Fight_URL": "url", "Method": "metodo", "Final_Round": "round_final",
