@@ -43,8 +43,27 @@ def test_desambiguar_homonimos_usa_o_ano_de_nascimento_nos_dois_datasets():
     assert resumo["Fighter"].iloc[0] == "Bruno Silva"  # não altera o original
 
 
-def test_desambiguar_homonimos_com_o_mesmo_ano_falha_em_vez_de_misturar():
+def test_desambiguar_homonimos_com_o_mesmo_ano_usa_o_codigo_do_link():
     resumo, por_round, lutadores = _bases_homonimos(("1990", "1990"))
+    links = {"url/bruno-medio": "http://ufcstats.com/fighter-details/1a2b3c4d", "url/bruno-mosca": "http://ufcstats.com/fighter-details/9f8e7d6c"}
+    resumo["Fighter_URL"] = resumo["Fighter_URL"].replace(links)
+    lutadores["Fighter_URL"] = lutadores["Fighter_URL"].replace(links)
+    novo_resumo, novo_round = desambiguar_homonimos(resumo, por_round, lutadores)
+    assert novo_resumo["Fighter"].tolist() == ["Bruno Silva (1990, 1a2b)", "Outro", "Bruno Silva (1990, 9f8e)", "Mais Um"]
+    assert novo_round["Fighter"].tolist() == ["Bruno Silva (1990, 1a2b)"] * 2 + ["Bruno Silva (1990, 9f8e)"]
+
+
+def test_desambiguar_homonimos_sem_nascimento_usa_o_codigo_do_link():
+    resumo, por_round, lutadores = _bases_homonimos(("1990", "1990"))
+    lutadores["DOB"] = None
+    resumo["Fighter_URL"] = resumo["Fighter_URL"].replace({"url/bruno-mosca": "url/zz-bruno"})
+    lutadores["Fighter_URL"] = lutadores["Fighter_URL"].replace({"url/bruno-mosca": "url/zz-bruno"})
+    novo_resumo, _ = desambiguar_homonimos(resumo, por_round, lutadores)
+    assert novo_resumo["Fighter"].iloc[[0, 2]].tolist() == ["Bruno Silva (?, brun)", "Bruno Silva (?, zz-b)"]
+
+
+def test_desambiguar_homonimos_que_nao_da_para_separar_falha_em_vez_de_misturar():
+    resumo, por_round, lutadores = _bases_homonimos(("1990", "1990"))  # links começam igual ("brun")
     with pytest.raises(ValueError):
         desambiguar_homonimos(resumo, por_round, lutadores)
 

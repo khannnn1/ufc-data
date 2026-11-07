@@ -74,3 +74,11 @@ def test_disputas_titulo(conexao):
     assert titulo.loc["Disputa de cinturão", "lutas"] == 1
     assert titulo.loc["Disputa de cinturão", "finalizacao_pct"] == 100.0
     assert titulo.loc["Disputa de cinturão", "duracao_min"] == 6.0
+
+
+def test_duracao_usa_o_formato_de_tempo_das_lutas_antigas(resumo, por_round, datas_eventos, lutadores):
+    # F3 terminou no 2º round com 1:00; num formato antigo de 1 round de 15 min + prorrogação, são 16 min
+    resumo = resumo.assign(Time_Format=resumo["Fight_URL"].map({"F3": "1 Rnd + OT (15-3)"}))
+    lutas = montar_tabelas(resumo, por_round, datas_eventos, lutadores)["lutas"].set_index("url")
+    assert lutas.loc["F3", "duracao_seg"] == 960
+    assert lutas.loc["F1", "duracao_seg"] == 150  # sem formato: rounds de 5 min, como antes

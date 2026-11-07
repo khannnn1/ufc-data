@@ -118,9 +118,9 @@ Definido em `src/visualizacao.py`:
   `consultar(nome)` (DataFrame)
 
 ## Testes
-`python -m pytest` na raiz (24 testes, ~1 s, sem rede e sem data/). `tests/conftest.py`
+`python -m pytest` na raiz (46 testes, ~1 s, sem rede e sem data/). `tests/conftest.py`
 tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos CSVs
-limpos; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
+limpos; `test_atualizar_historico.py` roda `atualizar(historico=True)` com um navegador falso; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
 e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
 Função nova em src/ com lógica pura (limpeza, parsing, agregação): adicionar teste.
 CI: `.github/workflows/testes.yml` roda o pytest no GitHub Actions (Ubuntu, Python 3.14)
@@ -170,10 +170,21 @@ from src.config import COLUNAS_OF, COLUNAS_PCT
 ```
 
 ## Dados
-Escopo definido: recorte de ~149 eventos recentes do UFC (não o histórico
-completo de 600+), priorizando qualidade de análise sobre volume. Período:
-UFC 287 (2023-04-08) a UFC 331 (2026-09-19). Ampliar para eventos mais
-antigos foi considerado e descartado (muda o sentido de "no período").
+Escopo: até out/2026 a base era um recorte de 149 eventos recentes (UFC 287,
+2023-04-08, a UFC 331, 2026-09-19). Em 2026-11-07 decidimos ampliar para o
+HISTÓRICO COMPLETO (desde o UFC 1, 1993) com `python -m src.atualizar --historico`.
+Apresentação decidida: gráficos e textos cobrem o histórico todo e o site ganha
+um filtro de período (ex.: só a era moderna) no comparador e nos rankings —
+lutas antigas têm outras regras (sem limite de tempo, rounds de 10+ min) e às
+vezes não têm estatísticas, então médias sem recorte distorcem.
+Lutas antigas no ufcstats: algumas sem tabelas por round (só 2 tabelas na
+página) ou sem nenhuma estatística (0 tabelas): entram com o resultado e as
+estatísticas vazias (NaN), sem linhas no dataset por round. Categoria "Open
+Weight" (peso aberto, torneios) e "Super Heavyweight" existem só nos antigos.
+`Time_Format` ("3 Rnd (5-5-5)", "1 Rnd + OT (15-3)", "No Time Limit") vai no
+resumo bruto/limpo; a duração da luta sai de `adicionar_duracao` (limpeza.py),
+usada por banco.py e exportar.py. Sem formato (linhas coletadas antes da
+coluna existir, todas com rounds de 5 min) vale 5 min por round.
 
 ## Atualização da base
 `python -m src.atualizar` (na raiz, com o venv; ~15 s sem eventos novos):
@@ -191,6 +202,16 @@ lutador que falte, ~1 s cada; salva a cada 25), junta categoria/bônus e
 notebooks 02 e 03. Textos com números fixos (badges/legendas do
 `index.html`, README) NÃO se atualizam sozinhos. Testado de ponta a ponta
 numa cópia da base sem o UFC 331: recoletou o evento idêntico ao original.
+`--historico` lê a listagem inteira (`?page=all`) e coleta TODOS os eventos que
+faltam, inclusive os mais antigos; `--limite N` coleta só N nesta execução.
+Retomável: cada evento é salvo ao terminar (Ctrl+C perde só o evento em
+andamento) e lutas que falharam dentro de um evento já salvo são recoletadas
+na execução seguinte (`lutas_faltantes`, comparando com `lutas_evento.csv`).
+Páginas esperam o conteúdo com `esperar()` (WebDriverWait + `PAUSA` de 0,5 s)
+em vez de `sleep(5)` fixo. `anexar_csv` alinha colunas ao cabeçalho existente e,
+se vier coluna nova (Time_Format), reescreve o CSV uma vez com ela.
+Homônimos: ano de nascimento; se não basta (mesmo ano ou sem nascimento),
+"Nome (ano, xxxx)" com os 4 primeiros caracteres do código do link.
 
 Datasets finais processados:
 - `data/processed/dataset_final_resumo_limpo.csv` — (3674, 38), uma linha

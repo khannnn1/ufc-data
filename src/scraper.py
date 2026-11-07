@@ -52,20 +52,53 @@ def extrair_tabela_por_lutador(tabela_html):
 
 HEADERS_TOTAIS = ['Fighter', 'KD', 'Sig. str.', 'Sig. str. %', 'Total str.', 'Td', 'Td %', 'Sub. att', 'Rev.', 'Ctrl']
 HEADERS_SIG = ['Fighter_sig', 'Sig. str_sig', 'Sig. str. %_sig', 'Head', 'Body', 'Leg', 'Distance', 'Clinch', 'Ground']
+PAUSA = 0.5  # segundos entre páginas, para não sobrecarregar o site
 
 
-def extrair_dados_luta(url, driver):
-    """Extrai nome, resultado, método e estatísticas (resumo + por round) de uma luta."""
-    driver.get(url)
-    time.sleep(5)
-    html = driver.page_source
+def esperar(driver, seletor, espera_max=20):
+    """Espera um elemento da página aparecer (em vez de um sleep fixo) e faz uma pausa curta de cortesia.
+
+    Só o primeiro acesso da sessão passa pela verificação anti-bot (alguns segundos); depois cada página
+    carrega em menos de 1 s, então esperar pelo conteúdo é bem mais rápido que os antigos 5 s fixos.
+    """
+    WebDriverWait(driver, espera_max).until(EC.presence_of_element_located((By.CSS_SELECTOR, seletor)))
+    time.sleep(PAUSA)
+
+
+def _tabelas_da_luta(tabelas_html):
+    """Separa as tabelas da página da luta: (totais, totais por round, golpes sig., golpes sig. por round).
+
+    Lutas recentes têm as 4. Lutas antigas podem não ter as tabelas por round ("Round-by-round stats not
+    currently available") ou nenhuma estatística; o que faltar volta como None.
+    """
+    if len(tabelas_html) == 4:
+        return tuple(tabelas_html)
+    if len(tabelas_html) == 2:
+        return tabelas_html[0], None, tabelas_html[1], None
+    if len(tabelas_html) == 1:
+        return tabelas_html[0], None, None, None
+    if not tabelas_html:
+        return None, None, None, None
+    raise ValueError(f"Página de luta com {len(tabelas_html)} tabelas, formato desconhecido")
+
+
+def _linhas(tabela):
+    """Linhas dos dois lutadores de uma tabela (ou listas vazias se a tabela não existe)."""
+    if tabela is None:
+        return [], []
+    _, l1, l2 = extrair_tabela_por_lutador(tabela)
+    return l1, l2
+
+
+def extrair_dados_luta_html(html, url):
+    """Nome, resultado, método, formato de tempo e estatísticas (resumo + por round) a partir do HTML da luta."""
     soup = BeautifulSoup(html, "html.parser")
 
     pessoas = soup.find_all("div", class_="b-fight-details__person")
-    nome_1 = pessoas[0].find("a", class_="b-link b-fight-details__person-link").text.strip()
-    resultado_1 = pessoas[0].find("i", class_="b-fight-details__person-status").text.strip()
-    nome_2 = pessoas[1].find("a", class_="b-link b-fight-details__person-link").text.strip()
-    resultado_2 = pessoas[1].find("i", class_="b-fight-details__person-status").text.strip()
+    nomes, resultados = [], []
+    for pessoa in pessoas[:2]:
+        nomes.append(pessoa.find("a", class_="b-link b-fight-details__person-link").text.strip())
+        resultados.append(pessoa.find("i", class_="b-fight-details__person-status").text.strip())
 
     info_bloco = soup.find("p", class_="b-fight-details__text")
     itens = info_bloco.find_all("i", class_=["b-fight-details__text-item_first", "b-fight-details__text-item"])
@@ -75,58 +108,55 @@ def extrair_dados_luta(url, driver):
         valor = item.get_text().replace(label, "").strip()
         info[label] = valor
 
-    metodo = info.get("Method:", None)
-    round_final = info.get("Round:", None)
-    tempo = info.get("Time:", None)
-    referee = info.get("Referee:", None)
+    totais, totais_round, sig, sig_round = _tabelas_da_luta(soup.find_all("table"))
+    linhas = [_linhas(t) for t in (totais, totais_round, sig, sig_round)]
+    vazio_totais = [None] * len(HEADERS_TOTAIS)
+    vazio_sig = [None] * len(HEADERS_SIG)
 
-    tabelas_html = soup.find_all("table")
-    _, l1_0, l2_0 = extrair_tabela_por_lutador(tabelas_html[0])
-    _, l1_1, l2_1 = extrair_tabela_por_lutador(tabelas_html[1])
-    _, l1_2, l2_2 = extrair_tabela_por_lutador(tabelas_html[2])
-    _, l1_3, l2_3 = extrair_tabela_por_lutador(tabelas_html[3])
+    resumos, rounds = [], []
+    for i, (nome, resultado) in enumerate(zip(nomes, resultados)):
+        l_totais, l_totais_round, l_sig, l_sig_round = (par[i] for par in linhas)
 
-    df_resumo_l1 = pd.DataFrame([l1_0[0]], columns=HEADERS_TOTAIS)
-    df_resumo_l1 = pd.concat([df_resumo_l1, pd.DataFrame([l1_2[0]], columns=HEADERS_SIG)], axis=1)
-    df_resumo_l1["Fighter"] = nome_1
-    df_resumo_l1["Resultado"] = resultado_1
-    df_resumo_l1 = df_resumo_l1.drop(columns=["Fighter_sig", "Sig. str_sig", "Sig. str. %_sig"])
+        resumo = pd.concat([pd.DataFrame([l_totais[0] if l_totais else vazio_totais], columns=HEADERS_TOTAIS),
+                            pd.DataFrame([l_sig[0] if l_sig else vazio_sig], columns=HEADERS_SIG)], axis=1)
+        resumo["Fighter"] = nome
+        resumo["Resultado"] = resultado
+        resumos.append(resumo.drop(columns=["Fighter_sig", "Sig. str_sig", "Sig. str. %_sig"]))
 
-    df_resumo_l2 = pd.DataFrame([l2_0[0]], columns=HEADERS_TOTAIS)
-    df_resumo_l2 = pd.concat([df_resumo_l2, pd.DataFrame([l2_2[0]], columns=HEADERS_SIG)], axis=1)
-    df_resumo_l2["Fighter"] = nome_2
-    df_resumo_l2["Resultado"] = resultado_2
-    df_resumo_l2 = df_resumo_l2.drop(columns=["Fighter_sig", "Sig. str_sig", "Sig. str. %_sig"])
+        if l_totais_round:
+            sig_por_round = l_sig_round if len(l_sig_round) == len(l_totais_round) else [vazio_sig] * len(l_totais_round)
+            por_round = pd.concat([pd.DataFrame(l_totais_round, columns=HEADERS_TOTAIS),
+                                   pd.DataFrame(sig_por_round, columns=HEADERS_SIG)], axis=1)
+            por_round["Fighter"] = nome
+            por_round["Round"] = range(1, len(por_round) + 1)
+            rounds.append(por_round.drop(columns=["Fighter_sig", "Sig. str_sig", "Sig. str. %_sig"]))
 
-    df_resumo_luta = pd.concat([df_resumo_l1, df_resumo_l2], ignore_index=True)
-    df_resumo_luta["Method"] = metodo
-    df_resumo_luta["Final_Round"] = round_final
-    df_resumo_luta["Time"] = tempo
-    df_resumo_luta["Referee"] = referee
+    df_resumo_luta = pd.concat(resumos, ignore_index=True)
+    df_resumo_luta["Method"] = info.get("Method:")
+    df_resumo_luta["Final_Round"] = info.get("Round:")
+    df_resumo_luta["Time"] = info.get("Time:")
+    df_resumo_luta["Time_Format"] = info.get("Time format:")  # ex.: "3 Rnd (5-5-5)", "No Time Limit"
+    df_resumo_luta["Referee"] = info.get("Referee:")
     df_resumo_luta["Fight_URL"] = url
 
-    df_round_l1 = pd.DataFrame(l1_1, columns=HEADERS_TOTAIS)
-    df_round_l1 = pd.concat([df_round_l1, pd.DataFrame(l1_3, columns=HEADERS_SIG)], axis=1)
-    df_round_l1["Fighter"] = nome_1
-    df_round_l1["Round"] = range(1, len(df_round_l1) + 1)
-    df_round_l1 = df_round_l1.drop(columns=["Fighter_sig", "Sig. str_sig", "Sig. str. %_sig"])
-
-    df_round_l2 = pd.DataFrame(l2_1, columns=HEADERS_TOTAIS)
-    df_round_l2 = pd.concat([df_round_l2, pd.DataFrame(l2_3, columns=HEADERS_SIG)], axis=1)
-    df_round_l2["Fighter"] = nome_2
-    df_round_l2["Round"] = range(1, len(df_round_l2) + 1)
-    df_round_l2 = df_round_l2.drop(columns=["Fighter_sig", "Sig. str_sig", "Sig. str. %_sig"])
-
-    df_por_round = pd.concat([df_round_l1, df_round_l2], ignore_index=True)
+    colunas_round = [c for c in HEADERS_TOTAIS + HEADERS_SIG if c not in {"Fighter_sig", "Sig. str_sig", "Sig. str. %_sig"}]
+    df_por_round = pd.concat(rounds, ignore_index=True) if rounds else pd.DataFrame(columns=colunas_round + ["Round"])
     df_por_round["Fight_URL"] = url
 
     return df_resumo_luta, df_por_round
 
 
+def extrair_dados_luta(url, driver):
+    """Abre a página da luta e extrai os dados (ver extrair_dados_luta_html)."""
+    driver.get(url)
+    esperar(driver, "div.b-fight-details__person")
+    return extrair_dados_luta_html(driver.page_source, url)
+
+
 def extrair_urls_evento(url_evento, driver):
     """Extrai as URLs de todas as lutas de um evento."""
     driver.get(url_evento)
-    time.sleep(5)
+    esperar(driver, "tr.b-fight-details__table-row")
     html_evento = driver.page_source
     soup_evento = BeautifulSoup(html_evento, "html.parser")
 
@@ -171,7 +201,7 @@ def extrair_lutas_da_pagina_evento(html_evento):
 def extrair_lutas_evento(url_evento, driver):
     """DataFrame com categoria, cinturão e bônus das lutas de um evento (uma linha por luta)."""
     driver.get(url_evento)
-    time.sleep(5)
+    esperar(driver, "tr.b-fight-details__table-row")
     df = pd.DataFrame(extrair_lutas_da_pagina_evento(driver.page_source))
     df.insert(0, "Event_URL", url_evento)
     return df
@@ -233,6 +263,24 @@ def extrair_evento(url_evento, driver):
     return df_evento_resumo, df_evento_round
 
 
+def anexar_csv(df, arquivo):
+    """Acrescenta linhas a um CSV, alinhando as colunas às do cabeçalho que já existe.
+
+    Se o df traz uma coluna nova (ex.: Time_Format, que os CSVs antigos não têm), o arquivo é
+    reescrito uma vez com a coluna a mais (vazia nas linhas antigas); depois volta a ser só append.
+    """
+    if not os.path.exists(arquivo):
+        df.to_csv(arquivo, index=False)
+        return
+    cabecalho = list(pd.read_csv(arquivo, nrows=0).columns)
+    novas = [c for c in df.columns if c not in cabecalho]
+    if novas:
+        antigo = pd.read_csv(arquivo, dtype=str, keep_default_na=False)  # texto como está, sem converter
+        pd.concat([antigo, df], ignore_index=True).to_csv(arquivo, index=False)
+    else:
+        df.reindex(columns=cabecalho).to_csv(arquivo, mode="a", header=False, index=False)
+
+
 def extrair_varios_eventos(eventos, driver, limite=None,
                            arquivo_resumo="../data/raw/eventos_resumo.csv",
                            arquivo_round="../data/raw/eventos_round.csv"):
@@ -247,11 +295,8 @@ def extrair_varios_eventos(eventos, driver, limite=None,
                 df_resumo["Event_Name"] = evento["nome"]
                 df_round["Event_Name"] = evento["nome"]
 
-                escrever_cabecalho_resumo = not os.path.exists(arquivo_resumo)
-                escrever_cabecalho_round = not os.path.exists(arquivo_round)
-
-                df_resumo.to_csv(arquivo_resumo, mode="a", header=escrever_cabecalho_resumo, index=False)
-                df_round.to_csv(arquivo_round, mode="a", header=escrever_cabecalho_round, index=False)
+                anexar_csv(df_resumo, arquivo_resumo)
+                anexar_csv(df_round, arquivo_round)
 
                 print(f"  Salvo com sucesso ({len(df_resumo)} linhas de resumo, {len(df_round)} de round)")
         except Exception as e:

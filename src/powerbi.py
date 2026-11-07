@@ -18,11 +18,12 @@ RAIZ = Path(__file__).resolve().parent.parent
 PASTA_SAIDA = RAIZ / "powerbi" / "dados"
 
 CATEGORIAS_PT = {
-    "Heavyweight": "Pesado", "Light Heavyweight": "Meio-pesado", "Middleweight": "Médio",
+    "Super Heavyweight": "Superpesado", "Heavyweight": "Pesado", "Light Heavyweight": "Meio-pesado", "Middleweight": "Médio",
     "Welterweight": "Meio-médio", "Lightweight": "Leve", "Featherweight": "Pena",
     "Bantamweight": "Galo", "Flyweight": "Mosca", "Women's Featherweight": "Pena (fem.)",
     "Women's Bantamweight": "Galo (fem.)", "Women's Flyweight": "Mosca (fem.)",
     "Women's Strawweight": "Palha (fem.)", "Catch Weight": "Peso casado",
+    "Open Weight": "Peso aberto",
 }
 BASES_PT = {"Orthodox": "Ortodoxo", "Southpaw": "Canhoto", "Switch": "Troca de base"}
 MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"]

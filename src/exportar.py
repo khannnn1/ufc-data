@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.limpeza import tempo_para_segundos
+from src.limpeza import adicionar_duracao
 
 RAIZ = Path(__file__).resolve().parent.parent
 ARQUIVO_RESUMO = RAIZ / "data" / "processed" / "dataset_final_resumo_limpo.csv"
@@ -32,8 +32,7 @@ SOMAS = {
 
 def agregar_lutadores(df):
     """Uma linha por lutador: cartel, vitórias por método e totais das estatísticas no período."""
-    df = tempo_para_segundos(df.copy(), "Time")
-    df["Duracao_seg"] = (df["Final_Round"] - 1) * 300 + df["Time_seconds"]
+    df = adicionar_duracao(df)
 
     vitoria = df["Resultado"] == "W"
     df["ko"] = (vitoria & df["Method"].str.contains("KO/TKO|TKO - Doctor", na=False)).astype(int)
