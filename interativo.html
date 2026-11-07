@@ -51,6 +51,8 @@
   }
   .campo { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
   .campo label { font-size: 0.8rem; color: var(--muted); }
+  .controles.periodo { margin: 14px 0 0; justify-content: center; align-items: center; }
+  .nota-periodo { color: var(--muted); font-size: 0.8rem; margin: 0; max-width: 420px; text-align: left; }
   .campo input, .campo select {
     background: var(--card-bg);
     color: var(--text);
@@ -192,6 +194,13 @@
 <header>
   <h1>UFC <span>Data</span> — explore os dados</h1>
   <p id="resumo-dados">Compare dois lutadores quaisquer ou monte o seu próprio ranking.</p>
+  <div class="controles periodo">
+    <div class="campo">
+      <label for="periodo">Período (vale para a página toda)</label>
+      <select id="periodo"></select>
+    </div>
+    <p class="nota-periodo">As lutas dos primeiros anos tinham outras regras (sem limite de tempo, rounds longos) e muitas não têm estatísticas detalhadas.</p>
+  </div>
   <a class="voltar" href="index.html">← Voltar para os gráficos</a>
 </header>
 
@@ -310,6 +319,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <!-- ?v=N: aumente a cada mudança no JS, para o navegador não usar a versão antiga em cache -->
-<script src="js/interativo.js?v=14"></script>
+<script src="js/interativo.js?v=15"></script>
 </body>
 </html>

@@ -32,6 +32,10 @@ const formatos = {
 // total: soma no período (não média nem taxa); muda o desempate do ranking.
 
 const lutasComResultado = (l) => l.w + l.l + l.d;
+// Lutas antigas podem não ter estatísticas: entram no cartel (n), mas as médias por luta e por
+// minuto usam só as lutas com estatísticas (ne) e a duração delas (de). JSON antigo: n e dur.
+const lutasComEstat = (l) => l.ne ?? l.n;
+const duracaoComEstat = (l) => l.de ?? l.dur;
 
 const METRICAS = {
   vitorias: { rotulo: "Vitórias (total)", valor: (l) => l.w, formato: "inteiro", total: true },
@@ -42,22 +46,22 @@ const METRICAS = {
   ko: { rotulo: "Vitórias por nocaute (total)", valor: (l) => l.ko, formato: "inteiro", total: true },
   subw: { rotulo: "Vitórias por finalização (total)", valor: (l) => l.subw, formato: "inteiro", total: true },
   kd: { rotulo: "Knockdowns (total)", valor: (l) => l.kd, formato: "inteiro", total: true },
-  sig_luta: { rotulo: "Golpes significativos acertados por luta", valor: (l) => l.sl / l.n, formato: "decimal" },
+  sig_luta: { rotulo: "Golpes significativos acertados por luta", valor: (l) => l.sl / lutasComEstat(l), formato: "decimal" },
   volume_min: {
-    rotulo: "Golpes significativos tentados por minuto", valor: (l) => l.sa / (l.dur / 60), formato: "decimal",
-    requisito: (l) => l.dur > 0,
+    rotulo: "Golpes significativos tentados por minuto", valor: (l) => l.sa / (duracaoComEstat(l) / 60), formato: "decimal",
+    requisito: (l) => duracaoComEstat(l) > 0,
   },
   precisao: {
     rotulo: "Precisão de golpes significativos (%)", valor: (l) => (l.sl / l.sa) * 100, formato: "pct",
     requisito: (l) => l.sa >= 50, nota: "Só lutadores com pelo menos 50 golpes significativos tentados.",
   },
-  td_luta: { rotulo: "Quedas por luta", valor: (l) => l.tdl / l.n, formato: "decimal" },
+  td_luta: { rotulo: "Quedas por luta", valor: (l) => l.tdl / lutasComEstat(l), formato: "decimal" },
   precisao_td: {
     rotulo: "Precisão de quedas (%)", valor: (l) => (l.tdl / l.tda) * 100, formato: "pct",
     requisito: (l) => l.tda >= 10, nota: "Só lutadores com pelo menos 10 quedas tentadas.",
   },
-  ctrl_luta: { rotulo: "Tempo de controle por luta", valor: (l) => l.ctrl / l.n / 60, formato: "minutos" },
-  sub_luta: { rotulo: "Tentativas de finalização por luta", valor: (l) => l.sub / l.n, formato: "decimal" },
+  ctrl_luta: { rotulo: "Tempo de controle por luta", valor: (l) => l.ctrl / lutasComEstat(l) / 60, formato: "minutos" },
+  sub_luta: { rotulo: "Tentativas de finalização por luta", valor: (l) => l.sub / lutasComEstat(l), formato: "decimal" },
   chao_pct: {
     rotulo: "Golpes acertados no chão (%)", valor: (l) => (l.ground / l.sl) * 100, formato: "pct",
     requisito: (l) => l.sl >= 100, nota: "Só lutadores com pelo menos 100 golpes significativos acertados.",
@@ -66,7 +70,17 @@ const METRICAS = {
 
 // Painéis do comparador: médias por luta ou percentuais, cada um na sua escala.
 const METRICAS_COMPARADOR = ["sig_luta", "precisao", "volume_min", "td_luta", "precisao_td", "ctrl_luta", "sub_luta", "kd_luta"];
-METRICAS.kd_luta = { rotulo: "Knockdowns por luta", valor: (l) => l.kd / l.n, formato: "decimal" };
+METRICAS.kd_luta = { rotulo: "Knockdowns por luta", valor: (l) => l.kd / lutasComEstat(l), formato: "decimal" };
+
+// Métricas por luta só fazem sentido com ao menos uma luta com estatísticas
+for (const chave of ["sig_luta", "td_luta", "ctrl_luta", "sub_luta", "kd_luta"]) {
+  METRICAS[chave].requisito = (l) => lutasComEstat(l) > 0;
+}
+// Métricas de estatística: o "mín. de lutas" do ranking conta só as lutas com estatísticas
+for (const chave of ["sig_luta", "volume_min", "precisao", "td_luta", "precisao_td", "ctrl_luta", "sub_luta", "chao_pct"]) {
+  METRICAS[chave].estat = true;
+}
+const lutasDaMetrica = (metrica, l) => (metrica.estat ? lutasComEstat(l) : l.n);
 
 // Valor de uma métrica ou null se não der para calcular (ex.: nenhuma queda tentada).
 function calcular(metrica, lutador) {
@@ -161,6 +175,7 @@ function preencherCartao(elemento, l) {
     <div class="cartel">${cartel(l)}</div>
     <div class="detalhe">${l.n} ${l.n === 1 ? "luta" : "lutas"} no período ·
       ${l.ko} por nocaute · ${l.subw} por finalização</div>
+    ${lutasComEstat(l) < l.n ? `<div class="detalhe">Estatísticas de ${lutasComEstat(l)} das ${l.n} lutas (as mais antigas não têm)</div>` : ""}
     <div class="detalhe fisico"></div>`;
   elemento.querySelector(".nome").textContent = l.nome; // nome via textContent: nunca como HTML
   elemento.querySelector(".categoria").textContent = l.cat ? (CATEGORIAS[l.cat] || l.cat) : "";
@@ -194,10 +209,8 @@ function linhasNoPapel(a, b) {
       const [limite, pct, n] = tabela[i];
       const faixa = textoFaixa(limite, i ? tabela[i - 1][0] : 0, "anos");
       const inteiro = Math.round(Math.abs(anos));
-      linhas.push({
-        nome: novo.nome,
-        texto: ` tem ${inteiro} ${inteiro === 1 ? "ano" : "anos"} a menos. Com ${faixa} de diferença, quem é mais novo venceu ${fmt0.format(pct)}% das lutas do período (${fmt0.format(n)} lutas).`,
-      });
+      const historico = n ? ` Com ${faixa} de diferença, quem é mais novo venceu ${fmt0.format(pct)}% das lutas do período (${fmt0.format(n)} lutas).` : "";
+      linhas.push({ nome: novo.nome, texto: ` tem ${inteiro} ${inteiro === 1 ? "ano" : "anos"} a menos.${historico}` });
     }
   }
 
@@ -212,9 +225,10 @@ function linhasNoPapel(a, b) {
       const [limite, pct, n] = tabela[i];
       const anterior = i ? tabela[i - 1][0] : 0;
       const faixa = limite === null ? `mais de ${anterior}"` : anterior ? `${anterior}" a ${limite}"` : `até ${limite}"`;
+      const historico = n ? ` Com ${faixa} de diferença, quem alcança mais venceu ${fmt0.format(pct)}% (${fmt0.format(n)} lutas).` : "";
       linhas.push({
         nome: maior.nome,
-        texto: ` tem ${Math.abs(a.env - b.env)} cm (${fmt0.format(Math.round(Math.abs(polegadas)))}") a mais de envergadura. Com ${faixa} de diferença, quem alcança mais venceu ${fmt0.format(pct)}% (${fmt0.format(n)} lutas).`,
+        texto: ` tem ${Math.abs(a.env - b.env)} cm (${fmt0.format(Math.round(Math.abs(polegadas)))}") a mais de envergadura.${historico}`,
       });
     }
   }
@@ -223,7 +237,7 @@ function linhasNoPapel(a, b) {
       linhas.push({ texto: `Os dois lutam na mesma base (${BASES[a.base] || a.base.toLowerCase()}).` });
     } else {
       const confronto = vantagens.bases.find(([x, y]) => (x === a.base && y === b.base) || (x === b.base && y === a.base));
-      if (confronto) {
+      if (confronto && confronto[3] > 0) {
         // Conta sempre pelo lado do 1º lutador do comparador
         const [x, , vitoriasX, n] = confronto;
         const vitorias = x === a.base ? vitoriasX : n - vitoriasX;
@@ -370,7 +384,7 @@ function desenharRanking() {
   };
 
   const elegiveis = lutadores
-    .filter((l) => l.n >= minLutas && (!categoria || l.cat === categoria) && (!base || l.base === base) && naFaixa(l))
+    .filter((l) => lutasDaMetrica(metrica, l) >= minLutas && (!categoria || l.cat === categoria) && (!base || l.base === base) && naFaixa(l))
     .filter((l) => !metrica.requisito || metrica.requisito(l))
     .map((l) => ({ l, v: calcular(metrica, l) }))
     .filter((x) => x.v !== null);
@@ -681,8 +695,8 @@ const MIN_LUTAS_DISPERSAO = 4;
 let baseDispersao = { pontos: [], medianaX: 0, medianaY: 0 };
 
 function pontoDe(l) {
-  if (!l || !l.sa || !l.dur) return null;
-  return { x: l.sa / (l.dur / 60), y: (l.sl / l.sa) * 100, l };
+  if (!l || !l.sa || !duracaoComEstat(l)) return null;
+  return { x: l.sa / (duracaoComEstat(l) / 60), y: (l.sl / l.sa) * 100, l };
 }
 
 function mediana(valores) {
@@ -692,7 +706,7 @@ function mediana(valores) {
 }
 
 function prepararDispersao() {
-  const pontos = lutadores.filter((l) => l.n >= MIN_LUTAS_DISPERSAO).map(pontoDe).filter(Boolean);
+  const pontos = lutadores.filter((l) => lutasComEstat(l) >= MIN_LUTAS_DISPERSAO).map(pontoDe).filter(Boolean);
   baseDispersao = {
     pontos,
     medianaX: mediana(pontos.map((p) => p.x)),
@@ -779,7 +793,7 @@ function desenharDispersao() {
   }
 
   // Quem está destacado mas fica fora do recorte (menos de 4 lutas) ainda aparece, com aviso
-  const poucasLutas = destacados.filter(([l]) => l.n < MIN_LUTAS_DISPERSAO).map(([l]) => `${l.nome} (${l.n} ${l.n === 1 ? "luta" : "lutas"})`);
+  const poucasLutas = destacados.filter(([l]) => lutasComEstat(l) < MIN_LUTAS_DISPERSAO).map(([l]) => `${l.nome} (${l.n} ${l.n === 1 ? "luta" : "lutas"})`);
   document.getElementById("nota-dispersao").textContent =
     `Linhas tracejadas = medianas (${fmt1.format(baseDispersao.medianaX)} golpes tentados por minuto, ${fmt0.format(baseDispersao.medianaY)}% de precisão).`
     + (poucasLutas.length ? ` Destacado com amostra pequena: ${poucasLutas.join(" e ")}.` : "");
@@ -826,7 +840,17 @@ function desenharDispersao() {
 // O estado da página fica na URL (?a=...&b=...&m=...&min=...&top=...&cat=...&base=...&idade=...): quem abre o link vê a mesma
 // comparação e o mesmo ranking. Valores inválidos na URL são ignorados e ficam os padrões.
 
-const PADROES = { a: "Islam Makhachev", b: "Merab Dvalishvili", m: "taxa_vitoria", min: 4, top: 10, rm: "sig", cat: "", base: "", idade: "" };
+const PADROES = { a: "Islam Makhachev", b: "Merab Dvalishvili", m: "taxa_vitoria", min: 4, top: 10, rm: "sig", cat: "", base: "", idade: "", p: "tudo" };
+// Filtro de período: um JSON por período, gerado por src/exportar.py (PERIODOS, mesmas chaves)
+const PERIODOS = {
+  tudo: { rotulo: "Todo o histórico", arquivo: "dados/lutadores.json" },
+  moderno: { rotulo: "Desde 2001 (regras unificadas)", arquivo: "dados/lutadores_moderno.json" },
+  recente: { rotulo: "Últimos 3 anos", arquivo: "dados/lutadores_recente.json" },
+};
+const periodoDaUrl = () => {
+  const p = new URLSearchParams(location.search).get("p");
+  return p in PERIODOS ? p : PADROES.p;
+};
 const TAMANHOS_TOP = [10, 15, 20];
 let urlPronta = false; // só escreve na URL depois de aplicar o estado inicial
 
@@ -850,6 +874,7 @@ function lerEstadoDaUrl() {
     cat: CATEGORIAS_RANKING.includes(p.get("cat")) ? p.get("cat") : PADROES.cat,
     base: p.get("base") in BASES_RANKING ? p.get("base") : PADROES.base,
     idade: p.get("idade") in FAIXAS_IDADE ? p.get("idade") : PADROES.idade,
+    p: periodoDaUrl(),
   };
 }
 
@@ -868,6 +893,8 @@ function atualizarUrl() {
   p.set("rm", document.getElementById("metrica-round").value);
   const cat = document.getElementById("categoria").value;
   if (cat) p.set("cat", cat);
+  const periodo = document.getElementById("periodo").value;
+  if (periodo && periodo !== PADROES.p) p.set("p", periodo);
   // base e idade, como a categoria, só entram na URL quando filtradas
   for (const id of ["base", "idade"]) {
     const valor = document.getElementById(id).value;
@@ -895,21 +922,24 @@ async function copiarLink(secao, aviso) {
 
 // ---------- Inicialização ----------
 
-async function iniciar() {
-  let dados;
+// Busca o JSON de um período; null (com aviso na página) se não der
+async function carregarDados(periodo) {
   try {
     // no-cache: o navegador sempre confere com o servidor se o JSON mudou (resposta 304 rápida
     // quando não mudou). Sem isso, depois de regenerar o JSON, quem já visitou via o antigo.
-    const resposta = await fetch("dados/lutadores.json", { cache: "no-cache" });
+    const resposta = await fetch(PERIODOS[periodo].arquivo, { cache: "no-cache" });
     if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
-    dados = await resposta.json();
+    return await resposta.json();
   } catch (erro) {
     document.getElementById("resumo-dados").textContent =
       "Não foi possível carregar os dados. Se abriu o arquivo direto do disco, rode um servidor local (python -m http.server).";
     console.error(erro);
-    return;
+    return null;
   }
+}
 
+// Troca a base em uso (lutadores, médias gerais, resumo do topo) pela de um período
+function aplicarDados(dados) {
   lutadores = dados.lutadores;
   vantagens = dados.vantagens || null;
   porNome = new Map(lutadores.map((l) => [l.nome.toLowerCase(), l]));
@@ -925,6 +955,32 @@ async function iniciar() {
 
   nomesOrdenados = lutadores.map((l) => ({ nome: l.nome, chave: normalizar(l.nome) }))
     .sort((x, y) => x.nome.localeCompare(y.nome));
+  prepararDispersao();
+  prepararRounds();
+}
+
+async function trocarPeriodo() {
+  const seletor = document.getElementById("periodo");
+  seletor.disabled = true;
+  const dados = await carregarDados(seletor.value);
+  seletor.disabled = false;
+  if (!dados) return;
+  aplicarDados(dados);
+  desenharComparador();
+  desenharRanking();
+  atualizarUrl();
+}
+
+async function iniciar() {
+  const periodoInicial = periodoDaUrl();
+  const dados = await carregarDados(periodoInicial);
+  if (!dados) return;
+  aplicarDados(dados);
+
+  const seletorPeriodo = document.getElementById("periodo");
+  for (const [chave, periodo] of Object.entries(PERIODOS)) seletorPeriodo.add(new Option(periodo.rotulo, chave));
+  seletorPeriodo.value = periodoInicial;
+  seletorPeriodo.addEventListener("change", trocarPeriodo);
 
   const seletor = document.getElementById("metrica");
   for (const [chave, metrica] of Object.entries(METRICAS)) {
@@ -971,8 +1027,6 @@ async function iniciar() {
 
   ["lutador-a", "lutador-b"].forEach((id) => configurarCampoLutador(document.getElementById(id)));
   ["metrica", "min-lutas", "tamanho", "categoria", "base", "idade"].forEach((id) => document.getElementById(id).addEventListener("change", desenharRanking));
-  prepararDispersao();
-  prepararRounds();
   seletorRound.addEventListener("change", () => { desenharRounds(); atualizarUrl(); });
   document.querySelectorAll("button.copiar").forEach((botao) => {
     botao.addEventListener("click", () => copiarLink(botao.dataset.secao, botao.nextElementSibling));

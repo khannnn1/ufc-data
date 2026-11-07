@@ -118,7 +118,7 @@ Definido em `src/visualizacao.py`:
   `consultar(nome)` (DataFrame)
 
 ## Testes
-`python -m pytest` na raiz (48 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
+`python -m pytest` na raiz (51 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
 tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos CSVs
 limpos; `test_atualizar_historico.py` roda `atualizar(historico=True)` com um navegador falso; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
 e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
@@ -400,6 +400,15 @@ atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
   `lerEstadoDaUrl` (valores inválidos caem em `PADROES`). Botões "Copiar
   link" por seção (âncora `#comparador` / `#ranking`); título da aba mostra
   "A × B". Se entrar um parâmetro novo, atualizar ler/atualizar juntos.
+- **Filtro de período** (`#periodo`, no topo, vale para a página toda): um JSON por período,
+  gerados juntos por `exportar_lutadores` a partir de `PERIODOS` em `src/exportar.py`
+  (tudo → `dados/lutadores.json`; moderno → `lutadores_moderno.json`, desde 2001; recente →
+  `lutadores_recente.json`, últimos 3 anos a partir de hoje). `PERIODOS` no JS tem as mesmas
+  chaves (mudar os dois juntos). `trocarPeriodo` busca o arquivo, `aplicarDados` troca a base e
+  refaz médias gerais; na URL como `p` (só se diferente de tudo).
+  Cada lutador tem também `ne` (lutas com estatísticas) e `de` (duração delas): lutas antigas sem
+  estatísticas contam no cartel (`n`), mas médias por luta/minuto, dispersão e o "mín. de lutas"
+  das métricas com `estat: true` usam `ne`/`de` (`lutasComEstat`, `duracaoComEstat`).
 - **Cache**: o GitHub Pages guarda arquivos por ~10 min. A tag do script em
   `interativo.html` tem `?v=N`: AUMENTAR o N a cada mudança em
   `js/interativo.js`. O JSON é buscado com `cache: "no-cache"` (sempre
