@@ -14,6 +14,30 @@ ARQUIVO_ROUND = RAIZ / "data" / "processed" / "dataset_final_round_limpo.csv"
 ARQUIVO_EVENTOS = RAIZ / "data" / "processed" / "eventos.csv"
 ARQUIVO_LUTADORES = RAIZ / "data" / "processed" / "lutadores.csv"
 ARQUIVO_SAIDA = RAIZ / "dados" / "lutadores.json"
+PASTA_SAIDA = RAIZ / "dados"
+
+# Filtro de período do site: um JSON por período (o site troca de arquivo ao mudar o filtro).
+# Lutas antigas tinham outras regras (sem limite de tempo, rounds longos) e às vezes não têm
+# estatísticas, então médias do histórico todo misturam eras diferentes.
+# inicio = data mínima do evento ('AAAA-MM-DD'), None = sem corte; "anos" = relativo a hoje.
+PERIODOS = {
+    "tudo": {"rotulo": "Todo o histórico", "inicio": None},
+    "moderno": {"rotulo": "Desde 2001 (regras unificadas)", "inicio": "2001-01-01"},
+    "recente": {"rotulo": "Últimos 3 anos", "anos": 3},
+}
+
+
+def arquivo_do_periodo(chave, pasta=PASTA_SAIDA):
+    """dados/lutadores.json para o histórico todo; dados/lutadores_<chave>.json para os demais."""
+    return Path(pasta) / ("lutadores.json" if chave == "tudo" else f"lutadores_{chave}.json")
+
+
+def inicio_do_periodo(periodo, hoje=None):
+    """Data mínima ('AAAA-MM-DD') de um período de PERIODOS, ou None se não há corte."""
+    if periodo.get("anos"):
+        hoje = hoje or date.today()
+        return hoje.replace(year=hoje.year - periodo["anos"]).isoformat()
+    return periodo.get("inicio")
 
 # Totais somados por lutador. Nomes curtos para o JSON ficar pequeno; o navegador calcula
 # médias por luta e percentuais a partir deles.
@@ -40,8 +64,15 @@ def agregar_lutadores(df):
     for resultado in ["W", "L", "D", "NC"]:
         df[resultado] = (df["Resultado"] == resultado).astype(int)
 
+    # Lutas antigas sem estatísticas contam no cartel (n), mas não nas médias por luta/minuto:
+    # ne = lutas com estatísticas, de = duração delas (s)
+    com_estatisticas = df["Sig_str_landed"].notna()
+    df["ne"] = com_estatisticas.astype(int)
+    df["de"] = df["Duracao_seg"].where(com_estatisticas, 0)
+
     colunas = {"n": ("Fight_URL", "nunique"), "w": ("W", "sum"), "l": ("L", "sum"),
-               "d": ("D", "sum"), "nc": ("NC", "sum"), "ko": ("ko", "sum"), "subw": ("subw", "sum")}
+               "d": ("D", "sum"), "nc": ("NC", "sum"), "ko": ("ko", "sum"), "subw": ("subw", "sum"),
+               "ne": ("ne", "sum"), "de": ("de", "sum")}
     colunas.update({curto: (original, "sum") for curto, original in SOMAS.items()})
 
     agregado = df.groupby("Fighter").agg(**colunas).reset_index()
@@ -117,8 +148,10 @@ def historico_vantagens(df, lutadores, datas_eventos):
         dif = dif[dif != 0]
         limites = FAIXAS_VANTAGEM[chave]
         faixas = pd.cut(dif.abs(), [0] + [l if l is not None else 999 for l in limites], labels=False)
-        venceu = (dif > 0).groupby(faixas).agg(["mean", "size"])
-        historico[chave] = [[limite, round(float(venceu.loc[i, "mean"]) * 100, 1), int(venceu.loc[i, "size"])]
+        venceu = (dif > 0).groupby(faixas).agg(["mean", "size"]).reindex(range(len(limites)))
+        # Faixa sem nenhuma luta (recortes pequenos): pct None, 0 lutas
+        historico[chave] = [[limite, None if pd.isna(venceu.loc[i, "mean"]) else round(float(venceu.loc[i, "mean"]) * 100, 1),
+                             0 if pd.isna(venceu.loc[i, "size"]) else int(venceu.loc[i, "size"])]
                             for i, limite in enumerate(limites)]
 
     # Confrontos de bases diferentes (gráfico base_canhoto_vs_ortodoxo.png / SQL confronto_bases):
@@ -135,18 +168,16 @@ def historico_vantagens(df, lutadores, datas_eventos):
     return historico
 
 
-def exportar_lutadores(caminho_csv=ARQUIVO_RESUMO, caminho_round=ARQUIVO_ROUND, caminho_saida=ARQUIVO_SAIDA):
-    """Lê os datasets limpos (resumo e por round) e grava o JSON consumido pela página interativa."""
-    df = pd.read_csv(caminho_csv)
+def montar_json(df, df_round, datas_eventos, lutadores, periodo=None):
+    """Conteúdo do JSON do site para um recorte já filtrado (resumo, por round e datas dos eventos)."""
     agregado = agregar_lutadores(df)
-    rounds = agregar_rounds(pd.read_csv(caminho_round))
-
-    datas_eventos = pd.read_csv(ARQUIVO_EVENTOS)
-    datas = datas_eventos["Event_Date"]
-    lutadores = pd.read_csv(ARQUIVO_LUTADORES)
+    rounds = agregar_rounds(df_round)
+    datas = datas_eventos.loc[datas_eventos["Event_URL"].isin(df["Event_URL"]), "Event_Date"]
     fisico = dados_fisicos(df, lutadores, datas_eventos)
-    saida = {
+    return {
         "gerado_em": date.today().isoformat(),
+        "filtro": periodo,
+        "periodos": {chave: p["rotulo"] for chave, p in PERIODOS.items()},
         "periodo": {"inicio": datas.min(), "fim": datas.max()},
         "eventos": int(df["Event_URL"].nunique()),
         "lutas": int(df["Fight_URL"].nunique()),
@@ -158,13 +189,35 @@ def exportar_lutadores(caminho_csv=ARQUIVO_RESUMO, caminho_round=ARQUIVO_ROUND, 
         ],
     }
 
-    Path(caminho_saida).parent.mkdir(parents=True, exist_ok=True)
-    with open(caminho_saida, "w", encoding="utf-8") as f:
-        json.dump(saida, f, ensure_ascii=False, separators=(",", ":"))
-    return saida
+
+def filtrar_periodo(df, df_round, datas_eventos, inicio):
+    """Só as lutas de eventos a partir de `inicio` (None = tudo), no resumo e no por round."""
+    if inicio is None:
+        return df, df_round
+    eventos = set(datas_eventos.loc[datas_eventos["Event_Date"] >= inicio, "Event_URL"])
+    df = df[df["Event_URL"].isin(eventos)]
+    return df, df_round[df_round["Fight_URL"].isin(set(df["Fight_URL"]))]
+
+
+def exportar_lutadores(caminho_csv=ARQUIVO_RESUMO, caminho_round=ARQUIVO_ROUND, pasta_saida=PASTA_SAIDA):
+    """Lê os datasets limpos e grava um JSON por período de PERIODOS (o do histórico todo é lutadores.json)."""
+    df = pd.read_csv(caminho_csv, low_memory=False)
+    df_round = pd.read_csv(caminho_round, low_memory=False)
+    datas_eventos = pd.read_csv(ARQUIVO_EVENTOS)
+    lutadores = pd.read_csv(ARQUIVO_LUTADORES)
+
+    Path(pasta_saida).mkdir(parents=True, exist_ok=True)
+    saidas = {}
+    for chave, periodo in PERIODOS.items():
+        recorte, recorte_round = filtrar_periodo(df, df_round, datas_eventos, inicio_do_periodo(periodo))
+        saida = montar_json(recorte, recorte_round, datas_eventos, lutadores, chave)
+        with open(arquivo_do_periodo(chave, pasta_saida), "w", encoding="utf-8") as f:
+            json.dump(saida, f, ensure_ascii=False, separators=(",", ":"))
+        saidas[chave] = saida
+    return saidas
 
 
 if __name__ == "__main__":
-    resultado = exportar_lutadores()
-    print(f"{len(resultado['lutadores'])} lutadores, {resultado['lutas']} lutas, "
-          f"{resultado['eventos']} eventos -> {ARQUIVO_SAIDA}")
+    for chave, resultado in exportar_lutadores().items():
+        print(f"{PERIODOS[chave]['rotulo']}: {len(resultado['lutadores'])} lutadores, {resultado['lutas']} lutas, "
+              f"{resultado['eventos']} eventos -> {arquivo_do_periodo(chave)}")

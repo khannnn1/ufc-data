@@ -3,7 +3,7 @@
 Uso (na raiz do projeto, com o venv):
     python -m src.atualizar              # coleta eventos novos, limpa, gera JSON do site e banco SQL
     python -m src.atualizar --graficos   # idem + roda os notebooks 02 e 03 (PNGs e SQL)
-    python -m src.atualizar --historico  # coleta TODOS os eventos que faltam, desde o UFC 1 (horas)
+    python -m src.atualizar --historico  # coleta TODOS os eventos que faltam, até os primeiros UFCs (horas)
     python -m src.atualizar --historico --limite 5   # só 5 eventos que faltam (para testar)
 
 Sem --historico, só entram eventos MAIS NOVOS que o último da base. Com --historico entram também
@@ -22,6 +22,7 @@ from datetime import date
 from pathlib import Path
 
 import pandas as pd
+from selenium.common.exceptions import TimeoutException
 
 from src.limpeza import limpar_dataset, limpar_lutadores
 from src.scraper import (anexar_csv, criar_driver, esperar, extrair_dados_luta, extrair_eventos_da_pagina,
@@ -52,13 +53,22 @@ def listar_eventos(driver, urls_base, datas_conhecidas, max_paginas=10):
 
     Para quando: já apareceu algum evento da base (logo, os novos ficaram para trás) E todos os
     eventos da base ainda sem data foram vistos.
+
+    Espera a tabela aparecer (a 1ª página da sessão passa pelo anti-bot, que às vezes leva mais
+    que alguns segundos). Se nenhum evento da base aparecer, a listagem não carregou direito:
+    falha em vez de concluir, em silêncio, que não há eventos novos.
     """
     faltam_datas = set(urls_base) - set(datas_conhecidas)
     vistos, eventos = set(), []
     for pagina in range(1, max_paginas + 1):
         print(f"Lendo a página {pagina} da listagem de eventos...")
         driver.get(URL_LISTAGEM.format(pagina))
-        time.sleep(5)
+        try:
+            esperar(driver, SELETOR_LISTAGEM, espera_max=60)
+        except TimeoutException:
+            if pagina == 1:
+                raise RuntimeError("A listagem de eventos não carregou (anti-bot?); rode de novo.")
+            break  # passou da última página
         da_pagina = extrair_eventos_da_pagina(driver.page_source)
         if not da_pagina:
             break
@@ -67,11 +77,14 @@ def listar_eventos(driver, urls_base, datas_conhecidas, max_paginas=10):
         if vistos & set(urls_base) and faltam_datas <= vistos:
             break
         time.sleep(2)
+    if urls_base and not vistos & set(urls_base):
+        raise RuntimeError(f"Nenhum evento da base apareceu em {max_paginas} páginas da listagem; "
+                           "ela não carregou direito ou max_paginas é pequeno.")
     return eventos
 
 
 def listar_todos_eventos(driver):
-    """Todos os eventos já realizados, numa página só (?page=all), do mais recente ao UFC 1."""
+    """Todos os eventos já realizados, numa página só (?page=all), do mais recente ao mais antigo da listagem."""
     print("Lendo a listagem completa de eventos...")
     driver.get(URL_LISTAGEM.format("all"))
     esperar(driver, SELETOR_LISTAGEM, espera_max=60)

@@ -39,3 +39,47 @@ def test_historico_vantagens_uma_luta_por_faixa():
     assert historico["env"] == [[1, 100.0, 1], [2, 0.0, 1], [3, 100.0, 1], [None, 0.0, 1]]
     # [base_a, base_b, vitórias de base_a, lutas]
     assert historico["bases"] == [["Southpaw", "Orthodox", 1, 2], ["Switch", "Orthodox", 1, 1], ["Switch", "Southpaw", 0, 1]]
+
+
+def test_lutas_sem_estatisticas_contam_no_cartel_mas_nao_nas_medias(resumo):
+    import numpy as np
+    resumo = resumo.copy()
+    sem = resumo["Fight_URL"] == "F1"  # como uma luta antiga sem estatísticas
+    resumo.loc[sem, ["Sig_str_landed", "Sig_str_attempted"]] = np.nan
+    a = agregar_lutadores(resumo).set_index("nome").loc["A"]
+    assert (a["n"], a["ne"]) == (2, 1)
+    assert a["de"] == 360 and a["dur"] == 510  # F3 (2º round, 1:00) só; F1 durou 2:30
+
+
+def test_exportar_um_json_por_periodo(resumo, por_round, datas_eventos, lutadores, tmp_path, monkeypatch):
+    import json
+
+    import src.exportar as exportar
+    resumo.to_csv(tmp_path / "resumo.csv", index=False)
+    por_round.to_csv(tmp_path / "round.csv", index=False)
+    datas_eventos.to_csv(tmp_path / "eventos.csv", index=False)
+    lutadores.to_csv(tmp_path / "lutadores.csv", index=False)
+    monkeypatch.setattr(exportar, "ARQUIVO_EVENTOS", tmp_path / "eventos.csv")
+    monkeypatch.setattr(exportar, "ARQUIVO_LUTADORES", tmp_path / "lutadores.csv")
+    # E1 em 2024-03-01, E2 em 2024-02-01: um corte em 2024-02-15 deixa só E1 (F1 e F2)
+    monkeypatch.setattr(exportar, "PERIODOS", {"tudo": {"rotulo": "Tudo", "inicio": None},
+                                               "corte": {"rotulo": "Corte", "inicio": "2024-02-15"}})
+    exportar.exportar_lutadores(tmp_path / "resumo.csv", tmp_path / "round.csv", tmp_path)
+
+    tudo = json.loads((tmp_path / "lutadores.json").read_text(encoding="utf-8"))
+    corte = json.loads((tmp_path / "lutadores_corte.json").read_text(encoding="utf-8"))
+    assert (tudo["lutas"], corte["lutas"]) == (3, 2)
+    assert corte["periodo"] == {"inicio": "2024-03-01", "fim": "2024-03-01"}
+    assert corte["filtro"] == "corte" and corte["periodos"] == {"tudo": "Tudo", "corte": "Corte"}
+    a = {l["nome"]: l for l in corte["lutadores"]}["A"]
+    assert (a["n"], a["w"]) == (1, 1)
+    assert len(a["r"]) == 1  # rounds só das lutas do recorte
+
+
+def test_inicio_do_periodo_relativo_a_hoje():
+    from datetime import date
+
+    from src.exportar import inicio_do_periodo
+    assert inicio_do_periodo({"anos": 3}, hoje=date(2026, 11, 7)) == "2023-11-07"
+    assert inicio_do_periodo({"inicio": "2001-01-01"}) == "2001-01-01"
+    assert inicio_do_periodo({"inicio": None}) is None

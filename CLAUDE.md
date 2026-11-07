@@ -118,7 +118,7 @@ Definido em `src/visualizacao.py`:
   `consultar(nome)` (DataFrame)
 
 ## Testes
-`python -m pytest` na raiz (46 testes, ~1 s, sem rede e sem data/). `tests/conftest.py`
+`python -m pytest` na raiz (52 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
 tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos CSVs
 limpos; `test_atualizar_historico.py` roda `atualizar(historico=True)` com um navegador falso; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
 e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
@@ -149,7 +149,7 @@ reversoes, controle_seg, cabeca/corpo/perna, distancia/clinch/chao) →
 `desempenho_round` (mesmas estatísticas + round, sem resultado).
 `eventos.data` ('AAAA-MM-DD', vinda de `data/processed/eventos.csv`) é a
 referência de tempo: ordenar lutas por `e.data`. `evento_id` é atribuído em
-ordem de data decrescente (1 = mais recente, UFC 331; 149 = UFC 287).
+ordem de data decrescente (1 = mais recente; 795 = UFC 2, 1994-03-11).
 Consultas novas vão em `sql/consultas.sql` com `-- nome: x` na linha acima.
 O `03_sql.ipynb` confere com Pandas (assert) cada gráfico refeito em SQL, inclusive
 `confronto_bases` (self-join vencedor × perdedor + `lutadores`), `disputas_titulo`,
@@ -172,14 +172,20 @@ from src.config import COLUNAS_OF, COLUNAS_PCT
 ## Dados
 Escopo: até out/2026 a base era um recorte de 149 eventos recentes (UFC 287,
 2023-04-08, a UFC 331, 2026-09-19). Em 2026-11-07 decidimos ampliar para o
-HISTÓRICO COMPLETO (desde o UFC 1, 1993) com `python -m src.atualizar --historico`.
+HISTÓRICO COMPLETO com `python -m src.atualizar --historico`.
+O UFC 1 (12/11/1993) NÃO aparece na listagem do ufcstats (`?page=all`, 795 eventos em
+2026-11): a base começa no UFC 2 (1994-03-11).
 Apresentação decidida: gráficos e textos cobrem o histórico todo e o site ganha
 um filtro de período (ex.: só a era moderna) no comparador e nos rankings —
 lutas antigas têm outras regras (sem limite de tempo, rounds de 10+ min) e às
 vezes não têm estatísticas, então médias sem recorte distorcem.
 Lutas antigas no ufcstats: algumas sem tabelas por round (só 2 tabelas na
 página) ou sem nenhuma estatística (0 tabelas): entram com o resultado e as
-estatísticas vazias (NaN), sem linhas no dataset por round. Categoria "Open
+estatísticas vazias (NaN), sem linhas no dataset por round. São 21 lutas (1994-1998);
+no SQLite as estatísticas de `desempenho` aceitam NULL (= não medido, não 0).
+Base completa (2026-11-07): 795 eventos (UFC 2, 1994-03-11, a 2026-10-31), 8.974 lutas,
+2.776 lutadores; resumo 17.948 linhas, por round 42.122. Faltam envergadura em 658 lutadores,
+nascimento em 104, altura em 24, base em 80; bases raras Open Stance (6) e Sideways (3). Categoria "Open
 Weight" (peso aberto, torneios) e "Super Heavyweight" existem só nos antigos.
 `Time_Format` ("3 Rnd (5-5-5)", "1 Rnd + OT (15-3)", "No Time Limit") vai no
 resumo bruto/limpo; a duração da luta sai de `adicionar_duracao` (limpeza.py),
@@ -214,13 +220,13 @@ Homônimos: ano de nascimento; se não basta (mesmo ano ou sem nascimento),
 "Nome (ano, xxxx)" com os 4 primeiros caracteres do código do link.
 
 Datasets finais processados:
-- `data/processed/dataset_final_resumo_limpo.csv` — (3674, 38), uma linha
+- `data/processed/dataset_final_resumo_limpo.csv` — 17.948 linhas, uma
   por lutador-luta
-- `data/processed/dataset_final_round_limpo.csv` — (8910, 20), uma linha
+- `data/processed/dataset_final_round_limpo.csv` — 42.122 linhas, uma
   por lutador-luta-round
-- `data/processed/lutadores.csv` — (964, 6): `Fighter_URL`, `Name`,
-  `Height_cm`, `Reach_cm`, `Stance` (Orthodox 709, Southpaw 160, Switch 92,
-  3 vazios), `DOB` ('AAAA-MM-DD'); altura/envergadura/nascimento completos
+- `data/processed/lutadores.csv` — (2776, 6): `Fighter_URL`, `Name`,
+  `Height_cm`, `Reach_cm`, `Stance`, `DOB` ('AAAA-MM-DD'); faltam envergadura
+  em 658, nascimento em 104, altura em 24 e base em 80 (lutadores antigos)
 
 Colunas principais do dataset resumo (ATENÇÃO aos nomes exatos, em inglês,
 sem acento): `Fighter`, `KD`, `Sig. str. %`, `Td %`, `Sub. att`, `Rev.`,
@@ -229,11 +235,11 @@ sem acento): `Fighter`, `KD`, `Sig. str. %`, `Td %`, `Sub. att`, `Rev.`,
 `Event_Name`, e pares `_landed`/`_attempted` para Sig_str, Total_str, Td,
 Head, Body, Leg, Distance, Clinch, Ground, além de `Ctrl_seconds`.
 Dados da luta vindos da página do evento: `Weight_Class` (ex: "Lightweight",
-"Women's Strawweight", "Catch Weight" = peso casado, 28 lutas; "Women's
-Featherweight" só tem 4), `Title_Bout`, `Fight_Bonus`, `Perf_Bonus` (0/1;
-76 disputas de cinturão, 101 Lutas da Noite, 408 Performances no período).
-`Fighter_URL` é o identificador único do lutador: 964 pessoas para 963
-nomes. Homônimos ganham o ano de nascimento no `Fighter` dos processados
+"Women's Strawweight", "Catch Weight" = peso casado; "Open Weight" = peso aberto, 117 lutas
+nos torneios antigos; "Super Heavyweight" só 1), `Title_Bout`, `Fight_Bonus`, `Perf_Bonus` (0/1;
+503 disputas de cinturão e 612 Lutas da Noite no histórico).
+`Fighter_URL` é o identificador único do lutador: uma por pessoa, mesmo
+com nomes repetidos. Homônimos ganham o ano de nascimento no `Fighter` dos processados
 (resumo e por round), via `desambiguar_homonimos` no `src.atualizar`:
 "Bruno Silva (1989)" (médio) e "Bruno Silva (1990)" (mosca). Assim tudo
 que agrupa por nome (gráficos, JSON do site, SQL) os separa; `Name` em
@@ -272,7 +278,7 @@ str. %, Td %) indicam zero tentativas, tratados como NaN (não 0%).
     (escalas diferentes), com a razão "N× mais" no título de cada painel;
     exclui empates (D) e NC
 11. `volume_vs_precisao.png` — dispersão: golpes sig. TENTADOS por minuto
-    de luta (duração = (Final_Round-1)*300 + Time em segundos) × precisão,
+    de luta (duração por `adicionar_duracao`, pelo formato de tempo) × precisão,
     lutadores com >= 4 lutas, medianas tracejadas como quadrantes, extremos
     rotulados em vermelho. Único gráfico com eixos numéricos visíveis
 12. `top10_taxa_vitoria.png` — top 10 por taxa de vitória, W / (W+L+D), NC
@@ -287,42 +293,42 @@ str. %, Td %) indicam zero tentativas, tratados como NaN (não 0%).
     em cada alvo (mín. 150 golpes sig. acertados no período)
 15. `origem_dos_golpes.png` — mesmo formato do 14, para distância/clinch/
     chão; resumo no topo com todos, vencedores (W) e perdedores (L) —
-    vencedores acertam 13% no chão vs 3,5% dos perdedores
+    vencedores acertam 18% no chão vs 6% dos perdedores
 16. `top10_precisao_quedas.png` — Td_landed / Td_attempted, mín. 15
     tentativas E 3 lutas (sem o 2º filtro entra quem tentou muito numa luta
-    só); "X de Y" na ponta da barra; linha tracejada na média geral (36%)
+    só); "X de Y" na ponta da barra; linha tracejada na média geral (37%)
 17. `arbitros_finalizacoes.png` — 10 árbitros com mais lutas, % das lutas
     encerradas antes da decisão (KO/TKO, TKO médico, submission), uma linha
     por luta; aviso no rodapé: reflete as lutas recebidas, não o árbitro
 18. `finalizacoes_por_categoria.png` — barras empilhadas por categoria de
     peso: % de lutas encerradas por nocaute (azul, inclui TKO médico) e por
     finalização (vermelho), uma linha por luta, total na ponta, média geral
-    tracejada (50%); fora peso casado e categorias com < 20 lutas (pena
-    feminino). Meio-pesado lidera (68%), pesado só 53%, mosca fem. 31%
+    tracejada; fora peso casado, peso aberto (Open Weight, torneios antigos)
+    e categorias com < 20 lutas (mesmo filtro na consulta SQL). Pesado lidera (66%), meio-pesado 62%, palha fem. só 34%
 19. `idade_vs_envergadura.png` — 2 painéis de barras verticais: % de
     vitória de quem é mais novo (vermelho) por faixa de diferença de idade
     (até 2 / 2–5 / 5–8 / 8+ anos) e de quem tem mais envergadura (azul) por
     diferença em polegadas (1/2/3/4+), lutas com vencedor, junção por
     `Fighter_URL` com `data/processed/lutadores.csv`; idade na data do
-    evento; envergadura igual fica de fora. Mais novo vence 60% (73% com 8+
-    anos), envergadura 51% (55% com 4"+); tracejado em 50%
+    evento; envergadura igual fica de fora. Mais novo vence 57% (67% com 8+
+    anos), envergadura 52% (55% com 4"+); tracejado em 50%
 20. `base_canhoto_vs_ortodoxo.png` — barras verticais por confronto de bases
     diferentes (canhoto × ortodoxo, troca de base × ortodoxo, troca de base
     × canhoto), % de vitórias do 1º lado com intervalo de 95% (Wilson),
-    lutas com vencedor, base via `Fighter_URL`. Canhoto 53% (245 de 465,
-    IC 48–57%, não descarta o acaso), switch × ortodoxo 52%, switch ×
-    canhoto 62% em só 55 lutas; tracejado em 50%
+    lutas com vencedor, base via `Fighter_URL`. Canhoto 53% (1.317 de 2.470,
+    IC 51–55%: no recorte 2023–26, com 465 lutas, o IC incluía 50%), switch ×
+    ortodoxo 52% (IC 48–56%), switch × canhoto 54% em 197 lutas; tracejado em 50%
 21. `disputas_de_cinturao.png` — painéis (formato do 10) disputa de
     cinturão (amarelo) × demais lutas (azul), uma linha por luta: duração
-    média 16,8 × 10,7 min, golpes sig. por minuto por lutador 4,0 × 4,0,
-    KD a cada 15 min 0,21 × 0,31 (só 36 KDs), Luta da Noite 18% × 5%
-    (3,7×), Performance 32% × 22%; rodapé: disputa fecha o card
+    média 14,7 × 10,3 min, golpes sig. por minuto por lutador 3,3 × 3,5,
+    KD a cada 15 min 0,26 × 0,31, Luta da Noite 15% × 6%
+    (2,4×), Performance 29% × 19% (503 disputas); rodapé: disputa fecha o card
 22. `luta_da_noite.png` — mesmos painéis, Luta da Noite (vermelho) × demais
-    (azul), uma linha por luta: golpes sig./min por lutador 5,8 × 3,8, lutas
-    com KD 50% × 37%, "ida e volta" (perdedor também derrubou) 12% × 4%,
-    equilibradas (perdedor com 40%+ dos golpes) 61% × 49%, tempo com alguém
-    no controle 27% × 38%, decisão 65% × 48% (só 3% no 1º round × 27%;
-    98% das Performances da Noite vão para finalizações)
+    (azul), uma linha por luta: golpes sig./min por lutador 4,8 × 3,4, lutas
+    com KD 47% × 35%, "ida e volta" (perdedor também derrubou) 17% × 5%,
+    equilibradas (perdedor com 40%+ dos golpes) 59% × 46%, tempo com alguém
+    no controle 31% × 42%, decisão 58% × 45% (612 Lutas da Noite; a
+    finalização rápida leva a Performance da Noite)
 
 ## Workflow de Git
 Usamos Git Flow: `main` (estável) + `develop` (integração) + `feature/*`
@@ -400,6 +406,15 @@ atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
   `lerEstadoDaUrl` (valores inválidos caem em `PADROES`). Botões "Copiar
   link" por seção (âncora `#comparador` / `#ranking`); título da aba mostra
   "A × B". Se entrar um parâmetro novo, atualizar ler/atualizar juntos.
+- **Filtro de período** (`#periodo`, no topo, vale para a página toda): um JSON por período,
+  gerados juntos por `exportar_lutadores` a partir de `PERIODOS` em `src/exportar.py`
+  (tudo → `dados/lutadores.json`; moderno → `lutadores_moderno.json`, desde 2001; recente →
+  `lutadores_recente.json`, últimos 3 anos a partir de hoje). `PERIODOS` no JS tem as mesmas
+  chaves (mudar os dois juntos). `trocarPeriodo` busca o arquivo, `aplicarDados` troca a base e
+  refaz médias gerais; na URL como `p` (só se diferente de tudo).
+  Cada lutador tem também `ne` (lutas com estatísticas) e `de` (duração delas): lutas antigas sem
+  estatísticas contam no cartel (`n`), mas médias por luta/minuto, dispersão e o "mín. de lutas"
+  das métricas com `estat: true` usam `ne`/`de` (`lutasComEstat`, `duracaoComEstat`).
 - **Cache**: o GitHub Pages guarda arquivos por ~10 min. A tag do script em
   `interativo.html` tem `?v=N`: AUMENTAR o N a cada mudança em
   `js/interativo.js`. O JSON é buscado com `cache: "no-cache"` (sempre

@@ -103,3 +103,26 @@ def test_historico_coleta_antigos_novos_e_retoma_lutas_que_falharam(tmp_path, se
     # Rodar de novo não coleta nada (retomável e idempotente)
     assert atualizar(tmp_path, exportar_site=False, driver=navegador, historico=True) == []
     assert len(pd.read_csv(arq["resumo"])) == len(resumo)
+
+
+def test_listagem_vazia_falha_em_vez_de_dizer_que_nao_ha_eventos(tmp_path, sem_espera):
+    arq = caminhos(tmp_path)
+    (tmp_path / "raw").mkdir()
+    (tmp_path / "processed").mkdir()
+    navegador = NavegadorFalso()
+    extrair_varios_eventos([{"nome": "UFC Base", "url": "E2"}], navegador,
+                           arquivo_resumo=arq["bruto_resumo"], arquivo_round=arq["bruto_round"])
+    navegador.paginas[LISTAGEM.format(1)] = "<p>verificando que você não é um robô...</p>"
+    with pytest.raises(RuntimeError, match="não carregou"):
+        atualizar(tmp_path, exportar_site=False, driver=navegador)
+
+
+def test_modo_normal_traz_so_os_eventos_novos(tmp_path, sem_espera):
+    arq = caminhos(tmp_path)
+    (tmp_path / "raw").mkdir()
+    (tmp_path / "processed").mkdir()
+    navegador = NavegadorFalso()
+    extrair_varios_eventos([{"nome": "UFC Base", "url": "E2"}], navegador,
+                           arquivo_resumo=arq["bruto_resumo"], arquivo_round=arq["bruto_round"])
+    novos = atualizar(tmp_path, exportar_site=False, driver=navegador)
+    assert [e["url"] for e in novos] == ["E3"]

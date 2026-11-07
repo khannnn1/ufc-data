@@ -225,3 +225,5 @@ data/*.db
 
 # Arquivo temporário do Code Runner (evitar reincidência do erro anterior)
 tempCodeRunnerFile.ipynb
+# Backups locais da base (cópias de data/)
+data_backup_*/
