@@ -83,3 +83,33 @@ def test_inicio_do_periodo_relativo_a_hoje():
     assert inicio_do_periodo({"anos": 3}, hoje=date(2026, 11, 7)) == "2023-11-07"
     assert inicio_do_periodo({"inicio": "2001-01-01"}) == "2001-01-01"
     assert inicio_do_periodo({"inicio": None}) is None
+
+
+def test_periodo_de_atividade_usa_ano_da_primeira_e_da_ultima_luta(resumo, datas_eventos):
+    from src.exportar import periodo_de_atividade
+    datas = datas_eventos.assign(Event_Date=["2024-03-01", "2019-02-01"])  # E2 (F3) vira 2019
+    anos = periodo_de_atividade(resumo, datas)
+    assert anos["A"] == [2019, 2024] and anos["C"] == [2019, 2024]
+    assert anos["B"] == [2024, 2024]
+
+
+def test_json_traz_anos_da_carreira_e_foto(resumo, por_round, datas_eventos, lutadores, tmp_path, monkeypatch):
+    import json
+
+    import src.exportar as exportar
+    resumo.to_csv(tmp_path / "resumo.csv", index=False)
+    por_round.to_csv(tmp_path / "round.csv", index=False)
+    datas_eventos.to_csv(tmp_path / "eventos.csv", index=False)
+    lutadores.to_csv(tmp_path / "lutadores.csv", index=False)
+    pd.DataFrame({"Fighter_URL": ["url/A"], "Photo_URL": ["https://exemplo/a.png"]}).to_csv(tmp_path / "fotos.csv", index=False)
+    monkeypatch.setattr(exportar, "ARQUIVO_EVENTOS", tmp_path / "eventos.csv")
+    monkeypatch.setattr(exportar, "ARQUIVO_LUTADORES", tmp_path / "lutadores.csv")
+    monkeypatch.setattr(exportar, "ARQUIVO_FOTOS", tmp_path / "fotos.csv")
+    monkeypatch.setattr(exportar, "PERIODOS", {"tudo": {"rotulo": "Tudo", "inicio": None},
+                                               "corte": {"rotulo": "Corte", "inicio": "2024-02-15"}})
+    exportar.exportar_lutadores(tmp_path / "resumo.csv", tmp_path / "round.csv", tmp_path)
+
+    corte = {l["nome"]: l for l in json.loads((tmp_path / "lutadores_corte.json").read_text(encoding="utf-8"))["lutadores"]}
+    # Os anos são da carreira inteira, mesmo no recorte (que só tem E1, de 2024-03)
+    assert corte["A"]["anos"] == [2024, 2024] and corte["A"]["foto"] == "https://exemplo/a.png"
+    assert "foto" not in corte["B"]

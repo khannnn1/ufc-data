@@ -164,21 +164,68 @@ function linhaFisico(l) {
   return partes.join(" · ");
 }
 
+// Anos de UFC: "2019–2022", ou só "2024" se todas as lutas foram no mesmo ano (carreira inteira,
+// não muda com o filtro de período)
+function anosDeUfc(l) {
+  if (!l.anos) return "";
+  const [inicio, fim] = l.anos;
+  return inicio === fim ? String(inicio) : `${inicio}–${fim}`;
+}
+
+function iniciais(nome) {
+  const partes = nome.replace(/\(.*\)/, "").trim().split(/\s+/);
+  return ((partes[0] || "")[0] + (partes.length > 1 ? partes[partes.length - 1][0] : "")).toUpperCase();
+}
+
+// Foto redonda do lutador; sem foto (ou se a imagem não carregar), as iniciais num círculo
+function avatar(l, classe = "") {
+  const caixa = document.createElement("div");
+  caixa.className = `avatar ${classe}`.trim();
+  caixa.setAttribute("aria-hidden", "true");
+  caixa.textContent = iniciais(l.nome);
+  if (l.foto) {
+    const img = document.createElement("img");
+    img.src = l.foto;
+    img.alt = "";
+    img.loading = "lazy";
+    img.referrerPolicy = "no-referrer";
+    img.addEventListener("error", () => img.remove());
+    caixa.appendChild(img);
+  }
+  return caixa;
+}
+
+// Nome em destaque e, embaixo, categoria e anos de UFC
+function identificacao(l) {
+  const bloco = document.createElement("div");
+  bloco.className = "identificacao";
+  const nome = document.createElement("span");
+  nome.className = "nome-lutador";
+  nome.textContent = l.nome; // nome via textContent: nunca como HTML
+  const sub = document.createElement("span");
+  sub.className = "sub-lutador";
+  sub.textContent = [l.cat ? (CATEGORIAS[l.cat] || l.cat) : "", anosDeUfc(l)].filter(Boolean).join(" · ");
+  bloco.append(nome, sub);
+  return bloco;
+}
+
 function preencherCartao(elemento, l) {
   if (!l) {
     elemento.innerHTML = '<div class="detalhe">Escolha um lutador</div>';
     return;
   }
   elemento.innerHTML = `
-    <div class="nome"></div>
-    <div class="categoria"></div>
+    <div class="topo-cartao"><div><div class="nome"></div>
+    <div class="categoria"></div></div></div>
     <div class="cartel">${cartel(l)}</div>
     <div class="detalhe">${l.n} ${l.n === 1 ? "luta" : "lutas"} no período ·
       ${l.ko} por nocaute · ${l.subw} por finalização</div>
     ${lutasComEstat(l) < l.n ? `<div class="detalhe">Estatísticas de ${lutasComEstat(l)} das ${l.n} lutas (as mais antigas não têm)</div>` : ""}
     <div class="detalhe fisico"></div>`;
   elemento.querySelector(".nome").textContent = l.nome; // nome via textContent: nunca como HTML
-  elemento.querySelector(".categoria").textContent = l.cat ? (CATEGORIAS[l.cat] || l.cat) : "";
+  elemento.querySelector(".categoria").textContent =
+    [l.cat ? (CATEGORIAS[l.cat] || l.cat) : "", l.anos ? `UFC ${anosDeUfc(l)}` : ""].filter(Boolean).join(" · ");
+  elemento.querySelector(".topo-cartao").prepend(avatar(l, "grande"));
   elemento.querySelector(".fisico").textContent = linhaFisico(l);
 }
 
@@ -403,69 +450,42 @@ function desenharRanking() {
     + (metrica.nota ? " " + metrica.nota : "");
   document.getElementById("nota-ranking").textContent = nota;
 
-  document.getElementById("area-ranking").style.height = `${Math.max(top.length, 1) * 32 + 40}px`;
-  const canvas = document.getElementById("canvas-ranking");
-  canvas.setAttribute("aria-label", `Ranking: ${metrica.rotulo}. ` + top.map((x, i) => `${i + 1}º ${x.l.nome}, ${formatos[metrica.formato](x.v)}`).join("; "));
-
-  if (graficos.ranking) graficos.ranking.destroy();
-  const maximo = top.length ? top[0].v : 1;
-  graficos.ranking = new Chart(canvas, {
-    type: "bar",
-    data: {
-      labels: top.map((x) => x.l.nome),
-      datasets: [{ data: top.map((x) => x.v), backgroundColor: CORES.vermelho, borderRadius: 4, barPercentage: 0.8 }],
-    },
-    options: {
-      indexAxis: "y",
-      maintainAspectRatio: false,
-      layout: { padding: { right: 110 } },
-      scales: {
-        x: { display: false, min: 0, max: maximo > 0 ? maximo * 1.02 : 1 },
-        y: { grid: { display: false }, ticks: { color: CORES.texto, autoSkip: false } },
-      },
-      onHover: (evento, elementos) => { evento.native.target.style.cursor = elementos.length ? "pointer" : "default"; },
-      onClick: (_evento, elementos) => {
-        if (!elementos.length) return;
-        document.getElementById("lutador-a").value = top[elementos[0].index].l.nome;
-        desenharComparador();
-        document.getElementById("comparador").scrollIntoView({ behavior: "smooth" });
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (c) => formatos[metrica.formato](c.raw),
-            afterLabel: (c) => `Cartel ${cartel(top[c.dataIndex].l)} · ${top[c.dataIndex].l.n} lutas`,
-          },
-        },
-        valoresNaPonta: {
-          formatar: (v, j) => `${formatos[metrica.formato](v)}  (${top[j].l.n} lutas)`,
-        },
-      },
-    },
-    plugins: [valoresNaPonta],
-  });
-
   desenharTabela(metrica, top);
   atualizarUrl();
 }
 
+// Leva um lutador do ranking para o comparador (como lutador 1)
+function levarAoComparador(l) {
+  document.getElementById("lutador-a").value = l.nome;
+  desenharComparador();
+  document.getElementById("comparador").scrollIntoView({ behavior: "smooth" });
+}
+
+// Ranking em tabela, no estilo dos apps de resultados: posição, foto, nome com categoria e anos de
+// UFC, barra proporcional ao 1º colocado e o valor. Clicar (ou Enter) leva o lutador ao comparador.
 function desenharTabela(metrica, top) {
   const tabela = document.getElementById("tabela-ranking");
-  tabela.innerHTML = `<thead><tr><th class="num">#</th><th>Lutador</th><th class="num">${metrica.rotulo}</th>
-    <th class="num">Lutas</th><th>Cartel</th></tr></thead>`;
+  tabela.innerHTML = `<caption class="visualmente-oculto">Ranking: ${metrica.rotulo}</caption>
+    <thead><tr><th class="num">#</th><th>Lutador</th><th class="col-barra">${metrica.rotulo}</th>
+    <th class="num col-lutas">Lutas</th><th class="col-cartel">Cartel</th></tr></thead>`;
   const corpo = document.createElement("tbody");
+  const maximo = top.length ? top[0].v : 0;
   top.forEach((x, i) => {
     const linha = document.createElement("tr");
-    [[i + 1, "num"], [x.l.nome, ""], [formatos[metrica.formato](x.v), "num"], [x.l.n, "num"], [cartel(x.l), ""]]
-      .forEach(([texto, classe]) => {
-        const celula = document.createElement("td");
-        celula.textContent = texto;
-        if (classe) celula.className = classe;
-        linha.appendChild(celula);
-      });
+    linha.tabIndex = 0;
+    linha.title = "Levar ao comparador";
+    linha.innerHTML = `<td class="num posicao">${i + 1}</td>
+      <td><div class="lutador-linha"></div></td>
+      <td class="col-barra"><div class="barra-valor"><div class="barra"><span></span></div><strong></strong></div></td>
+      <td class="num col-lutas">${x.l.n}</td><td class="col-cartel">${cartel(x.l)}</td>`;
+    linha.querySelector(".lutador-linha").append(avatar(x.l), identificacao(x.l));
+    linha.querySelector(".barra span").style.width = `${maximo > 0 ? Math.max((x.v / maximo) * 100, 1) : 0}%`;
+    linha.querySelector(".barra-valor strong").textContent = formatos[metrica.formato](x.v);
+    linha.addEventListener("click", () => levarAoComparador(x.l));
+    linha.addEventListener("keydown", (e) => { if (e.key === "Enter") levarAoComparador(x.l); });
     corpo.appendChild(linha);
   });
+  if (!top.length) corpo.innerHTML = '<tr><td colspan="5" class="vazio">Nenhum lutador com esses filtros.</td></tr>';
   tabela.appendChild(corpo);
 }
 
