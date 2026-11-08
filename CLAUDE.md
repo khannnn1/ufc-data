@@ -447,6 +447,9 @@ categoria), nos últimos 730 dias, com 3+ lutas. NÃO é o ranking oficial (só 
 público). Quem muda de divisão só entra na nova depois de lutar nela. Vai como 11º item do lado em lutas.json
 (4.265 lados ranqueados); no site: "#N" no card do evento e filtro "Ranqueado" nos rankings (URL `rq=sim`,
 exige `nr` = lutas do período como top 15 >= mín. de lutas).
+Padrão do ranking (2026-11-08, pedido do usuário): nota média, só top 15, mín. 10 lutas, top 10 (`PADROES` +
+`interativo.html`); "Todos" vai na URL como `rq=todos`. Atalhos da página inicial que não são de nota abrem com
+`rq=todos&min=4` (analises.js).
 Página inicial: bloco `notas` em analises.json (`notas_do_periodo` em src/analises.py: média, por estilo
 [estilo, atuações, lutadores, nota média, % vitórias] e as 5 melhores atuações), cartões "Melhores atuações" e
 "Nota média por estilo" e atalho do ranking de nota.

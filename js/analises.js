@@ -462,6 +462,8 @@ function desenharAtalhos(periodo) {
   for (const [m, titulo, sub] of ATALHOS) {
     const a = el("a", "", [el("strong", "", titulo), el("span", "", sub)]);
     const params = new URLSearchParams({ m });
+    // o padrão do ranking (só top 15, mín. 10 lutas) é pensado para a nota; os outros atalhos abrem com todos
+    if (m !== "nota_media") { params.set("rq", "todos"); params.set("min", "4"); }
     if (periodo !== PERIODO_PADRAO) params.set("p", periodo);
     a.href = `interativo.html?${params}#ranking`;
     caixa.appendChild(a);
