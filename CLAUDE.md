@@ -461,7 +461,9 @@ Filtro "Chegou a" (`#melhor-posicao`, URL `mp`: campeao/1/3/5/10, `OPCOES_MELHOR
 posição da carreira, campeão conta como nº 1. Finais do TUF: o ufcstats marca com o ícone de cinturão; `tipo_de_disputa`
 (exportar.py) grava cinturão = 2 em lutas.json quando o formato é "3 Rnd..." a partir de 2005 (65 lutas). O JS mostra
 "Final do TUF" e não conta como campeão nem no filtro "Disputas de cinturão" do perfil. ATENÇÃO: gráfico 21, analises.json,
-SQL e Power BI ainda contam as 503 (inclui as 65 finais). No celular o subtítulo quebra linha em vez de cortar.
+SQL e Power BI ainda contam as 503 (inclui as 65 finais).
+Filtro "Lutou de/até" (`#ano-de`/`#ano-ate`, URL `de`/`ate`, 2026-11-08): carreira (`l.anos`) cruza o intervalo; não
+recorta as estatísticas (isso é o período do topo). No celular o subtítulo quebra linha em vez de cortar.
 Página inicial: bloco `notas` em analises.json (`notas_do_periodo` em src/analises.py: média, por estilo
 [estilo, atuações, lutadores, nota média, % vitórias] e as 5 melhores atuações), cartões "Melhores atuações" e
 "Nota média por estilo" e atalho do ranking de nota.

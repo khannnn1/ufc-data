@@ -369,6 +369,10 @@ function desenharRanking() {
   const base = document.getElementById("base").value;
   const estilo = document.getElementById("estilo").value;
   const posicao = document.getElementById("melhor-posicao").value;
+  const anoDe = parseInt(document.getElementById("ano-de").value, 10) || null;
+  const anoAte = parseInt(document.getElementById("ano-ate").value, 10) || null;
+  // "Lutou de X até Y": a carreira (l.anos = [1º, último ano]) cruza o intervalo
+  const lutouNosAnos = (l) => (!anoDe && !anoAte) || (l.anos && (!anoDe || l.anos[1] >= anoDe) && (!anoAte || l.anos[0] <= anoAte));
   const soRanqueados = document.getElementById("ranqueado").value === "sim";
   // "Só top 15": lutas no top 15 contam à parte do mínimo de lutas (que é a amostra da métrica), para não cortar
   // quem chegou ao topo há pouco tempo (Khamzat: 10 lutas com nota, 4 como top 15)
@@ -382,7 +386,7 @@ function desenharRanking() {
   };
 
   const elegiveis = lutadores
-    .filter((l) => lutasDaMetrica(metrica, l) >= minLutas && (!categoria || l.cat === categoria) && (!base || l.base === base) && (!estilo || l.estilo === estilo) && (!soRanqueados || l.nr >= minRanqueado) && chegouA(l, posicao) && naFaixa(l))
+    .filter((l) => lutasDaMetrica(metrica, l) >= minLutas && (!categoria || l.cat === categoria) && (!base || l.base === base) && (!estilo || l.estilo === estilo) && (!soRanqueados || l.nr >= minRanqueado) && chegouA(l, posicao) && lutouNosAnos(l) && naFaixa(l))
     .filter((l) => !metrica.requisito || metrica.requisito(l))
     .map((l) => ({ l, v: calcular(metrica, l) }))
     .filter((x) => x.v !== null);
@@ -400,6 +404,7 @@ function desenharRanking() {
   const nota = `${elegiveis.length} lutadores${daBase}${doEstilo}${doPeso}${daIdade} com pelo menos ${minLutas} ${minLutas === 1 ? (metrica.lutas ? "luta com nota" : "luta") : (metrica.lutas ? "lutas com nota" : "lutas")} no período.`
     + (soRanqueados ? ` Só quem entrou em pelo menos ${minRanqueado} ${minRanqueado === 1 ? "luta" : "lutas"} do período no top 15 da categoria pelo Elo do site (não é o ranking oficial do UFC, que só existe desde 2013).` : "")
     + (posicao ? ` ${posicao === "campeao" ? "Só quem venceu disputa de cinturão" : posicao === "1" ? "Só quem chegou a nº 1 da categoria pelo Elo (ou foi campeão)" : `Só quem chegou ao top ${posicao} da categoria pelo Elo (ou foi campeão)`} em algum momento da carreira.` : "")
+    + (anoDe || anoAte ? ` Só quem lutou no UFC ${anoDe && anoAte ? (anoDe === anoAte ? `em ${anoDe}` : `entre ${anoDe} e ${anoAte}`) : anoDe ? `de ${anoDe} em diante` : `até ${anoAte}`} (as estatísticas seguem o período escolhido no topo).` : "")
     + (categoria ? " Categoria = a da luta mais recente de cada um; quem mudou de divisão entra com todas as lutas." : "")
     + (metrica.nota ? " " + metrica.nota : "");
   document.getElementById("nota-ranking").textContent = nota;
@@ -813,7 +818,7 @@ function desenharDispersao() {
 // O estado da página fica na URL (?a=...&b=...&m=...&min=...&top=...&cat=...&base=...&idade=...): quem abre o link vê a mesma
 // comparação e o mesmo ranking. Valores inválidos na URL são ignorados e ficam os padrões.
 
-const PADROES = { a: "Islam Makhachev", b: "Merab Dvalishvili", m: "nota_media", min: 10, top: 10, rm: "sig", cat: "", base: "", estilo: "", mp: "", rq: "sim", idade: "", p: "tudo" };
+const PADROES = { a: "Islam Makhachev", b: "Merab Dvalishvili", m: "nota_media", min: 10, top: 10, rm: "sig", cat: "", base: "", estilo: "", mp: "", de: "", ate: "", rq: "sim", idade: "", p: "tudo" };
 // Filtro de período: um JSON por período, gerado por src/exportar.py (PERIODOS, mesmas chaves)
 const PERIODOS = {
   tudo: { rotulo: "Todo o histórico", arquivo: "dados/lutadores.json" },
@@ -858,6 +863,8 @@ function lerEstadoDaUrl() {
     idade: p.get("idade") in FAIXAS_IDADE ? p.get("idade") : PADROES.idade,
     estilo: p.get("estilo") in ESTILOS ? p.get("estilo") : PADROES.estilo,
     mp: p.get("mp") in MELHOR_POSICAO ? p.get("mp") : PADROES.mp,
+    de: /^\d{4}$/.test(p.get("de") || "") ? p.get("de") : PADROES.de,
+    ate: /^\d{4}$/.test(p.get("ate") || "") ? p.get("ate") : PADROES.ate,
     rq: { sim: "sim", todos: "" }[p.get("rq")] ?? PADROES.rq, // padrão = só top 15; "todos" desliga
     p: periodoDaUrl(),
   };
@@ -887,6 +894,10 @@ function atualizarUrl() {
   }
   const mp = document.getElementById("melhor-posicao").value;
   if (mp) p.set("mp", mp);
+  for (const [id, chave] of [["ano-de", "de"], ["ano-ate", "ate"]]) {
+    const valor = document.getElementById(id).value;
+    if (valor) p.set(chave, valor);
+  }
   const rq = document.getElementById("ranqueado").value;
   if (rq !== PADROES.rq) p.set("rq", rq || "todos");
   // replaceState: atualiza o endereço sem criar uma entrada nova no histórico a cada mudança
@@ -1078,6 +1089,12 @@ async function iniciar() {
   preencher("base", Object.entries(BASES_RANKING));
   preencher("estilo", Object.keys(ESTILOS).map((e) => [e, e]));
   preencher("melhor-posicao", OPCOES_MELHOR_POSICAO);
+  // anos da carreira de todos (l.anos é igual em todos os períodos)
+  const anos = lutadores.filter((l) => l.anos).flatMap((l) => l.anos);
+  const anosDisponiveis = [];
+  for (let a = Math.max(...anos); a >= Math.min(...anos); a--) anosDisponiveis.push([String(a), String(a)]);
+  preencher("ano-de", anosDisponiveis);
+  preencher("ano-ate", anosDisponiveis);
   preencher("estilo-atuacoes", Object.keys(ESTILOS).map((e) => [e, e]));
   preencher("categoria-atuacoes", CATEGORIAS_RANKING.map((c) => [c, CATEGORIAS[c]]));
   ["categoria-atuacoes", "estilo-atuacoes"].forEach((id) => document.getElementById(id).addEventListener("change", desenharAtuacoes));
@@ -1088,6 +1105,8 @@ async function iniciar() {
   document.getElementById("base").value = estado.base;
   document.getElementById("estilo").value = estado.estilo;
   document.getElementById("melhor-posicao").value = estado.mp;
+  document.getElementById("ano-de").value = estado.de;
+  document.getElementById("ano-ate").value = estado.ate;
   document.getElementById("ranqueado").value = estado.rq;
   document.getElementById("idade").value = estado.idade;
   seletorRound.value = estado.rm;
@@ -1098,7 +1117,7 @@ async function iniciar() {
   document.getElementById("lutador-b").value = estado.b;
 
   ["lutador-a", "lutador-b"].forEach((id) => configurarCampoLutador(document.getElementById(id)));
-  ["metrica", "min-lutas", "tamanho", "categoria", "base", "estilo", "melhor-posicao", "ranqueado", "idade"].forEach((id) => document.getElementById(id).addEventListener("change", desenharRanking));
+  ["metrica", "min-lutas", "tamanho", "categoria", "base", "estilo", "melhor-posicao", "ano-de", "ano-ate", "ranqueado", "idade"].forEach((id) => document.getElementById(id).addEventListener("change", desenharRanking));
   seletorRound.addEventListener("change", () => { desenharRounds(); atualizarUrl(); });
   document.querySelectorAll("button.copiar").forEach((botao) => {
     botao.addEventListener("click", () => copiarLink(botao.dataset.secao, botao.nextElementSibling));
