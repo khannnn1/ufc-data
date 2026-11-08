@@ -83,6 +83,8 @@ section[id] { scroll-margin-top: 72px; }
 .nome-lutador { font-weight: 600; overflow: hidden; text-overflow: ellipsis; text-decoration: none; }
 a.nome-lutador:hover { text-decoration: underline; }
 .sub-lutador { color: var(--muted); font-size: 0.78rem; }
+.sub-lutador a { text-decoration: none; }
+.sub-lutador a:hover { color: var(--text); text-decoration: underline; }
 
 /* ---------- Tabelas ---------- */
 .tabela-wrap { overflow-x: auto; }
@@ -90,6 +92,40 @@ table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
 th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--grid-line); white-space: nowrap; }
 th { color: var(--muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+
+/* ---------- Páginas de conteúdo (perfil, eventos) ---------- */
+main { max-width: var(--largura); margin: 0 auto; padding: 28px 16px 40px; }
+.carregando, .erro { color: var(--muted); padding: 40px 0; text-align: center; }
+
+.cartao-p {
+  background: var(--card-bg); border: 1px solid var(--grid-line); border-radius: var(--raio);
+  padding: 18px 20px;
+}
+.cartao-p h2 {
+  font-size: 0.78rem; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 14px;
+}
+
+.botao {
+  display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.9rem;
+  background: var(--vermelho); color: var(--text); text-decoration: none; white-space: nowrap;
+}
+.botao:hover { filter: brightness(1.1); }
+
+.resultado {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 6px; font-weight: 800; font-size: 0.8rem;
+}
+.resultado.W { background: rgba(42, 157, 92, 0.18); color: #4cc285; }
+.resultado.L { background: rgba(230, 57, 70, 0.18); color: #ff6b76; }
+.resultado.D, .resultado.NC { background: #262626; color: var(--muted); }
+.etiqueta {
+  display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase;
+  padding: 1px 6px; border-radius: 4px; margin: 3px 4px 0 0; color: var(--bg);
+}
+.etiqueta.cinturao { background: var(--amarelo); }
+.etiqueta.bonus { background: var(--muted); }
 
 footer {
   text-align: center; padding: 40px 20px 60px;

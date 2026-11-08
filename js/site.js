@@ -12,6 +12,23 @@ const CATEGORIAS = {
 };
 const BASES = { Orthodox: "ortodoxo", Southpaw: "canhoto", Switch: "troca de base", "Open Stance": "base aberta", Sideways: "base lateral" };
 
+const METODOS = {
+  "Decision - Unanimous": "Decisão unânime",
+  "Decision - Split": "Decisão dividida",
+  "Decision - Majority": "Decisão majoritária",
+  "KO/TKO": "Nocaute",
+  "TKO - Doctor's Stoppage": "Nocaute (interrupção médica)",
+  "Submission": "Finalização",
+  "Overturned": "Resultado anulado",
+  "Could Not Continue": "Não pôde continuar",
+  "DQ": "Desclassificação",
+  "Other": "Outro",
+};
+const RESULTADOS = { W: "V", L: "D", D: "E", NC: "SR" };
+const RESULTADOS_LONGOS = { W: "Vitória", L: "Derrota", D: "Empate", NC: "Sem resultado" };
+
+const fmtData = (iso) => iso.split("-").reverse().join("/");
+
 const normalizar = (texto) => texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 function cartel(l) {
@@ -98,10 +115,24 @@ function carregarLutadoresTudo() {
   return promessaLutadores;
 }
 
+// dados/lutas.json: histórico de todas as lutas (montar_lutas em src/exportar.py), ~1 MB
+let promessaLutas = null;
+function carregarLutas() {
+  promessaLutas ??= fetch("dados/lutas.json", { cache: "no-cache" })
+    .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+    .catch((erro) => { promessaLutas = null; throw erro; });
+  return promessaLutas;
+}
+
+function linkEventoUrl(id) {
+  return `eventos.html?id=${encodeURIComponent(id)}`;
+}
+
 // ---------- Barra do topo ----------
 
 const MENU = [
   { rotulo: "Análises", href: "index.html", pagina: "index" },
+  { rotulo: "Eventos", href: "eventos.html", pagina: "eventos" },
   { rotulo: "Rankings", href: "interativo.html#ranking", pagina: "interativo" },
   { rotulo: "Comparar", href: "interativo.html#comparador", pagina: "interativo-comparador" },
 ];

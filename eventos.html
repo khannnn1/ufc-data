@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eventos — UFC Data</title>
+<link rel="stylesheet" href="css/site.css?v=2">
+<style>
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  .intro { color: var(--muted); margin: 0 0 18px; font-size: 0.92rem; }
+
+  /* Lista de eventos */
+  .controles-eventos { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+  .controles-eventos select, .controles-eventos input {
+    background: var(--card-bg); color: var(--text); border: 1px solid var(--grid-line); border-radius: 8px;
+    padding: 8px 10px; font: inherit; font-size: 0.92rem;
+  }
+  .controles-eventos input { flex: 1 1 220px; max-width: 360px; }
+  .controles-eventos select:focus, .controles-eventos input:focus { outline: 2px solid var(--azul); outline-offset: 1px; }
+  .lista-eventos { list-style: none; margin: 0; padding: 0; background: var(--card-bg); border: 1px solid var(--grid-line); border-radius: var(--raio); overflow: hidden; }
+  .lista-eventos li + li { border-top: 1px solid var(--grid-line); }
+  .lista-eventos a.evento {
+    display: grid; grid-template-columns: 92px minmax(0, 1fr) minmax(0, 1.3fr) 70px; gap: 14px; align-items: center;
+    padding: 12px 16px; text-decoration: none;
+  }
+  .lista-eventos a.evento:hover, .lista-eventos a.evento:focus-visible { background: var(--card-hover); outline: none; }
+  .evento .data { color: var(--muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+  .evento .nome-evento { font-weight: 600; }
+  .evento .principal { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 0.88rem; }
+  .evento .principal .x { color: var(--muted); font-size: 0.75rem; }
+  .evento .principal .lado { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .evento .principal .lado span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .evento .principal .lado.venceu span { font-weight: 700; }
+  .evento .qtd { color: var(--muted); font-size: 0.8rem; text-align: right; }
+  .vazio { color: var(--muted); padding: 16px; }
+
+  /* Card de um evento */
+  .voltar { color: var(--muted); text-decoration: none; font-size: 0.88rem; }
+  .voltar:hover { color: var(--text); }
+  .cabecalho-evento { margin: 10px 0 18px; }
+  .cabecalho-evento .sub { color: var(--muted); }
+  .lutas { display: flex; flex-direction: column; gap: 10px; }
+  .luta {
+    background: var(--card-bg); border: 1px solid var(--grid-line); border-radius: var(--raio);
+    padding: 12px 16px;
+  }
+  .luta .rotulo-luta { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+  .luta .rotulo-luta .etiqueta { margin: 0; }
+  .placar { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 16px; align-items: center; }
+  .placar .lado { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .placar .lado.direita { flex-direction: row-reverse; text-align: right; }
+  .placar .lado.direita .identificacao { align-items: flex-end; }
+  .placar .lado.perdeu { opacity: 0.55; }
+  .placar .lado .nome-lutador { font-size: 1rem; }
+  .placar .centro { text-align: center; min-width: 140px; }
+  .placar .centro .metodo { font-weight: 700; }
+  .placar .centro .detalhe { color: var(--muted); font-size: 0.8rem; }
+  .estat-luta { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 18px; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--grid-line); color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+  .estat-luta strong { color: var(--text); }
+
+  @media (max-width: 760px) {
+    .lista-eventos a.evento { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; }
+    .evento .data { grid-column: 1; grid-row: 1; }
+    .evento .qtd { grid-column: 2; grid-row: 1; }
+    .evento .nome-evento { grid-column: 1 / -1; }
+    .evento .principal { grid-column: 1 / -1; }
+    .placar { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+    .placar .centro { grid-column: 1 / -1; grid-row: 2; min-width: 0; }
+    .placar .lado { gap: 8px; }
+    .placar .lado .avatar { width: 36px; height: 36px; }
+    .placar .lado .nome-lutador { font-size: 0.92rem; overflow-wrap: anywhere; }
+  }
+</style>
+</head>
+<body data-pagina="eventos">
+
+<main id="eventos">
+  <p class="carregando">Carregando…</p>
+</main>
+
+<footer>
+  Projeto de <a href="https://github.com/khannnn1/ufc-data">código aberto no GitHub</a> · Dados de <a href="http://ufcstats.com">ufcstats.com</a> · Fotos de <a href="https://www.ufc.com">ufc.com</a>
+</footer>
+
+<script src="js/site.js?v=2"></script>
+<script src="js/eventos.js?v=1"></script>
+</body>
+</html>

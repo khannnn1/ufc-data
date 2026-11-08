@@ -215,20 +215,24 @@ COLUNAS_LADO = ["KD", "Sig_str_landed", "Sig_str_attempted", "Td_landed", "Td_at
 def montar_lutas(df, datas_eventos):
     """Histórico de todas as lutas para a página de perfil (dados/lutas.json), da mais recente à mais antiga.
 
-    {"eventos": [[nome, data], ...],
+    {"eventos": [[nome, data, id], ...]  (id = código do evento no link do ufcstats, estável),
      "lutas": [[evento (índice em eventos), categoria, método, round, tempo, cinturão, luta da noite,
                 performance da noite, lado_1, lado_2], ...]}
     lado = [nome, resultado W/L/D/NC, kd, sig acertados, sig tentados, quedas, quedas tentadas, controle_s];
     estatísticas ausentes (lutas antigas) viram null. O vencedor vem primeiro quando houver.
+    Dentro de cada evento, as lutas seguem a ordem do card (luta principal primeiro), que é a ordem
+    em que aparecem no CSV (o scraper lê a página do evento de cima para baixo).
     Listas em vez de objetos para o arquivo ficar pequeno; o JS lê nesta mesma ordem.
     """
+    df = df.reset_index(drop=True)
+    df["_pos"] = df.index.to_series().groupby(df["Fight_URL"]).transform("min")  # ordem no card
     df = df.merge(datas_eventos[["Event_URL", "Event_Date"]], on="Event_URL")
     eventos = (df[["Event_URL", "Event_Name", "Event_Date"]].drop_duplicates("Event_URL")
                .sort_values(["Event_Date", "Event_Name"], ascending=False).reset_index(drop=True))
     indice = {url: i for i, url in enumerate(eventos["Event_URL"])}
     ordem_resultado = {"W": 0, "D": 1, "NC": 1, "L": 2}
     df = df.assign(_ordem=df["Resultado"].map(ordem_resultado).fillna(1))
-    df = df.sort_values(["Event_Date", "Fight_URL", "_ordem", "Fighter"], ascending=[False, True, True, True])
+    df = df.sort_values(["Event_Date", "Event_Name", "_pos", "_ordem", "Fighter"], ascending=[False, False, True, True, True])
 
     def inteiro(v):
         return None if pd.isna(v) else int(v)
@@ -243,7 +247,9 @@ def montar_lutas(df, datas_eventos):
                       inteiro(primeira.get("Perf_Bonus", 0)) or 0, *lados])
     lutas.sort(key=lambda l: l[0])  # estável: mantém a ordem dentro do evento
     return {"gerado_em": date.today().isoformat(),
-            "eventos": eventos[["Event_Name", "Event_Date"]].values.tolist(), "lutas": lutas}
+            "eventos": [[nome, data, url.rstrip("/").rsplit("/", 1)[-1]]
+                        for url, nome, data in eventos[["Event_URL", "Event_Name", "Event_Date"]].values],
+            "lutas": lutas}
 
 
 def filtrar_periodo(df, df_round, datas_eventos, inicio):

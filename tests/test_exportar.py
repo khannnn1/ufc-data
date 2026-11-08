@@ -123,8 +123,12 @@ def test_montar_lutas_historico_com_vencedor_primeiro(resumo, datas_eventos):
     resumo.loc[resumo["Fight_URL"] == "F2", "Sig_str_landed"] = np.nan  # luta antiga sem estatística
     dados = montar_lutas(resumo, datas_eventos)
     # E1 (2024-03-01) é o mais recente: índice 0
-    assert dados["eventos"] == [["Evento E1", "2024-03-01"], ["Evento E2", "2024-02-01"]]
+    assert dados["eventos"] == [["Evento E1", "2024-03-01", "E1"], ["Evento E2", "2024-02-01", "E2"]]
     assert [l[0] for l in dados["lutas"]] == [0, 0, 1]
+    # Ordem do card = ordem no CSV (F1 antes de F2 no E1), mesmo com o CSV embaralhado por luta
+    assert [l[8][0] for l in dados["lutas"][:2]] == ["A", "C"]
+    invertido = pd.concat([resumo[resumo["Fight_URL"] == "F2"], resumo[resumo["Fight_URL"] != "F2"]])
+    assert [l[8][0] for l in montar_lutas(invertido, datas_eventos)["lutas"][:2]] == ["C", "A"]
     f3 = dados["lutas"][2]
     # [evento, categoria, método, round, tempo, cinturão, luta da noite, performance, vencedor, perdedor]
     assert f3[:8] == [1, "Lightweight", "Submission", 2, "1:00", 1, 0, 0]
