@@ -28,6 +28,7 @@ Projeto de ponta a ponta com dados de lutas do UFC: **coleta** por web scraping,
 
 - **[Análises](https://khannnn1.github.io/ufc-data/)** (`index.html`): os principais números do histórico em gráficos interativos (como as lutas terminam, em que round, por categoria, vencedores × perdedores, cinturão, alvo e origem dos golpes, árbitros), com filtro de período: todo o histórico, desde 2001 ou os últimos 3 anos.
 - **[Gráficos do histórico](https://khannnn1.github.io/ufc-data/graficos.html)** (`graficos.html`): 22 gráficos em imagem (Matplotlib) com a leitura de cada um.
+- **[Sobre o projeto](https://khannnn1.github.io/ufc-data/sobre.html)** (`sobre.html`): de onde vêm os dados, como os números são calculados e o que eles não dizem.
 - **[Explorar os dados](https://khannnn1.github.io/ufc-data/interativo.html)** (`interativo.html`):
   - **Comparar lutadores:** escolha dois lutadores quaisquer e veja categoria, cartel, idade, altura, envergadura, base e médias por luta lado a lado. Uma caixa "No papel" diz quem é mais novo, quem tem mais envergadura e como se saiu cada base no confronto (canhoto × ortodoxo etc.), com a taxa de vitória no período escolhido e o aviso quando a diferença cabe no acaso.
   - **Round a round:** como os dois lutadores do comparador rendem do 1º ao 5º round (golpes, precisão, quedas ou controle), contra a média de todos.
@@ -119,6 +120,7 @@ Todas as imagens estão em [`figures/`](figures/), e o código de cada uma em [`
 ├── .github/workflows/     # CI: roda os testes a cada push
 ├── index.html             # análises interativas (página inicial)
 ├── graficos.html          # página com os gráficos em PNG
+├── sobre.html             # sobre o projeto e metodologia
 ├── interativo.html        # comparador e rankings
 └── requirements.txt
 ```

@@ -442,9 +442,7 @@ function aplicarPeriodo(periodo) {
 
 async function iniciar() {
   try {
-    const r = await fetch("dados/analises.json", { cache: "no-cache" });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    dados = await r.json();
+    dados = await carregarAnalises();
   } catch (erro) {
     document.getElementById("analises").innerHTML = '<p class="erro">Não foi possível carregar os dados. Se abriu o arquivo direto do disco, rode um servidor local (python -m http.server).</p>';
     console.error(erro);
@@ -459,7 +457,6 @@ async function iniciar() {
     b.addEventListener("click", () => aplicarPeriodo(chave));
     botoes.appendChild(b);
   }
-  if (dados.gerado_em) document.getElementById("atualizado").textContent = `Dados atualizados em ${fmtData(dados.gerado_em)}`;
   const p = new URLSearchParams(window.location.search).get("p");
   aplicarPeriodo(p in dados.periodos ? p : PERIODO_PADRAO);
 }

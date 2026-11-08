@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sobre o projeto — UFC Data</title>
+<meta name="description" content="Como os dados do UFC Data foram coletados, tratados e calculados, e o que eles não dizem.">
+<meta name="theme-color" content="#0d0d0d">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="img/icone-180.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="UFC Data">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Sobre o projeto — UFC Data">
+<meta property="og:description" content="Como os dados do UFC Data foram coletados, tratados e calculados, e o que eles não dizem.">
+<meta property="og:url" content="https://khannnn1.github.io/ufc-data/sobre.html">
+<meta property="og:image" content="https://khannnn1.github.io/ufc-data/img/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="css/site.css?v=3">
+<style>
+  .sobre { max-width: 760px; }
+  .sobre h1 { font-size: 1.9rem; margin: 0 0 8px; }
+  .sobre h1 span { color: var(--vermelho); }
+  .sobre .intro { color: var(--muted); font-size: 1.02rem; margin: 0 0 24px; }
+  .sobre h2 { font-size: 1.15rem; margin: 32px 0 8px; padding-left: 12px; border-left: 4px solid var(--vermelho); }
+  .sobre p, .sobre li { color: #d6d6d6; }
+  .sobre li + li { margin-top: 6px; }
+  .sobre strong { color: var(--text); }
+  .sobre a { color: var(--text); }
+  .sobre code { background: var(--card-bg); border: 1px solid var(--grid-line); border-radius: 4px; padding: 1px 5px; font-size: 0.88em; }
+  .resumo { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--grid-line);
+            border: 1px solid var(--grid-line); border-radius: var(--raio); overflow: hidden; margin: 0 0 8px; }
+  .resumo div { background: var(--card-bg); padding: 12px 16px; }
+  .resumo b { display: block; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+  .resumo span { color: var(--muted); font-size: 0.8rem; }
+  .etapas { list-style: none; padding: 0; counter-reset: etapa; }
+  .etapas li { counter-increment: etapa; position: relative; padding-left: 36px; }
+  .etapas li::before { content: counter(etapa); position: absolute; left: 0; top: 1px; width: 24px; height: 24px; border-radius: 50%;
+                       background: var(--card-bg); border: 1px solid var(--grid-line); color: var(--text); font-size: 0.8rem; font-weight: 700;
+                       display: flex; align-items: center; justify-content: center; }
+  @media (max-width: 560px) { .sobre h1 { font-size: 1.5rem; } .resumo b { font-size: 1.2rem; } }
+</style>
+</head>
+<body data-pagina="sobre">
+
+<main class="sobre">
+  <h1>Sobre o <span>UFC Data</span></h1>
+  <p class="intro">Um projeto de portfólio em análise de dados: coleta, limpeza, modelagem e visualização de todas as lutas do UFC, do código que lê as páginas até os gráficos deste site.</p>
+
+  <div class="resumo">
+    <div><b data-n="eventos">795</b><span>eventos</span></div>
+    <div><b data-n="lutas">8.974</b><span>lutas</span></div>
+    <div><b data-n="lutadores">2.776</b><span>lutadores</span></div>
+  </div>
+  <p class="nota" id="periodo-base" style="color: var(--muted); font-size: 0.85rem;"></p>
+
+  <h2>De onde vêm os dados</h2>
+  <ul>
+    <li><strong>Lutas, eventos e lutadores:</strong> <a href="http://ufcstats.com">ufcstats.com</a>, o site oficial de estatísticas do UFC. A base começa no UFC 2 (março de 1994), porque o UFC 1 não aparece na listagem do site.</li>
+    <li><strong>Fotos:</strong> página de cada atleta no <a href="https://www.ufc.com">ufc.com</a>. O site só aponta para a imagem, não guarda cópia. A coleta respeita o intervalo de 15 segundos entre páginas pedido pelo <code>robots.txt</code>. Quem não tem foto ou tem nome igual ao de outro atleta aparece com as iniciais.</li>
+  </ul>
+
+  <h2>Como é feito</h2>
+  <ol class="etapas">
+    <li><strong>Coleta</strong> em Python com Selenium e BeautifulSoup (o ufcstats exige JavaScript). Cada luta tem as estatísticas totais e round a round dos dois lados.</li>
+    <li><strong>Limpeza</strong> com Pandas: "X of Y" vira acertos e tentativas, tempos viram segundos, medidas em pés e polegadas viram centímetros, "---" vira ausente (não zero).</li>
+    <li><strong>Modelagem</strong> em um banco SQLite com 4 tabelas e em um modelo estrela para o Power BI, com as mesmas perguntas respondidas em SQL e conferidas com Pandas.</li>
+    <li><strong>Site</strong> estático no GitHub Pages: os totais são exportados em JSON e as médias, os rankings e os gráficos (Chart.js) são calculados no navegador.</li>
+    <li><strong>Atualização</strong> com um comando (<code>python -m src.atualizar</code>) que coleta só os eventos novos e regenera tudo. Testes automatizados (pytest) rodam a cada mudança.</li>
+  </ol>
+
+  <h2>Como os números são calculados</h2>
+  <ul>
+    <li><strong>Período:</strong> todo o histórico, desde 2001 (quando as regras unificadas passaram a valer) ou os últimos 3 anos. Lutas antigas tinham outras regras, como rounds sem limite de tempo, e misturar tudo distorce médias.</li>
+    <li><strong>Lutas sem estatísticas:</strong> algumas lutas dos anos 1990 só têm o resultado. Elas contam no cartel, mas ficam fora das médias por luta e por minuto.</li>
+    <li><strong>Médias, não somas:</strong> comparações entre lutadores usam médias por luta ou por minuto, para não favorecer quem lutou mais vezes. Rankings de total (vitórias, nocautes) dizem isso no nome.</li>
+    <li><strong>Amostra mínima:</strong> precisões exigem um mínimo de tentativas e os rankings têm um mínimo de lutas, para que uma luta só não coloque ninguém no topo.</li>
+    <li><strong>Desempates:</strong> nos totais, fica à frente quem precisou de menos lutas; nas médias e taxas, quem tem mais lutas; depois, o nome.</li>
+    <li><strong>Nocaute</strong> inclui a interrupção médica. <strong>Categoria</strong> de um lutador é a da luta mais recente, sem contar peso casado. <strong>Idade</strong> nos cartões é a de hoje; nas análises, a da data da luta.</li>
+    <li><strong>Lutadores com o mesmo nome</strong> são separados pelo ano de nascimento, como "Bruno Silva (1989)" e "Bruno Silva (1990)".</li>
+  </ul>
+
+  <h2>O que os números não dizem</h2>
+  <ul>
+    <li><strong>Associação não é causa.</strong> Vencedores acertam mais knockdowns, mas o knockdown muitas vezes já é o começo do fim da luta.</li>
+    <li><strong>Viés de sobrevivência:</strong> rounds finais só existem em lutas que não acabaram cedo, então as médias do 4º e 5º round descrevem um tipo específico de luta.</li>
+    <li><strong>Dados físicos incompletos:</strong> parte dos lutadores antigos não tem envergadura ou data de nascimento registradas e fica de fora das análises que dependem delas.</li>
+    <li><strong>Contexto que não está nos dados:</strong> nível do adversário, lesões, troca de categoria e mudanças de regra ao longo dos anos.</li>
+  </ul>
+
+  <h2>Código</h2>
+  <p>Todo o código, da coleta ao site, está no <a href="https://github.com/khannnn1/ufc-data">repositório no GitHub</a>.</p>
+</main>
+
+<footer>
+  Projeto de <a href="https://github.com/khannnn1/ufc-data">código aberto no GitHub</a> · Dados de <a href="http://ufcstats.com">ufcstats.com</a> · Fotos de <a href="https://www.ufc.com">ufc.com</a>
+</footer>
+
+<script src="js/site.js?v=3"></script>
+<script>
+  // Números do topo e período da base, lidos de dados/analises.json (o texto fixo é só o padrão)
+  carregarAnalises().then((d) => {
+    const fmt = new Intl.NumberFormat("pt-BR");
+    for (const el of document.querySelectorAll("[data-n]")) el.textContent = fmt.format(d.tudo.numeros[el.dataset.n]);
+    const p = d.tudo.periodo;
+    if (p) document.getElementById("periodo-base").textContent = `De ${fmtData(p.inicio)} a ${fmtData(p.fim)}.`;
+  }).catch(() => {});
+</script>
+</body>
+</html>

@@ -124,6 +124,15 @@ function carregarLutas() {
   return promessaLutas;
 }
 
+// Análises da página inicial (dados/analises.json, ~5 KB): também dão a data da base para o rodapé
+let promessaAnalises = null;
+function carregarAnalises() {
+  promessaAnalises ??= fetch("dados/analises.json", { cache: "no-cache" })
+    .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+    .catch((erro) => { promessaAnalises = null; throw erro; });
+  return promessaAnalises;
+}
+
 function linkEventoUrl(id) {
   return `eventos.html?id=${encodeURIComponent(id)}`;
 }
@@ -227,4 +236,20 @@ function configurarBusca(campo, lista) {
   });
 }
 
+// Rodapé comum (substitui o do HTML, que fica só para quem está sem JavaScript): fontes, página
+// Sobre e a data da última atualização da base
+function montarRodape() {
+  let rodape = document.querySelector("body > footer");
+  if (!rodape) rodape = document.body.appendChild(document.createElement("footer"));
+  rodape.innerHTML = `
+    <div>Projeto de <a href="https://github.com/khannnn1/ufc-data">código aberto no GitHub</a> · Dados de <a href="http://ufcstats.com">ufcstats.com</a> · Fotos de <a href="https://www.ufc.com">ufc.com</a> · <a href="sobre.html">Sobre o projeto</a></div>
+    <div class="atualizacao"></div>`;
+  carregarAnalises().then((d) => {
+    const fim = d.tudo?.periodo?.fim;
+    rodape.querySelector(".atualizacao").textContent =
+      `Base atualizada em ${fmtData(d.gerado_em)}${fim ? ` · último evento em ${fmtData(fim)}` : ""}`;
+  }).catch(() => {});
+}
+
 montarBarraTopo();
+montarRodape();
