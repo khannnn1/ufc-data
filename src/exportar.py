@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from src.analises import montar_analises
 from src.limpeza import adicionar_duracao
 
 RAIZ = Path(__file__).resolve().parent.parent
@@ -279,13 +280,17 @@ def exportar_lutadores(caminho_csv=ARQUIVO_RESUMO, caminho_round=ARQUIVO_ROUND, 
     carreira = periodo_de_atividade(df, datas_eventos)  # base inteira, igual em todos os períodos
 
     Path(pasta_saida).mkdir(parents=True, exist_ok=True)
-    saidas = {}
+    saidas, analises = {}, {}
     for chave, periodo in PERIODOS.items():
         recorte, recorte_round = filtrar_periodo(df, df_round, datas_eventos, inicio_do_periodo(periodo))
         saida = montar_json(recorte, recorte_round, datas_eventos, lutadores, chave, carreira)
         with open(arquivo_do_periodo(chave, pasta_saida), "w", encoding="utf-8") as f:
             json.dump(saida, f, ensure_ascii=False, separators=(",", ":"))
         saidas[chave] = saida
+        analises[chave] = {**montar_analises(recorte, recorte_round), "periodo": saida["periodo"]}
+    with open(Path(pasta_saida) / "analises.json", "w", encoding="utf-8") as f:
+        json.dump({"gerado_em": date.today().isoformat(), "periodos": {c: p["rotulo"] for c, p in PERIODOS.items()},
+                   **analises}, f, ensure_ascii=False, separators=(",", ":"))
     with open(Path(pasta_saida) / "lutas.json", "w", encoding="utf-8") as f:
         json.dump(montar_lutas(df, datas_eventos), f, ensure_ascii=False, separators=(",", ":"))
     return saidas

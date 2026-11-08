@@ -26,7 +26,8 @@ Projeto de ponta a ponta com dados de lutas do UFC: **coleta** por web scraping,
 
 ## O site
 
-- **[Gráficos](https://khannnn1.github.io/ufc-data/)** (`index.html`): 22 gráficos com a leitura de cada um.
+- **[Análises](https://khannnn1.github.io/ufc-data/)** (`index.html`): os principais números do histórico em gráficos interativos (como as lutas terminam, em que round, por categoria, vencedores × perdedores, cinturão, alvo e origem dos golpes, árbitros), com filtro de período: todo o histórico, desde 2001 ou os últimos 3 anos.
+- **[Gráficos do histórico](https://khannnn1.github.io/ufc-data/graficos.html)** (`graficos.html`): 22 gráficos em imagem (Matplotlib) com a leitura de cada um.
 - **[Explorar os dados](https://khannnn1.github.io/ufc-data/interativo.html)** (`interativo.html`):
   - **Comparar lutadores:** escolha dois lutadores quaisquer e veja categoria, cartel, idade, altura, envergadura, base e médias por luta lado a lado. Uma caixa "No papel" diz quem é mais novo, quem tem mais envergadura e como se saiu cada base no confronto (canhoto × ortodoxo etc.), com a taxa de vitória no período escolhido e o aviso quando a diferença cabe no acaso.
   - **Round a round:** como os dois lutadores do comparador rendem do 1º ao 5º round (golpes, precisão, quedas ou controle), contra a média de todos.
@@ -45,7 +46,7 @@ data/raw/*.csv
    │  limpeza.py
    ▼
 data/processed/*.csv
-   ├──► notebooks (Matplotlib) ──► figures/*.png ──► index.html
+   ├──► notebooks (Matplotlib) ──► figures/*.png ──► graficos.html
    ├──► exportar.py ──► dados/lutadores.json ──► interativo.html (Chart.js)
    └──► banco.py ──► data/ufc.db (SQLite) ──► sql/consultas.sql
 ```
@@ -116,7 +117,8 @@ Todas as imagens estão em [`figures/`](figures/), e o código de cada uma em [`
 ├── powerbi/               # CSVs do modelo, medidas DAX, tema e roteiro do painel
 ├── tests/                 # testes automatizados (pytest)
 ├── .github/workflows/     # CI: roda os testes a cada push
-├── index.html             # página com os gráficos
+├── index.html             # análises interativas (página inicial)
+├── graficos.html          # página com os gráficos em PNG
 ├── interativo.html        # comparador e rankings
 └── requirements.txt
 ```
