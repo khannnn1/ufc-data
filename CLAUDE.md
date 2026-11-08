@@ -456,7 +456,12 @@ Padrão do ranking (2026-11-08, pedido do usuário): nota média, só top 15, m�
 Melhor posição da carreira ("melhor #N", 2026-11-08): `melhoresPosicoes(dadosLutas)` em site.js (mínimo de lado[10] em
 todas as lutas, ignora o período), `l.melhor` em `anexarNotas`; aparece em `identificacao` (rankings), cartões do
 comparador e subtítulo do perfil (do histórico). Quem venceu disputa de cinturão (luta[5], inclui interino) vira
-"campeão"/"campeã" (categoria Women's) no lugar da posição: o Elo não sabe do cinturão (Charles Oliveira foi no máximo #2). No celular o subtítulo quebra linha em vez de cortar.
+"campeão"/"campeã" (categoria Women's) no lugar da posição: o Elo não sabe do cinturão (Charles Oliveira foi no máximo #2).
+Filtro "Chegou a" (`#melhor-posicao`, URL `mp`: campeao/1/3/5/10, `OPCOES_MELHOR_POSICAO`/`chegouA` em interativo.js): melhor
+posição da carreira, campeão conta como nº 1. Finais do TUF: o ufcstats marca com o ícone de cinturão; `tipo_de_disputa`
+(exportar.py) grava cinturão = 2 em lutas.json quando o formato é "3 Rnd..." a partir de 2005 (65 lutas). O JS mostra
+"Final do TUF" e não conta como campeão nem no filtro "Disputas de cinturão" do perfil. ATENÇÃO: gráfico 21, analises.json,
+SQL e Power BI ainda contam as 503 (inclui as 65 finais). No celular o subtítulo quebra linha em vez de cortar.
 Página inicial: bloco `notas` em analises.json (`notas_do_periodo` em src/analises.py: média, por estilo
 [estilo, atuações, lutadores, nota média, % vitórias] e as 5 melhores atuações), cartões "Melhores atuações" e
 "Nota média por estilo" e atalho do ranking de nota.

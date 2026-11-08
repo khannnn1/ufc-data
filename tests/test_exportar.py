@@ -161,3 +161,13 @@ def test_foto_manual_vale_por_cima_da_coletada(tmp_path, monkeypatch):
     fotos = exportar.juntar_fotos(cadastro, tmp_path / "fotos.csv").set_index("Fighter_URL")["Photo_URL"]
     assert fotos["url/A"] == "https://exemplo/a.png" and fotos["url/B"] == "https://exemplo/b-nova.png"
     assert fotos["url/C"] == "https://exemplo/c.png" and pd.isna(fotos["url/D"])
+
+
+def test_final_do_tuf_nao_e_disputa_de_cinturao():
+    from src.exportar import tipo_de_disputa
+    assert tipo_de_disputa(0, "5 Rnd (5-5-5-5-5)", "2024-01-01") == 0
+    assert tipo_de_disputa(1, "5 Rnd (5-5-5-5-5)", "2024-01-01") == 1
+    assert tipo_de_disputa(1, "3 Rnd + OT (5-5-5-5)", "2015-07-15") == 2  # final do TUF Latin America
+    assert tipo_de_disputa(1, "3 Rnd (5-5-5)", "2013-06-08") == 2
+    assert tipo_de_disputa(1, "3 Rnd (5-5-5)", "2000-06-09") == 1  # UFC 26: disputa de 3 rounds antes do TUF
+    assert tipo_de_disputa(1, None, "2024-01-01") == 1

@@ -214,11 +214,29 @@ def montar_json(df, df_round, datas_eventos, lutadores, periodo=None, carreira=N
 COLUNAS_LADO = ["KD", "Sig_str_landed", "Sig_str_attempted", "Td_landed", "Td_attempted", "Ctrl_seconds"]
 
 
+INICIO_TUF = "2005-01-01"  # 1ª final do The Ultimate Fighter: 2005-04-09
+
+
+def tipo_de_disputa(titulo, formato, data):
+    """0 = luta comum, 1 = disputa de cinturão do UFC, 2 = final de torneio (TUF e afins).
+
+    O ufcstats marca as finais do TUF com o mesmo ícone de cinturão. Desde 2005, disputa de cinturão do UFC
+    tem 5 rounds; as finais de torneio têm 3 ("3 Rnd (5-5-5)" ou "3 Rnd + OT", com round extra).
+    Antes disso há disputas de 3 rounds de verdade (UFC 26), então a regra só vale a partir do TUF.
+    """
+    if not titulo or pd.isna(titulo):
+        return 0
+    if isinstance(formato, str) and formato.startswith("3 Rnd") and str(data) >= INICIO_TUF:
+        return 2
+    return 1
+
+
 def montar_lutas(df, datas_eventos, notas=None, estilos=None, posicoes=None):
     """Histórico de todas as lutas para a página de perfil (dados/lutas.json), da mais recente à mais antiga.
 
     {"eventos": [[nome, data, id], ...]  (id = código do evento no link do ufcstats, estável),
-     "lutas": [[evento (índice em eventos), categoria, método, round, tempo, cinturão, luta da noite,
+     "lutas": [[evento (índice em eventos), categoria, método, round, tempo, cinturão (0/1, 2 = final do TUF:
+                `tipo_de_disputa`), luta da noite,
                 performance da noite, lado_1, lado_2], ...]}
     lado = [nome, resultado W/L/D/NC, kd, sig acertados, sig tentados, quedas, quedas tentadas, controle_s,
             nota, [resultado, desempenho, adversário], posição no top 15 da categoria pelo Elo na véspera]
@@ -256,7 +274,7 @@ def montar_lutas(df, datas_eventos, notas=None, estilos=None, posicoes=None):
                   *([] if posicoes is None else [posicoes.get((l["Fight_URL"], l["Fighter"]))])] for _, l in luta.iterrows()]
         lutas.append([indice[primeira["Event_URL"]], primeira.get("Weight_Class") if pd.notna(primeira.get("Weight_Class")) else None,
                       primeira["Method"], inteiro(primeira["Final_Round"]), primeira["Time"],
-                      inteiro(primeira.get("Title_Bout", 0)) or 0, inteiro(primeira.get("Fight_Bonus", 0)) or 0,
+                      tipo_de_disputa(primeira.get("Title_Bout", 0), primeira.get("Time_Format"), primeira["Event_Date"]), inteiro(primeira.get("Fight_Bonus", 0)) or 0,
                       inteiro(primeira.get("Perf_Bonus", 0)) or 0, *lados])
     lutas.sort(key=lambda l: l[0])  # estável: mantém a ordem dentro do evento
     saida = {"gerado_em": date.today().isoformat(),
