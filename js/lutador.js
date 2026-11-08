@@ -1,21 +1,6 @@
 // Perfil do lutador (lutador.html?n=Nome): lê dados/lutadores.json (totais, foto, físico) e
 // dados/lutas.json (histórico de todas as lutas, gerado por montar_lutas em src/exportar.py).
 
-const METODOS = {
-  "Decision - Unanimous": "Decisão unânime",
-  "Decision - Split": "Decisão dividida",
-  "Decision - Majority": "Decisão majoritária",
-  "KO/TKO": "Nocaute",
-  "TKO - Doctor's Stoppage": "Nocaute (interrupção médica)",
-  "Submission": "Finalização",
-  "Overturned": "Resultado anulado",
-  "Could Not Continue": "Não pôde continuar",
-  "DQ": "Desclassificação",
-  "Other": "Outro",
-};
-const RESULTADOS = { W: "V", L: "D", D: "E", NC: "SR" };
-const RESULTADOS_LONGOS = { W: "Vitória", L: "Derrota", D: "Empate", NC: "Sem resultado" };
-
 // Grupo do método para "como vence / como perde" (mesmos grupos do Power BI)
 function grupoMetodo(metodo) {
   if (/KO\/TKO|TKO - Doctor/.test(metodo)) return "ko";
@@ -27,7 +12,6 @@ const GRUPOS = [["ko", "Nocaute"], ["sub", "Finalização"], ["dec", "Decisão"]
 
 const fmt1 = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
 const fmt2 = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
-const fmtData = (iso) => iso.split("-").reverse().join("/");
 
 // Estatísticas comparadas com a média da categoria. A média é "agrupada": soma dos numeradores de
 // todos os lutadores da categoria dividida pela soma dos denominadores (quem lutou mais pesa mais).
@@ -207,7 +191,11 @@ function historicoDeLutas(historico, porNome) {
       const caixa = elemento("div", "adversario");
       const dadosAdv = porNome.get(h.adv[0]) || { nome: h.adv[0] };
       const id = elemento("div", "identificacao");
-      id.append(linkNome(h.adv[0]), elemento("span", "sub-lutador", `${h.evento} · ${fmtData(h.data)}`));
+      const sub = elemento("span", "sub-lutador");
+      const linkEvento = elemento("a", "link-evento", h.evento);
+      linkEvento.href = linkEventoUrl(h.idEvento);
+      sub.append(linkEvento, ` · ${fmtData(h.data)}`);
+      id.append(linkNome(h.adv[0]), sub);
       caixa.append(avatar(dadosAdv, "pequeno"), id);
       adv.appendChild(caixa);
 
@@ -255,8 +243,8 @@ function montarHistorico(nome, dadosLutas) {
     const [evento, cat, metodo, round, tempo, titulo, lutaNoite, perf, a, b] = luta;
     const eu = a[0] === nome ? a : b[0] === nome ? b : null;
     if (!eu) continue;
-    const [nomeEvento, data] = dadosLutas.eventos[evento];
-    historico.push({ evento: nomeEvento, data, cat, metodo, round, tempo, titulo, lutaNoite, perf, eu, adv: eu === a ? b : a });
+    const [nomeEvento, data, idEvento] = dadosLutas.eventos[evento];
+    historico.push({ evento: nomeEvento, idEvento, data, cat, metodo, round, tempo, titulo, lutaNoite, perf, eu, adv: eu === a ? b : a });
   }
   return historico;
 }
@@ -272,7 +260,7 @@ async function iniciar() {
   try {
     [dados, dadosLutas] = await Promise.all([
       carregarLutadoresTudo(),
-      fetch("dados/lutas.json", { cache: "no-cache" }).then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }),
+      carregarLutas(),
     ]);
   } catch (erro) {
     principal.innerHTML = '<p class="erro">Não foi possível carregar os dados. Se abriu o arquivo direto do disco, rode um servidor local (python -m http.server).</p>';

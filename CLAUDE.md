@@ -38,14 +38,22 @@ ProjetoUFC/
 │   ├── fotos.py          # `python -m src.fotos`: foto de cada lutador no ufc.com -> data/raw/fotos.csv
 │   └── config.py         # constantes (COLUNAS_OF, COLUNAS_PCT)
 ├── dados/
-│   └── lutadores.json  # totais por lutador (VERSIONADO: o site lê daqui)
+│   ├── lutadores*.json  # totais por lutador, um por período (VERSIONADO: o site lê daqui)
+│   └── lutas.json      # histórico de todas as lutas, para perfil e eventos (VERSIONADO)
+├── css/
+│   └── site.css        # estilo comum (cores, barra do topo, avatar, tabelas, cartões)
 ├── js/
-│   └── interativo.js   # lógica da página interativa (Chart.js)
+│   ├── site.js         # barra do topo + busca + funções comuns (avatar, cartel, CATEGORIAS...)
+│   ├── interativo.js   # lógica da página interativa (Chart.js)
+│   ├── lutador.js      # página de perfil
+│   └── eventos.js      # lista de eventos e card de cada evento
 ├── powerbi/            # dados/*.csv (VERSIONADOS), medidas.dax, tema_ufc.json, README (roteiro)
 ├── tests/              # pytest: conftest.py (mini-dataset de 3 lutas) + test_*.py
 ├── pytest.ini          # testpaths = tests, pythonpath = .
 ├── index.html          # página estática publicada via GitHub Pages
 ├── interativo.html     # comparador de lutadores + montador de rankings
+├── lutador.html        # perfil do lutador (lutador.html?n=Nome)
+├── eventos.html        # eventos por ano; eventos.html?id=<código ufcstats> = card do evento
 ├── requirements.txt
 └── README.md
 ```
@@ -127,7 +135,7 @@ Definido em `src/visualizacao.py`:
   10. Homônimos (mesmo slug) ficam sem foto. O site só aponta para a URL (imagens não vão pro repo).
 
 ## Testes
-`python -m pytest` na raiz (59 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
+`python -m pytest` na raiz (60 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
 tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos CSVs
 limpos; `test_atualizar_historico.py` roda `atualizar(historico=True)` com um navegador falso; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
 e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
@@ -357,7 +365,36 @@ git merge develop
 git push origin main
 ```
 
+## Estrutura do site (estilo app de resultados, desde 2026-11-08)
+- Todas as páginas carregam `css/site.css` e `js/site.js` (ANTES do script da página). `site.js`
+  monta a barra do topo fixa (logo, menu Análises/Eventos/Rankings/Comparar, busca de lutador) e
+  define as funções/constantes globais comuns: `CATEGORIAS`, `BASES`, `METODOS`, `RESULTADOS`,
+  `normalizar`, `fmtData`, `cartel`, `idade`, `metros`, `anosDeUfc`, `iniciais`, `avatar`,
+  `linkPerfil`, `linkNome`, `identificacao`, `linkEventoUrl`, `carregarLutadoresTudo`,
+  `carregarLutas` (não redeclarar nos scripts de página). `<body data-pagina=...>` marca o item
+  ativo do menu. Busca: palavra que começa com o termo antes de "contém", depois mais lutas.
+- `dados/lutas.json` (`montar_lutas` em exportar.py, ~1,2 MB): `{"eventos": [[nome, data, id]],
+  "lutas": [[evento, cat, método, round, tempo, cinturão, luta_noite, performance, lado1, lado2]]}`,
+  lado = [nome, W/L/D/NC, kd, sl, sa, tdl, tda, ctrl] (null = sem estatística), vencedor primeiro;
+  id = código do evento no link do ufcstats (estável); dentro do evento, ordem do card (luta
+  principal primeiro) = ordem das linhas no CSV resumo, porque o scraper lê o evento de cima para baixo.
+- `lutador.html?n=Nome` (`js/lutador.js`): topo com foto, cartel, "Comparar" (leva a
+  interativo.html?a=Nome#comparador), fatos (idade, altura, envergadura, base, lutas, sequência
+  atual), "como vence e como perde" (Nocaute/Finalização/Decisão/Outros), estatísticas × média da
+  categoria (média agrupada dos lutadores da mesma `cat` com 3+ lutas com estatística; verde =
+  acima) e histórico com filtros; o evento de cada luta leva ao card do evento.
+- `eventos.html` (`js/eventos.js`): sem parâmetro, lista por ano (`?ano=`) com a luta principal e
+  filtro por evento/lutador (filtrar ignora o ano); com `?id=`, o card no formato placar (vencedor à
+  esquerda, perdedor apagado, método/round no centro, etiquetas de cinturão/bônus, golpes, quedas,
+  KD e controle dos dois lados).
+- Nomes no ranking, comparador, busca, histórico e eventos levam ao perfil.
+- Versões: `css/site.css?v=N`, `js/site.js?v=N`, `js/lutador.js?v=N`, `js/eventos.js?v=N` também
+  precisam subir a cada mudança (em TODAS as páginas que os carregam).
+
 ## Próximos passos / direção atual
+Ordem combinada (2026-11-08) para o site profissional: 1 estrutura comum + 2 perfil (feitos, PR #4);
+3 página de eventos (feita); 4 busca global (feita junto com 1); 5 análises do index em gráficos
+interativos com filtro de período; 6 acabamento (favicon, og:tags, "atualizado em", página Sobre).
 Projeto já é considerado pronto para uso em currículo como está. Trabalho
 atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
 `interativo.html`, a versão **interativa** (1ª versão):
