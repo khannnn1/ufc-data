@@ -4,237 +4,134 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>UFC Data — Análise Estatística de MMA</title>
+<meta name="description" content="Estatísticas de todas as lutas do UFC desde 1994: como as lutas terminam, o que separa vencedores de perdedores, rankings, perfis de lutadores e eventos.">
 <link rel="stylesheet" href="css/site.css?v=2">
 <style>
-  header {
-    padding: 60px 20px 40px;
-    text-align: center;
-    border-bottom: 1px solid var(--grid-line);
+  .capa { padding: 8px 0 4px; }
+  .capa h1 { font-size: 2rem; margin: 0 0 6px; line-height: 1.15; }
+  .capa h1 span { color: var(--vermelho); }
+  .capa p { color: var(--muted); margin: 0; max-width: 700px; }
+
+  /* Período */
+  .periodo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 20px 0 14px; }
+  .periodo .rotulo { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .segmentos { display: inline-flex; border: 1px solid var(--grid-line); border-radius: 20px; padding: 3px; background: var(--card-bg); flex-wrap: wrap; }
+  .segmentos button {
+    background: transparent; color: var(--muted); border: 0; border-radius: 16px; padding: 6px 14px;
+    font: inherit; font-size: 0.85rem; cursor: pointer;
   }
-  header h1 {
-    font-size: 2.2rem;
-    margin: 0 0 12px;
+  .segmentos button[aria-pressed="true"] { background: var(--text); color: var(--bg); font-weight: 600; }
+  .segmentos button:focus-visible { outline: 2px solid var(--azul); outline-offset: 1px; }
+  .periodo .datas { color: var(--muted); font-size: 0.82rem; }
+
+  /* Números-chave */
+  .numeros { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--grid-line);
+             border: 1px solid var(--grid-line); border-radius: var(--raio); overflow: hidden; margin-bottom: 20px; }
+  .numero { background: var(--card-bg); padding: 14px 18px; }
+  .numero .valor { font-size: 1.8rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.2; }
+  .numero .rotulo { color: var(--muted); font-size: 0.8rem; }
+
+  /* Cartões das análises */
+  .analises { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .analise { display: flex; flex-direction: column; min-width: 0; }
+  .analise.larga { grid-column: 1 / -1; }
+  .analise h2 { font-size: 1.05rem; color: var(--text); text-transform: none; letter-spacing: 0; margin: 0 0 4px; }
+  .analise .destaque { color: var(--muted); font-size: 0.88rem; margin: 0 0 12px; }
+  .analise .destaque strong { color: var(--text); }
+  .analise .area { position: relative; flex: 1; min-height: 240px; }
+  .analise .nota { color: var(--muted); font-size: 0.76rem; margin: 10px 0 0; }
+  .legenda { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.8rem; color: var(--muted); margin: 0 0 8px; }
+  .legenda i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  details.tabela { margin-top: 10px; font-size: 0.82rem; }
+  details.tabela summary { color: var(--muted); cursor: pointer; }
+  details.tabela table { margin-top: 8px; width: 100%; }
+  details.tabela td, details.tabela th { padding: 4px 8px; text-align: right; font-variant-numeric: tabular-nums; }
+  details.tabela td:first-child, details.tabela th:first-child { text-align: left; }
+
+  /* Comparações em pares (vencedores × perdedores, cinturão × demais) */
+  .pares .par { padding: 8px 0; border-bottom: 1px solid var(--grid-line); }
+  .pares .par:last-child { border-bottom: none; }
+  .pares .cabecalho { display: flex; justify-content: space-between; gap: 12px; font-size: 0.88rem; margin-bottom: 4px; }
+  .pares .cabecalho .razao { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .pares .barra { display: grid; grid-template-columns: minmax(0, 1fr) 64px; gap: 8px; align-items: center; margin: 3px 0; }
+  .pares .trilho { height: 8px; border-radius: 4px; background: var(--grid-line); overflow: hidden; }
+  .pares .trilho span { display: block; height: 100%; border-radius: 4px; }
+  .pares .valor { font-size: 0.82rem; text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* Barras 100% (alvo e origem dos golpes) */
+  .empilhadas .linha { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; align-items: center; margin: 8px 0; font-size: 0.85rem; }
+  .empilhadas .faixa { display: flex; height: 22px; gap: 2px; }
+  .empilhadas .faixa span { display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600;
+                            color: var(--text); min-width: 0; overflow: hidden; white-space: nowrap; }
+  .empilhadas .faixa span:first-child { border-radius: 4px 0 0 4px; }
+  .empilhadas .faixa span:last-child { border-radius: 0 4px 4px 0; }
+
+  .cor-vermelho { background: var(--vermelho); }
+  .cor-azul { background: var(--azul); }
+  .cor-amarelo { background: var(--amarelo); }
+  .cor-cinza { background: #555; }
+
+  /* Atalhos para os rankings */
+  .secao-titulo { font-size: 1.2rem; margin: 32px 0 4px; }
+  .secao-sub { color: var(--muted); margin: 0 0 14px; font-size: 0.9rem; }
+  .atalhos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .atalhos a {
+    display: block; background: var(--card-bg); border: 1px solid var(--grid-line); border-radius: var(--raio);
+    padding: 14px 16px; text-decoration: none;
   }
-  header h1 span { color: var(--vermelho); }
-  header p {
-    color: var(--muted);
-    max-width: 600px;
-    margin: 0 auto;
+  .atalhos a:hover, .atalhos a:focus-visible { background: var(--card-hover); border-color: #444; outline: none; }
+  .atalhos strong { display: block; }
+  .atalhos span { color: var(--muted); font-size: 0.8rem; }
+  .mais { margin-top: 28px; color: var(--muted); font-size: 0.9rem; }
+  .mais a { color: var(--text); }
+
+  @media (max-width: 860px) {
+    .analises { grid-template-columns: minmax(0, 1fr); }
+    .atalhos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
-  .badges {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
+  @media (max-width: 560px) {
+    .capa h1 { font-size: 1.55rem; }
+    .numeros { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .segmentos button { padding: 6px 10px; font-size: 0.8rem; }
+    .numero .valor { font-size: 1.4rem; }
+    .cartao-p { padding: 14px; }
+    .empilhadas .linha { grid-template-columns: 76px minmax(0, 1fr); }
   }
-  .badge {
-    background: var(--card-bg);
-    border: 1px solid var(--grid-line);
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    color: var(--muted);
-  }
-  .cta {
-    display: inline-block;
-    margin-top: 24px;
-    padding: 10px 18px;
-    border-radius: 8px;
-    background: var(--vermelho);
-    color: var(--text);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.95rem;
-  }
-  .cta:hover { filter: brightness(1.1); }
-  main {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 50px 20px;
-  }
-  .grafico {
-    margin-bottom: 60px;
-  }
-  .grafico h2 {
-    font-size: 1.2rem;
-    border-left: 4px solid var(--vermelho);
-    padding-left: 12px;
-    margin-bottom: 16px;
-  }
-  .grafico img {
-    width: 100%;
-    border-radius: 10px;
-    border: 1px solid var(--grid-line);
-    display: block;
-  }
-  .grafico p.legenda {
-    color: var(--muted);
-    font-size: 0.9rem;
-    margin-top: 10px;
-  }
-  footer {
-    text-align: center;
-    padding: 40px 20px 60px;
-    color: var(--muted);
-    font-size: 0.85rem;
-    border-top: 1px solid var(--grid-line);
-  }
-  footer a { color: var(--azul); text-decoration: none; }
-  footer a:hover { text-decoration: underline; }
 </style>
 </head>
 <body data-pagina="index">
 
-<header>
-  <h1>UFC <span>Data</span></h1>
-  <p>Coleta, tratamento e visualização de dados de lutas do UFC, com estilo editorial inspirado em contas de dados esportivos.</p>
-  <div class="badges">
-    <span class="badge">795 eventos · 1994 a 2026</span>
-    <span class="badge">8.974 lutas · 2.776 lutadores</span>
-    <span class="badge">Python · Selenium · Pandas · Matplotlib</span>
-  </div>
-  <a class="cta" href="interativo.html">Explore os dados: compare lutadores e monte rankings →</a>
-</header>
-
 <main>
+  <section class="capa">
+    <h1>UFC <span>Data</span></h1>
+    <p>Estatísticas de todas as lutas do UFC desde 1994: como as lutas terminam, o que separa vencedores de perdedores e quem lidera cada ranking. Escolha o período e todos os números da página mudam junto.</p>
+  </section>
 
-  <div class="grafico">
-    <h2>Métodos de vitória mais comuns</h2>
-    <img src="figures/metodos_vitoria.png" alt="Métodos de vitória mais comuns">
-    <p class="legenda">Decisões unânimes e nocautes dominam o cenário, seguidos por finalizações.</p>
+  <div class="periodo">
+    <span class="rotulo" id="rotulo-periodo">Período</span>
+    <div class="segmentos" id="periodos" role="group" aria-labelledby="rotulo-periodo"></div>
+    <span class="datas" id="datas-periodo"></span>
   </div>
 
-  <div class="grafico">
-    <h2>Em que round as lutas terminam</h2>
-    <img src="figures/round_final_por_metodo.png" alt="Percentual de nocautes e de finalizações em cada round">
-    <p class="legenda">Considera as 4.703 lutas encerradas por nocaute ou finalização, em percentual dentro de cada método. Mais da metade dos dois acontece no 1º round (54% dos nocautes, 51% das finalizações); a partir daí, cada round seguinte encerra cerca de metade do anterior.</p>
+  <div class="numeros" id="numeros" aria-live="polite"></div>
+
+  <div class="analises" id="analises">
+    <p class="carregando">Carregando…</p>
   </div>
 
-  <div class="grafico">
-    <h2>Lutas encerradas antes da decisão, por categoria de peso</h2>
-    <img src="figures/finalizacoes_por_categoria.png" alt="Percentual de lutas encerradas por nocaute e por finalização em cada categoria de peso">
-    <p class="legenda">Nocaute em azul, finalização em vermelho, uma linha por luta. Quanto mais pesada a categoria, mais lutas terminam antes da decisão: o peso-pesado lidera (66%), com metade das lutas acabando em nocaute (52%) e a menor taxa de finalizações (14%). Nas categorias mais leves e nas femininas os nocautes caem pela metade e a finalização passa a pesar tanto quanto eles; o palha feminino fecha a lista, com 34%. Ficam de fora o peso casado e o peso aberto dos primeiros torneios, que não são divisões.</p>
-  </div>
+  <h2 class="secao-titulo">Rankings</h2>
+  <p class="secao-sub">Os líderes de cada estatística no período escolhido, com filtros por categoria, base e idade.</p>
+  <div class="atalhos" id="atalhos"></div>
 
-  <div class="grafico">
-    <h2>Lutas encerradas antes da decisão, por árbitro</h2>
-    <img src="figures/arbitros_finalizacoes.png" alt="Percentual de lutas encerradas antes da decisão para os 10 árbitros com mais lutas">
-    <p class="legenda">Os 10 árbitros com mais lutas no histórico: a taxa vai de 45% a 65%, em torno da média geral de 52%. John McCarthy, no topo, apitou boa parte das lutas dos anos 1990 e 2000, quando as lutas terminavam mais cedo. O árbitro não decide como a luta termina; a diferença reflete sobretudo as lutas que cada um recebe.</p>
-  </div>
-
-  <div class="grafico">
-    <h2>O que separa vencedores de perdedores</h2>
-    <img src="figures/vencedores_vs_perdedores.png" alt="Médias por luta de vencedores e perdedores: golpes, quedas, controle, finalizações e knockdowns">
-    <p class="legenda">Médias por luta em 8.817 lutas com vencedor definido. A maior diferença está nos knockdowns (cerca de 6×); a menor, nos golpes significativos (1,5×). É associação, não causa: um knockdown muitas vezes já é o começo do fim da luta.</p>
-  </div>
-
-  <div class="grafico">
-    <h2>Idade pesa mais que envergadura</h2>
-    <img src="figures/idade_vs_envergadura.png" alt="Percentual de vitórias do lutador mais novo e do lutador com mais envergadura, por faixa de diferença">
-    <p class="legenda">Em 8.689 lutas com vencedor e idade conhecida dos dois, o mais novo venceu 57% das vezes, e 67% quando a diferença passa de 8 anos. Já a envergadura, tão citada nas transmissões, fica perto de cara ou coroa: quem alcança mais longe venceu 52% (6.756 lutas), e só 55% com 4 polegadas (~10 cm) ou mais de vantagem. Lutadores antigos sem envergadura registrada ficam de fora. Idade na data da luta; dados físicos da página de cada lutador no ufcstats.</p>
-  </div>
-
-  <div class="grafico">
-    <h2>A vantagem do canhoto existe, mas é pequena</h2>
-    <img src="figures/base_canhoto_vs_ortodoxo.png" alt="Percentual de vitórias por confronto de bases (canhoto, ortodoxo, troca de base), com intervalo de confiança de 95%">
-    <p class="legenda">Só 17% do elenco luta como canhoto, e a ideia de que isso confunde o adversário é antiga. Nos 2.470 confrontos entre canhoto e ortodoxo com vencedor, o canhoto venceu 53%, com intervalo de 95% de 51% a 55%: com o histórico completo, a vantagem deixa de caber no acaso, mas segue pequena. Quem troca de base fica perto do empate contra ortodoxos (52%, intervalo de 48% a 56%) e contra canhotos (54% em 197 lutas, intervalo de 47% a 61%). Não entram lutas entre lutadores da mesma base.</p>
-  </div>
-
-  <div class="grafico">
-    <h2>Disputas de cinturão: duram mais e levam mais bônus</h2>
-    <img src="figures/disputas_de_cinturao.png" alt="Comparação entre disputas de cinturão e demais lutas: duração, golpes por minuto, knockdowns e bônus">
-    <p class="legenda">As 503 disputas de cinturão duram em média 14,7 minutos, contra 10,3 das demais lutas, porque são marcadas para 5 rounds. Por minuto, o ritmo é até um pouco menor: 3,3 golpes significativos acertados por lutador, contra 3,5, e menos knockdowns (0,26 contra 0,31 a cada 15 minutos). A diferença está nos bônus: 15% das disputas levam Luta da Noite, 2,4× a taxa das demais, e 29% levam Performance da Noite, contra 19%. Parte disso vem da posição no card, porque a luta principal é a mais vista.</p>
-  </div>
-
-  <div class="grafico">
-    <h2>O que faz uma Luta da Noite</h2>
-    <img src="figures/luta_da_noite.png" alt="Comparação entre as Lutas da Noite e as demais lutas: ritmo, knockdowns, ida e volta, equilíbrio, controle e decisões">
-    <p class="legenda">Nas 612 Lutas da Noite do histórico, os lutadores acertam 4,8 golpes significativos por minuto, contra 3,4 nas demais. O perdedor também derrubou o adversário em 17% delas, quase 4× mais que no resto, e há menos tempo de controle no chão (31% da luta, contra 42%). Parece contraditório, mas 58% terminam na decisão, contra 45% das demais: a finalização rápida costuma levar outro bônus, a Performance da Noite. A Luta da Noite premia a troca longa e equilibrada.</p>
-  </div>
-
-  <div class="grafico">
-    <h2>Top 10 por precisão de golpes significativos</h2>
-    <img src="figures/top10_precisao.png" alt="Top 10 por precisão de golpes">
-    <p class="legenda">Considerando apenas lutadores com pelo menos 50 tentativas de golpe no histórico.</p>
-  </div>
-
-  <div class="grafico">
-    <h2>Volume × precisão de golpes</h2>
-    <img src="figures/volume_vs_precisao.png" alt="Dispersão de volume (golpes significativos tentados por minuto) contra precisão, com os lutadores extremos destacados">
-    <p class="legenda">Cada ponto é um dos 1.608 lutadores com pelo menos 4 lutas no histórico. O volume é medido por minuto de luta, para não penalizar quem finaliza cedo. Volume e precisão quase não se relacionam: há lutadores de todos os estilos nos quatro quadrantes.</p>
-  </div>
-
-  <div class="grafico">
-    <h2>Onde os golpes acertam</h2>
-    <img src="figures/alvo_dos_golpes.png" alt="Percentual de golpes significativos na cabeça, no corpo e na perna: média geral e lutadores mais especializados em cada alvo">
-    <p class="legenda">Na média, 63% dos golpes significativos acertam a cabeça. Abaixo, os 3 lutadores mais especializados em cada alvo (mín. 150 golpes acertados): há quem passe de 90% na cabeça e quem acerte mais nas pernas do que em qualquer outro lugar.</p>
-  </div>
-
-  <div class="grafico">
-    <h2>De onde saem os golpes</h2>
-    <img src="figures/origem_dos_golpes.png" alt="Percentual de golpes significativos à distância, no clinch e no chão: geral, vencedores, perdedores e lutadores mais especializados">
-    <p class="legenda">74% dos golpes significativos acertados saem à distância. A diferença está no chão: vencedores acertam 18% dos golpes por lá, contra 6% dos perdedores. Abaixo, os 3 lutadores mais especializados em cada posição (mín. 150 golpes acertados).</p>
-  </div>
-
-  <div class="grafico">
-    <h2>Top 10 por número de vitórias</h2>
-    <img src="figures/top10_vitorias.png" alt="Top 10 por número de vitórias">
-    <p class="legenda">Contagem absoluta de vitórias no histórico: favorece quem lutou mais vezes, não necessariamente quem tem a maior taxa de vitória. Em empate, aparece antes quem precisou de menos lutas.</p>
-  </div>
-
-  <div class="grafico">
-    <h2>Top 10 por taxa de vitória</h2>
-    <img src="figures/top10_taxa_vitoria.png" alt="Top 10 lutadores por taxa de vitória, com o cartel de cada um">
-    <p class="legenda">Corrige o viés do ranking acima: considera só lutadores com pelo menos 6 lutas no histórico e mostra o cartel ao lado da taxa. Empates na taxa são desempatados pelo número de vitórias.</p>
-  </div>
-
-  <div class="grafico">
-    <h2>Top 10 por nocautes (KO/TKO)</h2>
-    <img src="figures/top10_nocautes.png" alt="Top 10 por nocautes (KO/TKO)">
-    <p class="legenda">Vitórias por KO/TKO no histórico.</p>
-  </div>
-
-  <div class="grafico">
-    <h2>Top 10 por finalizações</h2>
-    <img src="figures/top10_finalizacoes.png" alt="Top 10 por finalizações">
-    <p class="legenda">Vitórias por submission no histórico.</p>
-  </div>
-
-  <div class="grafico">
-    <h2>Top 10 por Knockdowns</h2>
-    <img src="figures/top10_kd.png" alt="Top 10 por Knockdowns">
-  </div>
-
-  <div class="grafico">
-    <h2>Top 10 por tempo de controle</h2>
-    <img src="figures/top10_ctrl.png" alt="Top 10 por tempo de controle">
-  </div>
-
-  <div class="grafico">
-    <h2>Top 10 por precisão de quedas</h2>
-    <img src="figures/top10_precisao_quedas.png" alt="Top 10 lutadores por precisão de quedas, com quedas conseguidas e tentadas">
-    <p class="legenda">Quedas conseguidas sobre tentadas, para lutadores com pelo menos 15 tentativas e 3 lutas no histórico. Os 10 primeiros acertam de 69% a 83%, perto do dobro da média geral (37%).</p>
-  </div>
-
-  <div class="grafico">
-    <h2>Comparação direta entre lutadores</h2>
-    <img src="figures/comparacao_Islam_Makhachev_vs_Merab_Dvalishvili.png" alt="Comparação Islam Makhachev vs Merab Dvalishvili">
-    <p class="legenda">Médias por luta, com o número de lutas na amostra exibido na legenda para transparência estatística.</p>
-  </div>
-
-  <div class="grafico">
-    <h2>Evolução de golpes significativos por round</h2>
-    <img src="figures/evolucao_golpes_por_round.png" alt="Evolução de golpes por round">
-    <p class="legenda">O aumento ao longo dos rounds provavelmente reflete viés de sobrevivência: rounds avançados só existem em lutas de decisão/atrito.</p>
-  </div>
-
+  <p class="mais">Também há <a href="graficos.html">gráficos fixos do histórico</a> (idade × envergadura, canhoto × ortodoxo, o que faz uma Luta da Noite), o <a href="interativo.html#comparador">comparador de lutadores</a> e o <a href="eventos.html">card de cada evento</a>.</p>
 </main>
 
 <footer>
-  Projeto de <a href="https://github.com/khannnn1/ufc-data">código aberto no GitHub</a> · Dados de <a href="http://ufcstats.com">ufcstats.com</a>
+  Projeto de <a href="https://github.com/khannnn1/ufc-data">código aberto no GitHub</a> · Dados de <a href="http://ufcstats.com">ufcstats.com</a> · <span id="atualizado"></span>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="js/site.js?v=2"></script>
+<script src="js/analises.js?v=1"></script>
 </body>
 </html>

@@ -32,6 +32,7 @@ ProjetoUFC/
 │   ├── limpeza.py        # tratamento de dados
 │   ├── visualizacao.py   # estilo e funções de plotagem
 │   ├── exportar.py       # gera dados/lutadores.json para o site interativo
+│   ├── analises.py       # números das análises da página inicial (chamado pelo exportar)
 │   ├── banco.py          # monta data/ufc.db (SQLite) a partir dos CSVs limpos
 │   ├── consultas.py      # lê e executa as consultas de sql/consultas.sql
 │   ├── powerbi.py        # modelo estrela em CSV para o Power BI (powerbi/dados/)
@@ -39,18 +40,21 @@ ProjetoUFC/
 │   └── config.py         # constantes (COLUNAS_OF, COLUNAS_PCT)
 ├── dados/
 │   ├── lutadores*.json  # totais por lutador, um por período (VERSIONADO: o site lê daqui)
-│   └── lutas.json      # histórico de todas as lutas, para perfil e eventos (VERSIONADO)
+│   ├── lutas.json      # histórico de todas as lutas, para perfil e eventos (VERSIONADO)
+│   └── analises.json   # análises da página inicial, um bloco por período (VERSIONADO)
 ├── css/
 │   └── site.css        # estilo comum (cores, barra do topo, avatar, tabelas, cartões)
 ├── js/
 │   ├── site.js         # barra do topo + busca + funções comuns (avatar, cartel, CATEGORIAS...)
 │   ├── interativo.js   # lógica da página interativa (Chart.js)
 │   ├── lutador.js      # página de perfil
+│   ├── analises.js     # página inicial (lê dados/analises.json)
 │   └── eventos.js      # lista de eventos e card de cada evento
 ├── powerbi/            # dados/*.csv (VERSIONADOS), medidas.dax, tema_ufc.json, README (roteiro)
 ├── tests/              # pytest: conftest.py (mini-dataset de 3 lutas) + test_*.py
 ├── pytest.ini          # testpaths = tests, pythonpath = .
-├── index.html          # página estática publicada via GitHub Pages
+├── index.html          # página inicial: análises interativas com filtro de período (js/analises.js)
+├── graficos.html       # os PNGs de figures/ com legendas (antiga página inicial)
 ├── interativo.html     # comparador de lutadores + montador de rankings
 ├── lutador.html        # perfil do lutador (lutador.html?n=Nome)
 ├── eventos.html        # eventos por ano; eventos.html?id=<código ufcstats> = card do evento
@@ -135,7 +139,7 @@ Definido em `src/visualizacao.py`:
   10. Homônimos (mesmo slug) ficam sem foto. O site só aponta para a URL (imagens não vão pro repo).
 
 ## Testes
-`python -m pytest` na raiz (60 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
+`python -m pytest` na raiz (66 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
 tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos CSVs
 limpos; `test_atualizar_historico.py` roda `atualizar(historico=True)` com um navegador falso; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
 e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
@@ -222,8 +226,8 @@ lutador que falte, ~1 s cada; salva a cada 25), junta categoria/bônus e
 `Fighter_URL` ao resumo limpo (`adicionar_dados_das_lutas`), grava
 `data/processed/lutadores.csv` (`limpar_lutadores`) e regenera
 `dados/lutadores.json` e `data/ufc.db`. `--graficos` também reexecuta os
-notebooks 02 e 03. Textos com números fixos (badges/legendas do
-`index.html`, README) NÃO se atualizam sozinhos. Testado de ponta a ponta
+notebooks 02 e 03. Textos com números fixos (cabeçalho/legendas do
+`graficos.html`, README) NÃO se atualizam sozinhos. Testado de ponta a ponta
 numa cópia da base sem o UFC 331: recoletou o evento idêntico ao original.
 `--historico` lê a listagem inteira (`?page=all`) e coleta TODOS os eventos que
 faltam, inclusive os mais antigos; `--limite N` coleta só N nesta execução.
@@ -388,13 +392,20 @@ git push origin main
   esquerda, perdedor apagado, método/round no centro, etiquetas de cinturão/bônus, golpes, quedas,
   KD e controle dos dois lados).
 - Nomes no ranking, comparador, busca, histórico e eventos levam ao perfil.
+- `index.html` (`js/analises.js`, desde 2026-11-08): botões de período (mesmas chaves de `PERIODOS`, na URL
+  como `?p=`), números-chave e 9 cartões (métodos, round final, categorias, vencedores × perdedores, cinturão,
+  alvo, origem, golpes por round, árbitros) + atalhos para cada ranking (`interativo.html?m=...&p=...#ranking`).
+  Dados em `dados/analises.json` (`montar_analises` em src/analises.py, mesmas contas dos PNGs), gerado por
+  `exportar_lutadores` junto com os lutadores*.json. Os textos de destaque são montados no JS a partir dos números
+  do período (nada fixo). Gráficos Chart.js só são criados DEPOIS de o cartão entrar na página (`pendentes`):
+  criado num canvas solto, fica com tamanho 0 e não desenha. Os PNGs com legendas ficaram em `graficos.html`.
 - Versões: `css/site.css?v=N`, `js/site.js?v=N`, `js/lutador.js?v=N`, `js/eventos.js?v=N` também
   precisam subir a cada mudança (em TODAS as páginas que os carregam).
 
 ## Próximos passos / direção atual
 Ordem combinada (2026-11-08) para o site profissional: 1 estrutura comum + 2 perfil (feitos, PR #4);
 3 página de eventos (feita); 4 busca global (feita junto com 1); 5 análises do index em gráficos
-interativos com filtro de período; 6 acabamento (favicon, og:tags, "atualizado em", página Sobre).
+interativos com filtro de período (feita); 6 acabamento (favicon, og:tags, "atualizado em", página Sobre).
 Projeto já é considerado pronto para uso em currículo como está. Trabalho
 atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
 `interativo.html`, a versão **interativa** (1ª versão):
