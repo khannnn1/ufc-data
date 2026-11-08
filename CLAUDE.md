@@ -55,6 +55,9 @@ ProjetoUFC/
 ├── pytest.ini          # testpaths = tests, pythonpath = .
 ├── index.html          # página inicial: análises interativas com filtro de período (js/analises.js)
 ├── graficos.html       # os PNGs de figures/ com legendas (antiga página inicial)
+├── sobre.html          # sobre o projeto: fontes, como é feito, metodologia, limitações
+├── favicon.svg         # ícone (3 barras vermelho/azul/amarelo); img/icone-180.png = apple-touch-icon
+├── img/og.png          # prévia de link 1200×630 (og:image) — números FIXOS, refazer se a base mudar muito
 ├── interativo.html     # comparador de lutadores + montador de rankings
 ├── lutador.html        # perfil do lutador (lutador.html?n=Nome)
 ├── eventos.html        # eventos por ano; eventos.html?id=<código ufcstats> = card do evento
@@ -392,6 +395,10 @@ git push origin main
   esquerda, perdedor apagado, método/round no centro, etiquetas de cinturão/bônus, golpes, quedas,
   KD e controle dos dois lados).
 - Nomes no ranking, comparador, busca, histórico e eventos levam ao perfil.
+- Cabeçalho de todas as páginas: description, favicon, og:/twitter: com `img/og.png` (URLs absolutas do
+  GitHub Pages); página nova precisa do mesmo bloco. Rodapé montado por `montarRodape` em site.js (fontes,
+  link para sobre.html e "Base atualizada em ... · último evento em ..." de `dados/analises.json`, via
+  `carregarAnalises`); o `<footer>` do HTML é só o padrão sem JavaScript.
 - `index.html` (`js/analises.js`, desde 2026-11-08): botões de período (mesmas chaves de `PERIODOS`, na URL
   como `?p=`), números-chave e 9 cartões (métodos, round final, categorias, vencedores × perdedores, cinturão,
   alvo, origem, golpes por round, árbitros) + atalhos para cada ranking (`interativo.html?m=...&p=...#ranking`).
@@ -405,7 +412,7 @@ git push origin main
 ## Próximos passos / direção atual
 Ordem combinada (2026-11-08) para o site profissional: 1 estrutura comum + 2 perfil (feitos, PR #4);
 3 página de eventos (feita); 4 busca global (feita junto com 1); 5 análises do index em gráficos
-interativos com filtro de período (feita); 6 acabamento (favicon, og:tags, "atualizado em", página Sobre).
+interativos com filtro de período (feita); 6 acabamento (feito: favicon, og:tags, "atualizado em", página Sobre).
 Projeto já é considerado pronto para uso em currículo como está. Trabalho
 atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
 `interativo.html`, a versão **interativa** (1ª versão):
