@@ -39,22 +39,65 @@ function elemento(tag, classe, texto) {
 
 // ---------- Blocos da página ----------
 
-function topo(l, historico) {
+function topo(l, historico, estilo) {
   const secao = elemento("section", "perfil-topo");
   secao.appendChild(avatar(l, "enorme"));
   const titulo = elemento("div", "titulo");
   titulo.appendChild(elemento("h1", "", l.nome));
   titulo.appendChild(elemento("div", "sub",
-    [l.cat ? (CATEGORIAS[l.cat] || l.cat) : "", l.anos ? `UFC ${anosDeUfc(l)}` : ""].filter(Boolean).join(" · ")));
+    [l.cat ? (CATEGORIAS[l.cat] || l.cat) : "", l.anos ? `UFC ${anosDeUfc(l)}` : "", estilo ? `Estilo: ${estilo}` : ""].filter(Boolean).join(" · ")));
   const c = elemento("div", "cartel-grande", cartel(l));
   c.appendChild(elemento("small", "", "cartel no UFC"));
   titulo.appendChild(c);
   const acoes = elemento("div", "acoes");
+  const notas = historico.filter((h) => h.eu[8] != null).map((h) => h.eu[8]);
+  if (notas.length) {
+    const media = mediaDasNotas(notas);
+    const ultimas = mediaDasNotas(notas.slice(0, 5));
+    const bloco = elemento("div", "nota-media");
+    const grande = seloNota(media);
+    grande.classList.add("grande");
+    const texto = elemento("div", "texto-nota");
+    texto.append(elemento("strong", "", "Nota média"), elemento("span", "", `${notas.length} ${notas.length === 1 ? "luta" : "lutas"}`));
+    if (notas.length > 5) texto.append(elemento("span", "", `Últimas 5: ${fmtNota(ultimas)}`));
+    bloco.append(grande, texto);
+    acoes.appendChild(bloco);
+  }
   const comparar = elemento("a", "botao", "Comparar com outro lutador");
   comparar.href = `interativo.html?a=${encodeURIComponent(l.nome)}#comparador`;
   acoes.appendChild(comparar);
   secao.append(titulo, acoes);
   return secao;
+}
+
+// Nota de cada luta, da mais antiga à mais recente, em barras (altura = nota, de 3 a 10)
+function notasPorLuta(historico, estilos) {
+  const lutas = historico.filter((h) => h.eu[8] != null).reverse();
+  if (lutas.length < 2) return null;
+  const cartao = elemento("section", "cartao-p notas-luta");
+  cartao.appendChild(elemento("h2", "", "Nota em cada luta"));
+  const grafico = elemento("div", "barras-notas");
+  grafico.setAttribute("role", "list");
+  const altura = (n) => `${((n - 3) / 7) * 100}%`;
+  const base = elemento("div", "linha-base");
+  base.style.bottom = altura(NOTA_BASE);
+  base.title = "Nota base 6,6";
+  grafico.appendChild(base);
+  for (const h of lutas) {
+    const barra = elemento("a", `barra-nota ${classeNota(h.eu[8])}`);
+    barra.href = linkEventoUrl(h.idEvento);
+    barra.setAttribute("role", "listitem");
+    barra.style.height = altura(h.eu[8]);
+    const texto = `${fmtNota(h.eu[8])} · ${RESULTADOS_LONGOS[h.eu[1]] || h.eu[1]} contra ${h.adv[0]} · ${h.evento}, ${fmtData(h.data)}`;
+    barra.title = texto;
+    barra.setAttribute("aria-label", texto);
+    if (lutas.length <= 24) barra.appendChild(elemento("span", "valor-barra", fmtNota(h.eu[8])));
+    grafico.appendChild(barra);
+  }
+  const eixo = elemento("div", "eixo-notas");
+  eixo.append(elemento("span", "", lutas[0].data.slice(0, 4)), elemento("span", "", "linha tracejada: nota base 6,6"), elemento("span", "", lutas.at(-1).data.slice(0, 4)));
+  cartao.append(grafico, eixo);
+  return cartao;
 }
 
 // Sequência atual: vitórias ou derrotas seguidas a partir da luta mais recente (empate/NC interrompe)
@@ -163,7 +206,7 @@ function estatisticas(l, todos) {
   return cartao;
 }
 
-function historicoDeLutas(historico, porNome) {
+function historicoDeLutas(historico, porNome, estilos, nomeLutador) {
   const cartao = elemento("section", "cartao-p");
   cartao.appendChild(elemento("h2", "", `Histórico de lutas (${historico.length})`));
 
@@ -172,7 +215,7 @@ function historicoDeLutas(historico, porNome) {
   const tabelaWrap = elemento("div", "tabela-wrap");
   const tabela = elemento("table", "historico");
   tabela.innerHTML = `<caption class="visualmente-oculto">Histórico de lutas, da mais recente à mais antiga</caption>
-    <thead><tr><th>Res.</th><th>Adversário</th><th>Método</th><th class="num col-golpes" title="Golpes significativos acertados: lutador × adversário">Golpes sig.</th></tr></thead>`;
+    <thead><tr><th>Res.</th><th title="Nota da luta, de 0 a 10">Nota</th><th>Adversário</th><th>Método</th><th class="num col-golpes" title="Golpes significativos acertados: lutador × adversário">Golpes sig.</th></tr></thead>`;
   const corpo = elemento("tbody");
   tabela.appendChild(corpo);
   tabelaWrap.appendChild(tabela);
@@ -186,6 +229,9 @@ function historicoDeLutas(historico, porNome) {
       const selo = elemento("span", `resultado ${h.eu[1]}`, RESULTADOS[h.eu[1]] || h.eu[1]);
       selo.title = RESULTADOS_LONGOS[h.eu[1]] || h.eu[1];
       res.appendChild(selo);
+      const nota = elemento("td");
+      if (h.eu[8] != null) nota.appendChild(seloNota(h.eu[8], h.eu[9], { nome: nomeLutador, estilo: estilos[nomeLutador] }));
+      else nota.textContent = "—";
 
       const adv = elemento("td");
       const caixa = elemento("div", "adversario");
@@ -214,10 +260,10 @@ function historicoDeLutas(historico, porNome) {
       } else {
         golpes.textContent = "—";
       }
-      tr.append(res, adv, met, golpes);
+      tr.append(res, nota, adv, met, golpes);
       corpo.appendChild(tr);
     }
-    if (!lista.length) corpo.innerHTML = '<tr><td colspan="4" class="sub-lutador">Nenhuma luta neste filtro.</td></tr>';
+    if (!lista.length) corpo.innerHTML = '<tr><td colspan="5" class="sub-lutador">Nenhuma luta neste filtro.</td></tr>';
   }
 
   for (const [chave, rotulo] of opcoes) {
@@ -280,7 +326,11 @@ async function iniciar() {
   principal.innerHTML = "";
   const grade = elemento("div", "grade");
   grade.append(metodos(historico), estatisticas(l, dados.lutadores));
-  principal.append(topo(l, historico), fatos(l, historico), grade, historicoDeLutas(historico, porNome));
+  const estilos = dadosLutas.estilos || {};
+  principal.append(topo(l, historico, estilos[l.nome]), fatos(l, historico));
+  const notas = notasPorLuta(historico, estilos);
+  if (notas) principal.appendChild(notas);
+  principal.append(grade, historicoDeLutas(historico, porNome, estilos, l.nome));
 }
 
 iniciar();

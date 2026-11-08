@@ -18,7 +18,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="css/site.css?v=3">
+<link rel="stylesheet" href="css/site.css?v=4">
 <style>
   /* Topo do perfil */
   .perfil-topo { display: flex; gap: 24px; align-items: center; margin-bottom: 16px; }
@@ -34,6 +34,23 @@
   .fato .valor { font-weight: 700; font-size: 1.05rem; margin-top: 2px; }
   .fato .valor.vitoria { color: #4cc285; }
   .fato .valor.derrota { color: var(--vermelho); }
+
+  /* Nota média (topo) e nota em cada luta */
+  .perfil-topo .acoes { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+  .nota-media { display: flex; align-items: center; gap: 10px; }
+  .nota-media .selo-nota.grande { min-width: 64px; height: 48px; font-size: 1.5rem; border-radius: 10px; }
+  .nota-media .texto-nota { display: flex; flex-direction: column; font-size: 0.8rem; color: var(--muted); line-height: 1.35; }
+  .nota-media .texto-nota strong { color: var(--text); font-size: 0.9rem; }
+  .notas-luta { margin-bottom: 16px; }
+  .barras-notas { position: relative; display: flex; align-items: flex-end; gap: 3px; height: 150px; padding-top: 18px; }
+  .barra-nota { position: relative; flex: 1 1 0; min-width: 3px; max-width: 34px; border-radius: 3px 3px 0 0; text-decoration: none; }
+  .barra-nota.baixa { background: #c4313d; } .barra-nota.media { background: var(--amarelo); }
+  .barra-nota.boa { background: #23874f; } .barra-nota.otima { background: #2f6f9e; }
+  .barra-nota:hover, .barra-nota:focus-visible { filter: brightness(1.25); outline: none; }
+  .barra-nota .valor-barra { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); font-size: 0.66rem; color: var(--muted); padding-bottom: 2px; white-space: nowrap; }
+  .linha-base { position: absolute; left: 0; right: 0; border-top: 1px dashed rgba(245, 245, 245, 0.45); pointer-events: none; z-index: 1; }
+  .eixo-notas { display: flex; justify-content: space-between; color: var(--muted); font-size: 0.75rem; margin-top: 6px; }
+  table.historico td .selo-nota { margin: 0; }
 
   .grade { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 16px; margin-bottom: 16px; }
 
@@ -85,7 +102,8 @@
     .perfil-topo .avatar.enorme { width: 84px; height: 84px; font-size: 1.5rem; }
     .perfil-topo h1 { font-size: 1.45rem; }
     .perfil-topo .cartel-grande { font-size: 1.7rem; }
-    .perfil-topo .acoes { width: 100%; }
+    .perfil-topo .acoes { width: 100%; flex-direction: row; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+    .barra-nota .valor-barra { display: none; }
     .col-golpes { display: none; }
     .perfil-topo .cartel-grande small { display: none; }
     .cartao-p { padding: 14px; }
@@ -102,7 +120,7 @@
   Projeto de <a href="https://github.com/khannnn1/ufc-data">código aberto no GitHub</a> · Dados de <a href="http://ufcstats.com">ufcstats.com</a> · Fotos de <a href="https://www.ufc.com">ufc.com</a>
 </footer>
 
-<script src="js/site.js?v=3"></script>
-<script src="js/lutador.js?v=2"></script>
+<script src="js/site.js?v=4"></script>
+<script src="js/lutador.js?v=3"></script>
 </body>
 </html>

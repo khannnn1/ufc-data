@@ -27,6 +27,79 @@ const METODOS = {
 const RESULTADOS = { W: "V", L: "D", D: "E", NC: "SR" };
 const RESULTADOS_LONGOS = { W: "Vitória", L: "Derrota", D: "Empate", NC: "Sem resultado" };
 
+// ---------- Nota por luta (src/rating.py) ----------
+// Lado de uma luta em dados/lutas.json: [..., nota, [resultado, desempenho, adversário]] (índices 8 e 9).
+const NOTA_BASE = 6.6;
+const ESTILOS = {
+  Striker: "no ataque, golpes e knockdowns pesam mais",
+  Wrestler: "no ataque, quedas e controle pesam mais",
+  Finalizador: "no ataque, tentativas de finalização pesam mais",
+  Completo: "todas as estatísticas com o peso aprendido nas decisões",
+};
+const fmtNota = (n) => n.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+// Faixas de cor: abaixo de 6, de 6 a 6,9, de 7 a 7,9, 8 ou mais (o número está sempre escrito)
+function classeNota(n) {
+  return n >= 8 ? "otima" : n >= 7 ? "boa" : n >= 6 ? "media" : "baixa";
+}
+// Selo da nota; com as partes, vira botão que abre o detalhamento
+function seloNota(nota, partes, contexto = {}) {
+  const selo = document.createElement(partes ? "button" : "span");
+  selo.className = `selo-nota ${classeNota(nota)}`;
+  selo.textContent = fmtNota(nota);
+  if (partes) {
+    selo.type = "button";
+    selo.title = "Ver como a nota foi calculada";
+    selo.setAttribute("aria-label", `Nota ${fmtNota(nota)}${contexto.nome ? ` de ${contexto.nome}` : ""}: ver detalhamento`);
+    selo.addEventListener("click", (e) => { e.stopPropagation(); e.preventDefault(); abrirDetalheNota(selo, nota, partes, contexto); });
+  } else {
+    selo.title = `Nota ${fmtNota(nota)}`;
+  }
+  return selo;
+}
+function mediaDasNotas(notas) {
+  return notas.length ? Math.round((notas.reduce((s, n) => s + n, 0) / notas.length) * 10) / 10 : null;
+}
+
+let caixaNota = null;
+function fecharDetalheNota() {
+  if (caixaNota) { caixaNota.remove(); caixaNota = null; }
+}
+function abrirDetalheNota(botao, nota, [resultado, desempenho, adversario], { nome, estilo } = {}) {
+  const mesmo = caixaNota && caixaNota.dono === botao;
+  fecharDetalheNota();
+  if (mesmo) return;
+  const sinal = (v) => `${v >= 0 ? "+" : "−"}${Math.abs(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const linhas = [["Base", NOTA_BASE.toLocaleString("pt-BR", { minimumFractionDigits: 2 })], ["Resultado", sinal(resultado)],
+    ["Desempenho", sinal(desempenho)], ["Adversário", sinal(adversario)]];
+  const soma = NOTA_BASE + resultado + desempenho + adversario;
+  caixaNota = document.createElement("div");
+  caixaNota.className = "detalhe-nota";
+  caixaNota.setAttribute("role", "dialog");
+  caixaNota.dono = botao;
+  caixaNota.innerHTML = `<div class="titulo-nota"></div><dl></dl><p class="estilo-nota"></p><a href="sobre.html#nota">Como a nota é calculada</a>`;
+  caixaNota.querySelector(".titulo-nota").append(seloNota(nota), ` ${nome || ""}`);
+  const dl = caixaNota.querySelector("dl");
+  for (const [rotulo, valor] of linhas) {
+    const dt = document.createElement("dt"); dt.textContent = rotulo;
+    const dd = document.createElement("dd"); dd.textContent = valor;
+    dl.append(dt, dd);
+  }
+  if (Math.abs(soma - nota) > 0.06) {
+    const dt = document.createElement("dt"); dt.textContent = "Limite da escala";
+    const dd = document.createElement("dd"); dd.textContent = `${fmtNota(soma)} → ${fmtNota(nota)}`;
+    dl.append(dt, dd);
+  }
+  caixaNota.querySelector(".estilo-nota").textContent = estilo ? `Estilo: ${estilo} (${ESTILOS[estilo] || ""})` : "";
+  document.body.appendChild(caixaNota);
+  const r = botao.getBoundingClientRect();
+  const largura = caixaNota.offsetWidth;
+  caixaNota.style.left = `${Math.max(8, Math.min(window.scrollX + r.left + r.width / 2 - largura / 2, window.scrollX + document.documentElement.clientWidth - largura - 8))}px`;
+  caixaNota.style.top = `${window.scrollY + r.bottom + 6}px`;
+}
+document.addEventListener("click", (e) => { if (caixaNota && !caixaNota.contains(e.target)) fecharDetalheNota(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharDetalheNota(); });
+window.addEventListener("resize", fecharDetalheNota);
+
 const fmtData = (iso) => iso.split("-").reverse().join("/");
 
 const normalizar = (texto) => texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();

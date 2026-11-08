@@ -8,6 +8,7 @@ import pandas as pd
 
 from src.analises import montar_analises
 from src.limpeza import adicionar_duracao
+from src.rating import calcular_notas
 
 RAIZ = Path(__file__).resolve().parent.parent
 ARQUIVO_RESUMO = RAIZ / "data" / "processed" / "dataset_final_resumo_limpo.csv"
@@ -213,14 +214,16 @@ def montar_json(df, df_round, datas_eventos, lutadores, periodo=None, carreira=N
 COLUNAS_LADO = ["KD", "Sig_str_landed", "Sig_str_attempted", "Td_landed", "Td_attempted", "Ctrl_seconds"]
 
 
-def montar_lutas(df, datas_eventos):
+def montar_lutas(df, datas_eventos, notas=None, estilos=None):
     """Histórico de todas as lutas para a página de perfil (dados/lutas.json), da mais recente à mais antiga.
 
     {"eventos": [[nome, data, id], ...]  (id = código do evento no link do ufcstats, estável),
      "lutas": [[evento (índice em eventos), categoria, método, round, tempo, cinturão, luta da noite,
                 performance da noite, lado_1, lado_2], ...]}
-    lado = [nome, resultado W/L/D/NC, kd, sig acertados, sig tentados, quedas, quedas tentadas, controle_s];
-    estatísticas ausentes (lutas antigas) viram null. O vencedor vem primeiro quando houver.
+    lado = [nome, resultado W/L/D/NC, kd, sig acertados, sig tentados, quedas, quedas tentadas, controle_s,
+            nota, [resultado, desempenho, adversário]] (nota e partes de src/rating.py, se `notas` vier);
+    estatísticas ausentes (lutas antigas) e lutas sem nota viram null. `estilos` ({nome: estilo}) vai
+    junto como "estilos". O vencedor vem primeiro quando houver.
     Dentro de cada evento, as lutas seguem a ordem do card (luta principal primeiro), que é a ordem
     em que aparecem no CSV (o scraper lê a página do evento de cima para baixo).
     Listas em vez de objetos para o arquivo ficar pequeno; o JS lê nesta mesma ordem.
@@ -238,19 +241,30 @@ def montar_lutas(df, datas_eventos):
     def inteiro(v):
         return None if pd.isna(v) else int(v)
 
+    nota_de = {}
+    if notas is not None:
+        for linha in notas.itertuples(index=False):
+            nota_de[(linha.Fight_URL, linha.Fighter)] = [float(linha.Nota), [round(float(linha.resultado), 2),
+                                                          round(float(linha.desempenho), 2), round(float(linha.adversario), 2)]]
+
     lutas = []
     for _, luta in df.groupby("Fight_URL", sort=False):
         primeira = luta.iloc[0]
-        lados = [[l["Fighter"], l["Resultado"], *[inteiro(l[c]) for c in COLUNAS_LADO]] for _, l in luta.iterrows()]
+        lados = [[l["Fighter"], l["Resultado"], *[inteiro(l[c]) for c in COLUNAS_LADO],
+                  *nota_de.get((l["Fight_URL"], l["Fighter"]), [None, None])] for _, l in luta.iterrows()]
         lutas.append([indice[primeira["Event_URL"]], primeira.get("Weight_Class") if pd.notna(primeira.get("Weight_Class")) else None,
                       primeira["Method"], inteiro(primeira["Final_Round"]), primeira["Time"],
                       inteiro(primeira.get("Title_Bout", 0)) or 0, inteiro(primeira.get("Fight_Bonus", 0)) or 0,
                       inteiro(primeira.get("Perf_Bonus", 0)) or 0, *lados])
     lutas.sort(key=lambda l: l[0])  # estável: mantém a ordem dentro do evento
-    return {"gerado_em": date.today().isoformat(),
+    saida = {"gerado_em": date.today().isoformat(),
             "eventos": [[nome, data, url.rstrip("/").rsplit("/", 1)[-1]]
                         for url, nome, data in eventos[["Event_URL", "Event_Name", "Event_Date"]].values],
             "lutas": lutas}
+    if estilos is not None:
+        nomes = set(df["Fighter"])
+        saida["estilos"] = {nome: estilo for nome, estilo in sorted(estilos.items()) if nome in nomes}
+    return saida
 
 
 def filtrar_periodo(df, df_round, datas_eventos, inicio):
@@ -291,8 +305,9 @@ def exportar_lutadores(caminho_csv=ARQUIVO_RESUMO, caminho_round=ARQUIVO_ROUND, 
     with open(Path(pasta_saida) / "analises.json", "w", encoding="utf-8") as f:
         json.dump({"gerado_em": date.today().isoformat(), "periodos": {c: p["rotulo"] for c, p in PERIODOS.items()},
                    **analises}, f, ensure_ascii=False, separators=(",", ":"))
+    notas, info = calcular_notas(df, datas_eventos)  # nota de cada lutador em cada luta (src/rating.py)
     with open(Path(pasta_saida) / "lutas.json", "w", encoding="utf-8") as f:
-        json.dump(montar_lutas(df, datas_eventos), f, ensure_ascii=False, separators=(",", ":"))
+        json.dump(montar_lutas(df, datas_eventos, notas, info["estilos"]), f, ensure_ascii=False, separators=(",", ":"))
     return saidas
 
 
