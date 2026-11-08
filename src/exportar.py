@@ -8,7 +8,7 @@ import pandas as pd
 
 from src.analises import montar_analises
 from src.limpeza import adicionar_duracao
-from src.rating import calcular_notas
+from src.rating import calcular_notas, posicoes_no_ranking
 
 RAIZ = Path(__file__).resolve().parent.parent
 ARQUIVO_RESUMO = RAIZ / "data" / "processed" / "dataset_final_resumo_limpo.csv"
@@ -214,14 +214,15 @@ def montar_json(df, df_round, datas_eventos, lutadores, periodo=None, carreira=N
 COLUNAS_LADO = ["KD", "Sig_str_landed", "Sig_str_attempted", "Td_landed", "Td_attempted", "Ctrl_seconds"]
 
 
-def montar_lutas(df, datas_eventos, notas=None, estilos=None):
+def montar_lutas(df, datas_eventos, notas=None, estilos=None, posicoes=None):
     """Histórico de todas as lutas para a página de perfil (dados/lutas.json), da mais recente à mais antiga.
 
     {"eventos": [[nome, data, id], ...]  (id = código do evento no link do ufcstats, estável),
      "lutas": [[evento (índice em eventos), categoria, método, round, tempo, cinturão, luta da noite,
                 performance da noite, lado_1, lado_2], ...]}
     lado = [nome, resultado W/L/D/NC, kd, sig acertados, sig tentados, quedas, quedas tentadas, controle_s,
-            nota, [resultado, desempenho, adversário]] (nota e partes de src/rating.py, se `notas` vier);
+            nota, [resultado, desempenho, adversário], posição no top 15 da categoria pelo Elo na véspera]
+           (nota e partes de src/rating.py, se `notas` vier; posição de `posicoes_no_ranking`, se vier);
     estatísticas ausentes (lutas antigas) e lutas sem nota viram null. `estilos` ({nome: estilo}) vai
     junto como "estilos". O vencedor vem primeiro quando houver.
     Dentro de cada evento, as lutas seguem a ordem do card (luta principal primeiro), que é a ordem
@@ -251,7 +252,8 @@ def montar_lutas(df, datas_eventos, notas=None, estilos=None):
     for _, luta in df.groupby("Fight_URL", sort=False):
         primeira = luta.iloc[0]
         lados = [[l["Fighter"], l["Resultado"], *[inteiro(l[c]) for c in COLUNAS_LADO],
-                  *nota_de.get((l["Fight_URL"], l["Fighter"]), [None, None])] for _, l in luta.iterrows()]
+                  *nota_de.get((l["Fight_URL"], l["Fighter"]), [None, None]),
+                  *([] if posicoes is None else [posicoes.get((l["Fight_URL"], l["Fighter"]))])] for _, l in luta.iterrows()]
         lutas.append([indice[primeira["Event_URL"]], primeira.get("Weight_Class") if pd.notna(primeira.get("Weight_Class")) else None,
                       primeira["Method"], inteiro(primeira["Final_Round"]), primeira["Time"],
                       inteiro(primeira.get("Title_Bout", 0)) or 0, inteiro(primeira.get("Fight_Bonus", 0)) or 0,
@@ -307,7 +309,7 @@ def exportar_lutadores(caminho_csv=ARQUIVO_RESUMO, caminho_round=ARQUIVO_ROUND, 
         json.dump({"gerado_em": date.today().isoformat(), "periodos": {c: p["rotulo"] for c, p in PERIODOS.items()},
                    **analises}, f, ensure_ascii=False, separators=(",", ":"))
     with open(Path(pasta_saida) / "lutas.json", "w", encoding="utf-8") as f:
-        json.dump(montar_lutas(df, datas_eventos, notas, info["estilos"]), f, ensure_ascii=False, separators=(",", ":"))
+        json.dump(montar_lutas(df, datas_eventos, notas, info["estilos"], posicoes_no_ranking(df, datas_eventos)), f, ensure_ascii=False, separators=(",", ":"))
     return saidas
 
 

@@ -189,13 +189,79 @@ def calcular_elo(lutas, k=32, inicial=1500):
         a, b = grupo.iloc[0], grupo.iloc[1]
         ea, eb = elo.get(a["Fighter"], inicial), elo.get(b["Fighter"], inicial)
         antes[(url, a["Fighter"])], antes[(url, b["Fighter"])] = ea, eb
-        placar = {"W": 1.0, "L": 0.0}.get(a["Resultado"], 0.5)
-        if a["Resultado"] == "NC":
-            continue
-        esperado = 1 / (1 + 10 ** ((eb - ea) / 400))
-        elo[a["Fighter"]] = ea + k * (placar - esperado)
-        elo[b["Fighter"]] = eb + k * ((1 - placar) - (1 - esperado))
+        _atualizar_elo(elo, a["Fighter"], b["Fighter"], a["Resultado"], k, inicial)
     return antes
+
+
+def _atualizar_elo(elo, a, b, resultado_a, k=32, inicial=1500):
+    """Atualiza o Elo dos dois lados depois de uma luta (NC não muda nada)."""
+    if resultado_a == "NC":
+        return
+    ea, eb = elo.get(a, inicial), elo.get(b, inicial)
+    placar = {"W": 1.0, "L": 0.0}.get(resultado_a, 0.5)
+    esperado = 1 / (1 + 10 ** ((eb - ea) / 400))
+    elo[a] = ea + k * (placar - esperado)
+    elo[b] = eb + k * ((1 - placar) - (1 - esperado))
+
+
+# ---------- Top 15 pelo Elo ----------
+
+TOP_RANKING = 15
+INATIVIDADE_DIAS = 730  # sem lutar há mais de 2 anos sai do ranking
+MIN_LUTAS_RANKING = 3  # estreantes e quem tem 1-2 lutas não entram
+SEM_CATEGORIA_PROPRIA = {"Catch Weight"}  # peso casado: vale a categoria da luta anterior
+
+
+def ordem_cronologica(df, datas_eventos):
+    """Resumo em ordem de luta: por data e, no mesmo dia, do fim do card para a luta principal."""
+    datas = datas_eventos.set_index("Event_URL")["Event_Date"]
+    ordem = df.assign(_data=df["Event_URL"].map(datas), _pos=np.arange(len(df)))
+    return ordem.sort_values(["_data", "_pos"], ascending=[True, False])
+
+
+def posicoes_no_ranking(df, datas_eventos, top=TOP_RANKING, inatividade_dias=INATIVIDADE_DIAS,
+                        min_lutas=MIN_LUTAS_RANKING, k=32, inicial=1500):
+    """Posição de cada lutador no top `top` da categoria pelo Elo, na véspera de cada luta.
+
+    Ranking de uma categoria numa data = lutadores cuja luta mais recente foi nela (peso casado não muda
+    a categoria), que lutaram nos últimos `inatividade_dias` e têm pelo menos `min_lutas` lutas, ordenados
+    pelo Elo (mesmo Elo do bônus de adversário). Não é o ranking oficial do UFC (que só existe desde 2013).
+    Devolve {(Fight_URL, Fighter): posição 1..top}; quem estava fora do top não aparece.
+    """
+    ordem = ordem_cronologica(df, datas_eventos)
+    elo, categoria, ultima, lutas = {}, {}, {}, {}
+    posicoes = {}
+    for data, dia in ordem.groupby("_data", sort=True):
+        hoje = pd.Timestamp(data)
+        limite = (hoje - pd.Timedelta(days=inatividade_dias)).strftime("%Y-%m-%d")
+        rankings = {}
+
+        def ranking(cat):
+            if cat not in rankings:
+                ativos = [f for f, c in categoria.items()
+                          if c == cat and ultima[f] >= limite and lutas[f] >= min_lutas]
+                ativos.sort(key=lambda f: (-elo.get(f, inicial), f))
+                rankings[cat] = {f: i + 1 for i, f in enumerate(ativos[:top])}
+            return rankings[cat]
+
+        lutas_do_dia = [g for _, g in dia.groupby("Fight_URL", sort=False)]
+        for luta in lutas_do_dia:  # posições na véspera: antes de qualquer luta do dia
+            cat_luta = luta["Weight_Class"].iloc[0] if "Weight_Class" in luta else None
+            for f in luta["Fighter"]:
+                cat = cat_luta if isinstance(cat_luta, str) and cat_luta not in SEM_CATEGORIA_PROPRIA else categoria.get(f)
+                if cat is not None and f in ranking(cat):
+                    posicoes[(luta["Fight_URL"].iloc[0], f)] = ranking(cat)[f]
+        for luta in lutas_do_dia:
+            cat_luta = luta["Weight_Class"].iloc[0] if "Weight_Class" in luta else None
+            for f in luta["Fighter"]:
+                if isinstance(cat_luta, str) and cat_luta not in SEM_CATEGORIA_PROPRIA:
+                    categoria[f] = cat_luta
+                ultima[f] = data
+                lutas[f] = lutas.get(f, 0) + 1
+            if len(luta) == 2:
+                a, b = luta.iloc[0], luta.iloc[1]
+                _atualizar_elo(elo, a["Fighter"], b["Fighter"], a["Resultado"], k, inicial)
+    return posicoes
 
 
 def bonus_adversario(elo_adversario, inicial=1500):
@@ -245,9 +311,7 @@ def calcular_notas(df, datas_eventos, escala=None):
     pares["resultado"] = [bonus_resultado(r, m, d, prevista.get(u))
                           for r, m, d, u in zip(pares["Resultado"], pares["Method"], pares["Duracao_seg"], pares["Fight_URL"])]
 
-    datas = datas_eventos.set_index("Event_URL")["Event_Date"]
-    ordem = df.assign(_data=df["Event_URL"].map(datas), _pos=np.arange(len(df)))
-    ordem = ordem.sort_values(["_data", "_pos"], ascending=[True, False])  # card: luta principal por último no dia
+    ordem = ordem_cronologica(df, datas_eventos)  # card: luta principal por último no dia
     adv = ordem.merge(ordem[["Fight_URL", "Fighter"]].rename(columns={"Fighter": "Adversario"}), on="Fight_URL")
     adv = adv[adv["Fighter"] != adv["Adversario"]].sort_values(["_data", "_pos"], ascending=[True, False])
     elo = calcular_elo(adv[["Fight_URL", "Fighter", "Adversario", "Resultado"]])

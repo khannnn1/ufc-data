@@ -274,7 +274,7 @@
 
   <section id="ranking">
     <h2>Monte o seu ranking</h2>
-    <p class="intro">Escolha a métrica e filtre por categoria, base, estilo, idade e mínimo de lutas no período. Os anos ao lado do nome são a carreira no UFC (da primeira à última luta). Clique numa linha para levar o lutador ao comparador.</p>
+    <p class="intro">Escolha a métrica e filtre por categoria, base, estilo, ranqueados, idade e mínimo de lutas no período. Os anos ao lado do nome são a carreira no UFC (da primeira à última luta). Clique numa linha para levar o lutador ao comparador.</p>
 
     <div class="controles">
       <div class="campo metrica">
@@ -292,6 +292,10 @@
       <div class="campo">
         <label for="estilo">Estilo</label>
         <select id="estilo"><option value="">Todos</option></select>
+      </div>
+      <div class="campo">
+        <label for="ranqueado" title="Top 15 da categoria pelo Elo do site, na véspera de cada luta (não é o ranking oficial)">Ranqueado</label>
+        <select id="ranqueado"><option value="">Todos</option><option value="sim">Só top 15 (Elo)</option></select>
       </div>
       <div class="campo">
         <label for="idade">Idade</label>
@@ -347,6 +351,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <!-- ?v=N: aumente a cada mudança no JS, para o navegador não usar a versão antiga em cache -->
 <script src="js/site.js?v=4"></script>
-<script src="js/interativo.js?v=19"></script>
+<script src="js/interativo.js?v=20"></script>
 </body>
 </html>

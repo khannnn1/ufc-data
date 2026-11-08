@@ -103,6 +103,12 @@ function ladoDoPlacar(lado, porNome, direita, temVencedor, estilos) {
   const id = el("div", "identificacao");
   const l = porNome.get(nome);
   const sub = el("span", "sub-lutador", l ? cartel(l) : "");
+  const posicao = lado[10]; // top 15 da categoria pelo Elo do site, na véspera da luta
+  if (posicao) {
+    const etiqueta = el("span", "posicao-elo", `#${posicao}`);
+    etiqueta.title = `${posicao}º da categoria pelo Elo do site na véspera da luta (não é o ranking oficial)`;
+    sub.append(l ? " · " : "", etiqueta);
+  }
   id.append(linkNome(nome), sub);
   const selo = el("span", `resultado ${resultado}`, RESULTADOS[resultado] || resultado);
   selo.title = RESULTADOS_LONGOS[resultado] || resultado;
