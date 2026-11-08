@@ -165,8 +165,8 @@ function preencherCartao(elemento, l) {
   elemento.querySelector(".nome").appendChild(linkNome(l.nome, "")); // nome leva ao perfil
   elemento.querySelector(".categoria").textContent =
     [l.cat ? (CATEGORIAS[l.cat] || l.cat) : "", l.anos ? `UFC ${anosDeUfc(l)}` : "", l.estilo || "",
-      textoMelhorPosicao(l.melhor)].filter(Boolean).join(" · ");
-  if (l.melhor) elemento.querySelector(".categoria").title = TITULO_MELHOR_POSICAO;
+      textoMelhorPosicao(l.melhor, l.cat)].filter(Boolean).join(" · ");
+  if (l.melhor) elemento.querySelector(".categoria").title = tituloMelhorPosicao(l.melhor);
   elemento.querySelector(".topo-cartao").prepend(avatar(l, "grande"));
   const notaCartao = elemento.querySelector(".nota-cartao");
   if (l.nn) notaCartao.append(seloNota(l.nm), `nota média em ${l.nn} ${l.nn === 1 ? "luta" : "lutas"}`);

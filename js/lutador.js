@@ -45,11 +45,12 @@ function topo(l, historico, estilo) {
   const titulo = elemento("div", "titulo");
   titulo.appendChild(elemento("h1", "", l.nome));
   const posicoes = historico.map((h) => h.eu[10]).filter(Boolean);
-  const melhor = posicoes.length ? Math.min(...posicoes) : null;
+  const campeao = historico.some((h) => h.titulo && h.eu[1] === "W");
+  const melhor = campeao ? "campeao" : posicoes.length ? Math.min(...posicoes) : null;
   const sub = elemento("div", "sub",
     [l.cat ? (CATEGORIAS[l.cat] || l.cat) : "", l.anos ? `UFC ${anosDeUfc(l)}` : "", estilo ? `Estilo: ${estilo}` : "",
-      melhor ? `Melhor posição: #${melhor}` : ""].filter(Boolean).join(" · "));
-  if (melhor) sub.title = TITULO_MELHOR_POSICAO;
+      campeao ? `${textoCampeao(l.cat).replace("c", "C")} do UFC` : melhor ? `Melhor posição: #${melhor}` : ""].filter(Boolean).join(" · "));
+  if (melhor) sub.title = tituloMelhorPosicao(melhor);
   titulo.appendChild(sub);
   const c = elemento("div", "cartel-grande", cartel(l));
   c.appendChild(elemento("small", "", "cartel no UFC"));
