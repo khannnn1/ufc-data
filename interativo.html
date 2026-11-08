@@ -275,7 +275,7 @@
 
   <section id="ranking">
     <h2>Monte o seu ranking</h2>
-    <p class="intro">Escolha a métrica e filtre por categoria, base, estilo, ranqueados, melhor posição alcançada, idade e mínimo de lutas no período. Os anos ao lado do nome são a carreira no UFC (da primeira à última luta), e "melhor #N" é a melhor posição que o lutador alcançou no top 15 da categoria pelo Elo ("campeão" para quem venceu disputa de cinturão). Clique numa linha para levar o lutador ao comparador.</p>
+    <p class="intro">Escolha a métrica e filtre por categoria, base, estilo, ranqueados, melhor posição alcançada, idade, anos em que lutou e mínimo de lutas no período. Os anos ao lado do nome são a carreira no UFC (da primeira à última luta), e "melhor #N" é a melhor posição que o lutador alcançou no top 15 da categoria pelo Elo ("campeão" para quem venceu disputa de cinturão). Clique numa linha para levar o lutador ao comparador.</p>
 
     <div class="controles">
       <div class="campo metrica">
@@ -305,6 +305,14 @@
       <div class="campo">
         <label for="idade">Idade</label>
         <select id="idade"><option value="">Todas</option></select>
+      </div>
+      <div class="campo numero">
+        <label for="ano-de" title="Só quem lutou no UFC em algum ano entre os dois (carreira inteira, não muda as estatísticas)">Lutou de</label>
+        <select id="ano-de"><option value="">Início</option></select>
+      </div>
+      <div class="campo numero">
+        <label for="ano-ate">até</label>
+        <select id="ano-ate"><option value="">Hoje</option></select>
       </div>
       <div class="campo numero">
         <label for="min-lutas">Mín. de lutas</label>
@@ -356,6 +364,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <!-- ?v=N: aumente a cada mudança no JS, para o navegador não usar a versão antiga em cache -->
 <script src="js/site.js?v=7"></script>
-<script src="js/interativo.js?v=25"></script>
+<script src="js/interativo.js?v=26"></script>
 </body>
 </html>
