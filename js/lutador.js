@@ -45,7 +45,7 @@ function topo(l, historico, estilo) {
   const titulo = elemento("div", "titulo");
   titulo.appendChild(elemento("h1", "", l.nome));
   const posicoes = historico.map((h) => h.eu[10]).filter(Boolean);
-  const campeao = historico.some((h) => h.titulo && h.eu[1] === "W");
+  const campeao = historico.some((h) => h.titulo === 1 && h.eu[1] === "W");
   const melhor = campeao ? "campeao" : posicoes.length ? Math.min(...posicoes) : null;
   const sub = elemento("div", "sub",
     [l.cat ? (CATEGORIAS[l.cat] || l.cat) : "", l.anos ? `UFC ${anosDeUfc(l)}` : "", estilo ? `Estilo: ${estilo}` : "",
@@ -228,7 +228,7 @@ function historicoDeLutas(historico, porNome, estilos, nomeLutador) {
 
   function desenhar(filtro) {
     corpo.innerHTML = "";
-    const lista = historico.filter((h) => filtro === "todas" || (filtro === "titulo" ? h.titulo : h.eu[1] === filtro));
+    const lista = historico.filter((h) => filtro === "todas" || (filtro === "titulo" ? h.titulo === 1 : h.eu[1] === filtro));
     for (const h of lista) {
       const tr = elemento("tr");
       const res = elemento("td");
@@ -255,7 +255,7 @@ function historicoDeLutas(historico, porNome, estilos, nomeLutador) {
       met.appendChild(elemento("div", "principal", METODOS[h.metodo] || h.metodo));
       const detalhe = [h.round ? `${h.round}º round` : "", h.tempo || ""].filter(Boolean).join(" · ");
       if (detalhe) met.appendChild(elemento("div", "sub-lutador", detalhe));
-      if (h.titulo) met.appendChild(elemento("span", "etiqueta cinturao", "Cinturão"));
+      if (h.titulo) met.appendChild(elemento("span", "etiqueta cinturao", h.titulo === 2 ? "Final do TUF" : "Cinturão"));
       if (h.lutaNoite) met.appendChild(elemento("span", "etiqueta bonus", "Luta da Noite"));
       if (h.perf && h.eu[1] === "W") met.appendChild(elemento("span", "etiqueta bonus", "Performance"));
 
@@ -282,7 +282,7 @@ function historicoDeLutas(historico, porNome, estilos, nomeLutador) {
     });
     filtros.appendChild(botao);
   }
-  if (!historico.some((h) => h.titulo)) filtros.lastChild.remove();
+  if (!historico.some((h) => h.titulo === 1)) filtros.lastChild.remove();
   cartao.append(filtros, tabelaWrap);
   desenhar("todas");
   return cartao;

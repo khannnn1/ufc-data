@@ -168,13 +168,13 @@ function linkNome(nome, classe = "nome-lutador") {
 // Nome em destaque (link para o perfil) e, embaixo, categoria e anos de UFC
 // Melhor posição que cada lutador teve no top 15 pelo Elo, na carreira inteira (lado[10] de dados/lutas.json:
 // posição na véspera de cada luta). Não muda com o filtro de período.
-// Quem venceu uma disputa de cinturão (luta[5], inclui interino) aparece como "campeão" no lugar da posição:
+// Quem venceu uma disputa de cinturão (luta[5] === 1, inclui interino; 2 = final do TUF, não conta) aparece como "campeão" no lugar da posição:
 // o Elo não sabe do cinturão, então um campeão pode nunca ter sido o nº 1 dele.
 function melhoresPosicoes(dadosLutas) {
   const melhor = new Map();
   for (const luta of dadosLutas?.lutas || []) {
     for (const lado of [luta[8], luta[9]]) {
-      if (luta[5] && lado[1] === "W") melhor.set(lado[0], "campeao");
+      if (luta[5] === 1 && lado[1] === "W") melhor.set(lado[0], "campeao");
       else if (lado[10] && melhor.get(lado[0]) !== "campeao" && !(melhor.get(lado[0]) <= lado[10])) melhor.set(lado[0], lado[10]);
     }
   }

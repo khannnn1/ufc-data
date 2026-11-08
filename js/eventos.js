@@ -150,7 +150,7 @@ function desenharEvento(principal, dadosLutas, porNome, id) {
     const rotulo = el("div", "rotulo-luta");
     if (i === 0) rotulo.appendChild(el("strong", "", "Luta principal"));
     if (cat) rotulo.appendChild(el("span", "", CATEGORIAS[cat] || cat));
-    if (titulo) rotulo.appendChild(el("span", "etiqueta cinturao", "Cinturão"));
+    if (titulo) rotulo.appendChild(el("span", "etiqueta cinturao", titulo === 2 ? "Final do TUF" : "Cinturão"));
     if (lutaNoite) rotulo.appendChild(el("span", "etiqueta bonus", "Luta da Noite"));
     if (perf && temVencedor) rotulo.appendChild(el("span", "etiqueta bonus", "Performance"));
 
