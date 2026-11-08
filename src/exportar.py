@@ -278,13 +278,24 @@ def filtrar_periodo(df, df_round, datas_eventos, inicio):
     return df, df_round[df_round["Fight_URL"].isin(set(df["Fight_URL"]))]
 
 
+# Fotos trocadas à mão (Fighter_URL -> URL), quando a do ufc.com sai mal cortada no avatar redondo.
+# Valem por cima de data/raw/fotos.csv, então sobrevivem a uma nova coleta.
+FOTOS_MANUAIS = {
+    # Jon Jones: o headshot de 2025-10 corta o topo da cabeça e tem fundo transparente embaixo
+    "http://ufcstats.com/fighter-details/07f72a2a7591b409": "https://ufc.com/images/2024-11/JONES_JON_BELT_11-16.png",
+}
+
+
 def juntar_fotos(lutadores, caminho_fotos=None):
-    """Acrescenta Photo_URL (de data/raw/fotos.csv, se existir) ao cadastro de lutadores."""
+    """Acrescenta Photo_URL (de data/raw/fotos.csv, se existir, com FOTOS_MANUAIS por cima) ao cadastro."""
     caminho_fotos = Path(caminho_fotos or ARQUIVO_FOTOS)
     if not caminho_fotos.exists():
         return lutadores
     fotos = pd.read_csv(caminho_fotos)[["Fighter_URL", "Photo_URL"]].drop_duplicates("Fighter_URL")
-    return lutadores.merge(fotos, on="Fighter_URL", how="left")
+    lutadores = lutadores.merge(fotos, on="Fighter_URL", how="left")
+    manual = lutadores["Fighter_URL"].map(FOTOS_MANUAIS)
+    lutadores["Photo_URL"] = manual.fillna(lutadores["Photo_URL"])
+    return lutadores
 
 
 def exportar_lutadores(caminho_csv=ARQUIVO_RESUMO, caminho_round=ARQUIVO_ROUND, pasta_saida=PASTA_SAIDA):
