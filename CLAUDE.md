@@ -33,6 +33,7 @@ ProjetoUFC/
 │   ├── visualizacao.py   # estilo e funções de plotagem
 │   ├── exportar.py       # gera dados/lutadores.json para o site interativo
 │   ├── analises.py       # números das análises da página inicial (chamado pelo exportar)
+│   ├── rating.py         # nota 0–10 de cada lutador em cada luta (estilo + regressão + Elo)
 │   ├── banco.py          # monta data/ufc.db (SQLite) a partir dos CSVs limpos
 │   ├── consultas.py      # lê e executa as consultas de sql/consultas.sql
 │   ├── powerbi.py        # modelo estrela em CSV para o Power BI (powerbi/dados/)
@@ -142,7 +143,7 @@ Definido em `src/visualizacao.py`:
   10. Homônimos (mesmo slug) ficam sem foto. O site só aponta para a URL (imagens não vão pro repo).
 
 ## Testes
-`python -m pytest` na raiz (66 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
+`python -m pytest` na raiz (72 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
 tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos CSVs
 limpos; `test_atualizar_historico.py` roda `atualizar(historico=True)` com um navegador falso; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
 e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
@@ -408,6 +409,18 @@ git push origin main
   criado num canvas solto, fica com tamanho 0 e não desenha. Os PNGs com legendas ficaram em `graficos.html`.
 - Versões: `css/site.css?v=N`, `js/site.js?v=N`, `js/lutador.js?v=N`, `js/eventos.js?v=N` também
   precisam subir a cada mudança (em TODAS as páginas que os carregam).
+
+## Rating por luta (em construção desde 2026-11-08)
+`src/rating.py`, `calcular_notas(resumo, datas_eventos)`: nota = 6,6 + resultado + desempenho + adversário,
+limitada a [3, 10]. Estilo pelos números da carreira (`classificar_estilos`: Striker / Wrestler / Finalizador /
+Completo; < 3 lutas = Completo). Desempenho = regressão logística (numpy, sem sklearn) nas lutas decididas
+pelos juízes sobre as diferenças por minuto (cabeça, corpo+perna, KD, quedas, controle, finalização,
+reversão; taxas suavizadas com +5 min), ataque com os pesos do estilo (`MULTIPLICADORES`, reescalados
+para não favorecer estilo) e defesa com os pesos universais; desvio de 0,55 ponto. Resultado em `RESULTADO`
+(nocaute/finalização vale mais quanto mais cedo). Adversário = Elo antes da luta, ±0,4.
+Calibração na base completa: média 6,8; vencedor 7,6, perdedor 5,9; >= 9 em 0,5%; decisões: maior
+desempenho = vencedor em 84,5%, decisões divididas com 0,46 ponto de diferença média. Wrestlers têm média
+maior (6,95) porque vencem mais (56%). Holloway × Kattar = 9,7. Próximo: exibir no card do evento e no perfil.
 
 ## Próximos passos / direção atual
 Ordem combinada (2026-11-08) para o site profissional: 1 estrutura comum + 2 perfil (feitos, PR #4);
