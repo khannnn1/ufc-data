@@ -4,24 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>UFC Data — Explore os dados</title>
+<link rel="stylesheet" href="css/site.css?v=1">
 <style>
-  :root {
-    --bg: #0d0d0d;
-    --card-bg: #161616;
-    --text: #f5f5f5;
-    --muted: #9a9a9a;
-    --vermelho: #e63946;
-    --azul: #457b9d;
-    --grid-line: #2a2a2a;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
-    line-height: 1.5;
-  }
   header {
     padding: 50px 20px 32px;
     text-align: center;
@@ -159,12 +143,6 @@
   .grafico-ranking .area-rounds { height: 340px; }
   .nota { color: var(--muted); font-size: 0.82rem; margin-top: 10px; }
 
-  .tabela-wrap { overflow-x: auto; }
-  table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
-  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--grid-line); white-space: nowrap; }
-  th { color: var(--muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
-  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-  .visualmente-oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
   /* Ranking em tabela: foto, nome com categoria e anos de UFC, barra e valor */
   table.ranking tbody tr { cursor: pointer; }
@@ -173,9 +151,6 @@
   table.ranking td.posicao { color: var(--muted); font-weight: 600; width: 2.5em; }
   table.ranking td.vazio { color: var(--muted); cursor: default; }
   .lutador-linha { display: flex; align-items: center; gap: 12px; min-width: 0; }
-  .identificacao { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
-  .nome-lutador { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
-  .sub-lutador { color: var(--muted); font-size: 0.78rem; }
   .col-barra { width: 40%; }
   .barra-valor { display: flex; align-items: center; gap: 10px; }
   .barra { flex: 1; height: 8px; background: var(--grid-line); border-radius: 4px; overflow: hidden; min-width: 60px; }
@@ -183,30 +158,7 @@
   .barra-valor strong { min-width: 4.5em; text-align: right; font-variant-numeric: tabular-nums; }
   .col-cartel { color: var(--muted); }
 
-  /* Foto redonda; sem foto, as iniciais (a imagem cobre o texto quando carrega) */
-  .avatar {
-    position: relative; flex: none;
-    width: 40px; height: 40px; border-radius: 50%; overflow: hidden;
-    background: #262626; border: 1px solid #333;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--muted); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.02em;
-  }
-  .avatar.grande { width: 64px; height: 64px; font-size: 1.1rem; }
-  .avatar img {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    object-fit: cover; object-position: 50% 0; background: #262626;
-  }
   .cartao .topo-cartao { display: flex; align-items: center; gap: 14px; margin-bottom: 4px; }
-
-  footer {
-    text-align: center;
-    padding: 40px 20px 60px;
-    color: var(--muted);
-    font-size: 0.85rem;
-    border-top: 1px solid var(--grid-line);
-  }
-  footer a { color: var(--azul); text-decoration: none; }
-  footer a:hover { text-decoration: underline; }
 
   @media (max-width: 700px) {
     header { padding: 36px 16px 24px; }
@@ -222,11 +174,10 @@
     .col-barra { width: auto; }
     .barra-valor { justify-content: flex-end; }
     .grafico-ranking { padding: 8px; }
-    th, td { padding: 8px 6px; }
   }
 </style>
 </head>
-<body>
+<body data-pagina="interativo">
 
 <header>
   <h1>UFC <span>Data</span> — explore os dados</h1>
@@ -238,7 +189,6 @@
     </div>
     <p class="nota-periodo">As lutas dos primeiros anos tinham outras regras (sem limite de tempo, rounds longos) e muitas não têm estatísticas detalhadas.</p>
   </div>
-  <a class="voltar" href="index.html">← Voltar para os gráficos</a>
 </header>
 
 <main>
@@ -351,6 +301,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <!-- ?v=N: aumente a cada mudança no JS, para o navegador não usar a versão antiga em cache -->
-<script src="js/interativo.js?v=17"></script>
+<script src="js/site.js?v=1"></script>
+<script src="js/interativo.js?v=18"></script>
 </body>
 </html>

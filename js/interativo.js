@@ -118,21 +118,8 @@ const graficos = { paineis: [], ranking: null, dispersao: null, rounds: null };
 
 // ---------- Comparador ----------
 
-function cartel(l) {
-  return `${l.w}-${l.l}` + (l.d ? `-${l.d}` : "") + (l.nc ? ` (${l.nc} NC)` : "");
-}
-
-const CATEGORIAS = {
-  "Super Heavyweight": "Superpesado", "Heavyweight": "Peso-pesado", "Light Heavyweight": "Meio-pesado", "Middleweight": "Peso-médio",
-  "Welterweight": "Meio-médio", "Lightweight": "Peso-leve", "Featherweight": "Peso-pena",
-  "Bantamweight": "Peso-galo", "Flyweight": "Peso-mosca", "Catch Weight": "Peso casado",
-  "Women's Featherweight": "Peso-pena feminino", "Women's Bantamweight": "Peso-galo feminino",
-  "Women's Flyweight": "Peso-mosca feminino", "Women's Strawweight": "Peso-palha feminino",
-  "Open Weight": "Peso aberto",  // torneios dos primeiros UFCs, sem divisão de peso
-};
 // Filtro do ranking: divisões do mais pesado ao mais leve, masculinas e depois femininas (sem peso casado)
 const CATEGORIAS_RANKING = Object.keys(CATEGORIAS).filter((c) => c !== "Catch Weight");
-const BASES = { Orthodox: "ortodoxo", Southpaw: "canhoto", Switch: "troca de base", "Open Stance": "base aberta", Sideways: "base lateral" };
 // Filtros do ranking por base e por faixa de idade (idade de hoje, como nos cartões)
 const BASES_RANKING = { Orthodox: "Ortodoxo", Southpaw: "Canhoto", Switch: "Troca de base" };
 const FAIXAS_IDADE = {
@@ -142,18 +129,6 @@ const FAIXAS_IDADE = {
   "36mais": { rotulo: "36 anos ou mais", min: 36, max: 200 },
 };
 
-function idade(nasc) {
-  const n = new Date(nasc + "T00:00:00");
-  const hoje = new Date();
-  const fezAniversario = hoje.getMonth() > n.getMonth() ||
-    (hoje.getMonth() === n.getMonth() && hoje.getDate() >= n.getDate());
-  return hoje.getFullYear() - n.getFullYear() - (fezAniversario ? 0 : 1);
-}
-
-function metros(cm) {
-  return (cm / 100).toFixed(2).replace(".", ",") + " m";
-}
-
 // Categoria da luta mais recente, idade, altura, envergadura e base (o que houver no JSON)
 function linhaFisico(l) {
   const partes = [];
@@ -162,51 +137,6 @@ function linhaFisico(l) {
   if (l.env) partes.push(`envergadura ${metros(l.env)}`);
   if (l.base) partes.push(BASES[l.base] || l.base.toLowerCase());
   return partes.join(" · ");
-}
-
-// Anos de UFC: "2019–2022", ou só "2024" se todas as lutas foram no mesmo ano (carreira inteira,
-// não muda com o filtro de período)
-function anosDeUfc(l) {
-  if (!l.anos) return "";
-  const [inicio, fim] = l.anos;
-  return inicio === fim ? String(inicio) : `${inicio}–${fim}`;
-}
-
-function iniciais(nome) {
-  const partes = nome.replace(/\(.*\)/, "").trim().split(/\s+/);
-  return ((partes[0] || "")[0] + (partes.length > 1 ? partes[partes.length - 1][0] : "")).toUpperCase();
-}
-
-// Foto redonda do lutador; sem foto (ou se a imagem não carregar), as iniciais num círculo
-function avatar(l, classe = "") {
-  const caixa = document.createElement("div");
-  caixa.className = `avatar ${classe}`.trim();
-  caixa.setAttribute("aria-hidden", "true");
-  caixa.textContent = iniciais(l.nome);
-  if (l.foto) {
-    const img = document.createElement("img");
-    img.src = l.foto;
-    img.alt = "";
-    img.loading = "lazy";
-    img.referrerPolicy = "no-referrer";
-    img.addEventListener("error", () => img.remove());
-    caixa.appendChild(img);
-  }
-  return caixa;
-}
-
-// Nome em destaque e, embaixo, categoria e anos de UFC
-function identificacao(l) {
-  const bloco = document.createElement("div");
-  bloco.className = "identificacao";
-  const nome = document.createElement("span");
-  nome.className = "nome-lutador";
-  nome.textContent = l.nome; // nome via textContent: nunca como HTML
-  const sub = document.createElement("span");
-  sub.className = "sub-lutador";
-  sub.textContent = [l.cat ? (CATEGORIAS[l.cat] || l.cat) : "", anosDeUfc(l)].filter(Boolean).join(" · ");
-  bloco.append(nome, sub);
-  return bloco;
 }
 
 function preencherCartao(elemento, l) {
@@ -222,7 +152,7 @@ function preencherCartao(elemento, l) {
       ${l.ko} por nocaute · ${l.subw} por finalização</div>
     ${lutasComEstat(l) < l.n ? `<div class="detalhe">Estatísticas de ${lutasComEstat(l)} das ${l.n} lutas (as mais antigas não têm)</div>` : ""}
     <div class="detalhe fisico"></div>`;
-  elemento.querySelector(".nome").textContent = l.nome; // nome via textContent: nunca como HTML
+  elemento.querySelector(".nome").appendChild(linkNome(l.nome, "")); // nome leva ao perfil
   elemento.querySelector(".categoria").textContent =
     [l.cat ? (CATEGORIAS[l.cat] || l.cat) : "", l.anos ? `UFC ${anosDeUfc(l)}` : ""].filter(Boolean).join(" · ");
   elemento.querySelector(".topo-cartao").prepend(avatar(l, "grande"));
@@ -494,7 +424,6 @@ function desenharTabela(metrica, top) {
 // rolagem; digitar filtra sem diferenciar acentos e maiúsculas. Ao sair sem escolher, o nome volta.
 let nomesOrdenados = [];
 
-const normalizar = (texto) => texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 function filtrarNomes(texto) {
   const termo = normalizar(texto.trim());

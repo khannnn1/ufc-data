@@ -207,6 +207,45 @@ def montar_json(df, df_round, datas_eventos, lutadores, periodo=None, carreira=N
     }
 
 
+# Estatísticas de cada lado no histórico de lutas (perfil do lutador), nesta ordem:
+# [nome, resultado, kd, golpes sig. acertados, tentados, quedas, quedas tentadas, controle (s)]
+COLUNAS_LADO = ["KD", "Sig_str_landed", "Sig_str_attempted", "Td_landed", "Td_attempted", "Ctrl_seconds"]
+
+
+def montar_lutas(df, datas_eventos):
+    """Histórico de todas as lutas para a página de perfil (dados/lutas.json), da mais recente à mais antiga.
+
+    {"eventos": [[nome, data], ...],
+     "lutas": [[evento (índice em eventos), categoria, método, round, tempo, cinturão, luta da noite,
+                performance da noite, lado_1, lado_2], ...]}
+    lado = [nome, resultado W/L/D/NC, kd, sig acertados, sig tentados, quedas, quedas tentadas, controle_s];
+    estatísticas ausentes (lutas antigas) viram null. O vencedor vem primeiro quando houver.
+    Listas em vez de objetos para o arquivo ficar pequeno; o JS lê nesta mesma ordem.
+    """
+    df = df.merge(datas_eventos[["Event_URL", "Event_Date"]], on="Event_URL")
+    eventos = (df[["Event_URL", "Event_Name", "Event_Date"]].drop_duplicates("Event_URL")
+               .sort_values(["Event_Date", "Event_Name"], ascending=False).reset_index(drop=True))
+    indice = {url: i for i, url in enumerate(eventos["Event_URL"])}
+    ordem_resultado = {"W": 0, "D": 1, "NC": 1, "L": 2}
+    df = df.assign(_ordem=df["Resultado"].map(ordem_resultado).fillna(1))
+    df = df.sort_values(["Event_Date", "Fight_URL", "_ordem", "Fighter"], ascending=[False, True, True, True])
+
+    def inteiro(v):
+        return None if pd.isna(v) else int(v)
+
+    lutas = []
+    for _, luta in df.groupby("Fight_URL", sort=False):
+        primeira = luta.iloc[0]
+        lados = [[l["Fighter"], l["Resultado"], *[inteiro(l[c]) for c in COLUNAS_LADO]] for _, l in luta.iterrows()]
+        lutas.append([indice[primeira["Event_URL"]], primeira.get("Weight_Class") if pd.notna(primeira.get("Weight_Class")) else None,
+                      primeira["Method"], inteiro(primeira["Final_Round"]), primeira["Time"],
+                      inteiro(primeira.get("Title_Bout", 0)) or 0, inteiro(primeira.get("Fight_Bonus", 0)) or 0,
+                      inteiro(primeira.get("Perf_Bonus", 0)) or 0, *lados])
+    lutas.sort(key=lambda l: l[0])  # estável: mantém a ordem dentro do evento
+    return {"gerado_em": date.today().isoformat(),
+            "eventos": eventos[["Event_Name", "Event_Date"]].values.tolist(), "lutas": lutas}
+
+
 def filtrar_periodo(df, df_round, datas_eventos, inicio):
     """Só as lutas de eventos a partir de `inicio` (None = tudo), no resumo e no por round."""
     if inicio is None:
@@ -241,6 +280,8 @@ def exportar_lutadores(caminho_csv=ARQUIVO_RESUMO, caminho_round=ARQUIVO_ROUND, 
         with open(arquivo_do_periodo(chave, pasta_saida), "w", encoding="utf-8") as f:
             json.dump(saida, f, ensure_ascii=False, separators=(",", ":"))
         saidas[chave] = saida
+    with open(Path(pasta_saida) / "lutas.json", "w", encoding="utf-8") as f:
+        json.dump(montar_lutas(df, datas_eventos), f, ensure_ascii=False, separators=(",", ":"))
     return saidas
 
 
