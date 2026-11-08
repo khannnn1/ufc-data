@@ -150,3 +150,14 @@ def test_montar_lutas_com_nota_e_estilo(resumo, datas_eventos):
     # posição no top 15 pelo Elo: 11º item de cada lado, null fora do top
     com_posicao = montar_lutas(resumo, datas_eventos, notas, info["estilos"], {("F3", "A"): 4})["lutas"][2]
     assert com_posicao[8][10] == 4 and com_posicao[9][10] is None
+
+
+def test_foto_manual_vale_por_cima_da_coletada(tmp_path, monkeypatch):
+    import src.exportar as exportar
+    pd.DataFrame({"Fighter_URL": ["url/A", "url/B"], "Photo_URL": ["https://exemplo/a.png", "https://exemplo/b.png"]}
+                 ).to_csv(tmp_path / "fotos.csv", index=False)
+    monkeypatch.setattr(exportar, "FOTOS_MANUAIS", {"url/B": "https://exemplo/b-nova.png", "url/C": "https://exemplo/c.png"})
+    cadastro = pd.DataFrame({"Fighter_URL": ["url/A", "url/B", "url/C", "url/D"]})
+    fotos = exportar.juntar_fotos(cadastro, tmp_path / "fotos.csv").set_index("Fighter_URL")["Photo_URL"]
+    assert fotos["url/A"] == "https://exemplo/a.png" and fotos["url/B"] == "https://exemplo/b-nova.png"
+    assert fotos["url/C"] == "https://exemplo/c.png" and pd.isna(fotos["url/D"])

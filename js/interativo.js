@@ -164,7 +164,9 @@ function preencherCartao(elemento, l) {
     <div class="nota-cartao"></div>`;
   elemento.querySelector(".nome").appendChild(linkNome(l.nome, "")); // nome leva ao perfil
   elemento.querySelector(".categoria").textContent =
-    [l.cat ? (CATEGORIAS[l.cat] || l.cat) : "", l.anos ? `UFC ${anosDeUfc(l)}` : "", l.estilo || ""].filter(Boolean).join(" · ");
+    [l.cat ? (CATEGORIAS[l.cat] || l.cat) : "", l.anos ? `UFC ${anosDeUfc(l)}` : "", l.estilo || "",
+      textoMelhorPosicao(l.melhor)].filter(Boolean).join(" · ");
+  if (l.melhor) elemento.querySelector(".categoria").title = TITULO_MELHOR_POSICAO;
   elemento.querySelector(".topo-cartao").prepend(avatar(l, "grande"));
   const notaCartao = elemento.querySelector(".nota-cartao");
   if (l.nn) notaCartao.append(seloNota(l.nm), `nota média em ${l.nn} ${l.nn === 1 ? "luta" : "lutas"}`);
@@ -953,6 +955,7 @@ function anexarNotas(dados) {
         cat: luta[1], metodo: luta[2], round: luta[3], tempo: luta[4] });
     }
   }
+  const melhor = melhoresPosicoes(dadosLutas); // carreira inteira, fora do recorte de período
   atuacoes.sort((x, y) => y.nota - x.nota || y.partes[1] - x.partes[1] || y.data.localeCompare(x.data));
   for (const l of lutadores) {
     const s = soma.get(l.nome);
@@ -960,6 +963,7 @@ function anexarNotas(dados) {
     l.nm = s ? Math.round((s.total / s.n) * 100) / 100 : null;
     l.estilo = dadosLutas.estilos?.[l.nome] || null;
     l.nr = ranqueado.get(l.nome) || 0;
+    l.melhor = melhor.get(l.nome) || null;
   }
 }
 

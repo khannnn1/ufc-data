@@ -166,12 +166,28 @@ function linkNome(nome, classe = "nome-lutador") {
 }
 
 // Nome em destaque (link para o perfil) e, embaixo, categoria e anos de UFC
+// Melhor posição que cada lutador teve no top 15 pelo Elo, na carreira inteira (lado[10] de dados/lutas.json:
+// posição na véspera de cada luta). Não muda com o filtro de período.
+function melhoresPosicoes(dadosLutas) {
+  const melhor = new Map();
+  for (const luta of dadosLutas?.lutas || []) {
+    for (const lado of [luta[8], luta[9]]) {
+      if (lado[10] && !(melhor.get(lado[0]) <= lado[10])) melhor.set(lado[0], lado[10]);
+    }
+  }
+  return melhor;
+}
+const TITULO_MELHOR_POSICAO = "Melhor posição no top 15 da categoria pelo Elo (não é o ranking oficial)";
+const textoMelhorPosicao = (posicao) => (posicao ? `melhor #${posicao}` : "");
+
 function identificacao(l) {
   const bloco = document.createElement("div");
   bloco.className = "identificacao";
   const sub = document.createElement("span");
   sub.className = "sub-lutador";
-  sub.textContent = [l.cat ? (CATEGORIAS[l.cat] || l.cat) : "", anosDeUfc(l)].filter(Boolean).join(" · ");
+  sub.textContent = [l.cat ? (CATEGORIAS[l.cat] || l.cat) : "", anosDeUfc(l), textoMelhorPosicao(l.melhor)]
+    .filter(Boolean).join(" · ");
+  if (l.melhor) sub.title = TITULO_MELHOR_POSICAO;
   bloco.append(linkNome(l.nome), sub);
   return bloco;
 }

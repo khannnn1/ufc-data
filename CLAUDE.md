@@ -141,9 +141,11 @@ Definido em `src/visualizacao.py`:
   no-profile-image.png. robots.txt: crawl-delay 15 e Disallow /athletes/all -> só páginas de atleta,
   15 s entre elas (~11 h a base toda), da luta mais recente para a mais antiga, retomável, salva a cada
   10. Homônimos (mesmo slug) ficam sem foto. O site só aponta para a URL (imagens não vão pro repo).
+  Foto mal cortada: trocar à mão em `FOTOS_MANUAIS` (exportar.py, Fighter_URL -> URL), que vale por cima do fotos.csv
+  (Jon Jones usa o headshot de 2024-11; o de 2025-10 corta a cabeça).
 
 ## Testes
-`python -m pytest` na raiz (77 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
+`python -m pytest` na raiz (78 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
 tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos CSVs
 limpos; `test_atualizar_historico.py` roda `atualizar(historico=True)` com um navegador falso; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
 e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
@@ -450,6 +452,9 @@ exige `nr` = lutas do período como top 15 >= mín. de lutas).
 Padrão do ranking (2026-11-08, pedido do usuário): nota média, só top 15, mín. 10 lutas, top 10 (`PADROES` +
 `interativo.html`); "Todos" vai na URL como `rq=todos`. Atalhos da página inicial que não são de nota abrem com
 `rq=todos&min=4` (analises.js).
+Melhor posição da carreira ("melhor #N", 2026-11-08): `melhoresPosicoes(dadosLutas)` em site.js (mínimo de lado[10] em
+todas as lutas, ignora o período), `l.melhor` em `anexarNotas`; aparece em `identificacao` (rankings), cartões do
+comparador e subtítulo do perfil (do histórico). No celular o subtítulo quebra linha em vez de cortar.
 Página inicial: bloco `notas` em analises.json (`notas_do_periodo` em src/analises.py: média, por estilo
 [estilo, atuações, lutadores, nota média, % vitórias] e as 5 melhores atuações), cartões "Melhores atuações" e
 "Nota média por estilo" e atalho do ranking de nota.
