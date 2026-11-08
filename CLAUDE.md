@@ -448,7 +448,8 @@ na véspera de cada luta, os 15 de maior Elo da categoria entre quem lutou nela 
 categoria), nos últimos 730 dias, com 3+ lutas. NÃO é o ranking oficial (só existe desde 2013, sem histórico
 público). Quem muda de divisão só entra na nova depois de lutar nela. Vai como 11º item do lado em lutas.json
 (4.265 lados ranqueados); no site: "#N" no card do evento e filtro "Ranqueado" nos rankings (URL `rq=sim`,
-exige `nr` = lutas do período como top 15 >= mín. de lutas).
+exige `nr` = lutas do período como top 15 >= `LUTAS_RANQUEADO` (3, ou o mín. de lutas se menor; desde 2026-11-08,
+antes era o próprio mín. de lutas e cortava quem chegou ao topo há pouco, como Khamzat com 10 lutas e 4 ranqueado)).
 Padrão do ranking (2026-11-08, pedido do usuário): nota média, só top 15, mín. 10 lutas, top 10 (`PADROES` +
 `interativo.html`); "Todos" vai na URL como `rq=todos`. Atalhos da página inicial que não são de nota abrem com
 `rq=todos&min=4` (analises.js).
