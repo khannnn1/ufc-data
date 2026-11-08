@@ -165,8 +165,8 @@ function preencherCartao(elemento, l) {
   elemento.querySelector(".nome").appendChild(linkNome(l.nome, "")); // nome leva ao perfil
   elemento.querySelector(".categoria").textContent =
     [l.cat ? (CATEGORIAS[l.cat] || l.cat) : "", l.anos ? `UFC ${anosDeUfc(l)}` : "", l.estilo || "",
-      textoMelhorPosicao(l.melhor)].filter(Boolean).join(" · ");
-  if (l.melhor) elemento.querySelector(".categoria").title = TITULO_MELHOR_POSICAO;
+      textoMelhorPosicao(l.melhor, l.cat)].filter(Boolean).join(" · ");
+  if (l.melhor) elemento.querySelector(".categoria").title = tituloMelhorPosicao(l.melhor);
   elemento.querySelector(".topo-cartao").prepend(avatar(l, "grande"));
   const notaCartao = elemento.querySelector(".nota-cartao");
   if (l.nn) notaCartao.append(seloNota(l.nm), `nota média em ${l.nn} ${l.nn === 1 ? "luta" : "lutas"}`);
@@ -369,6 +369,9 @@ function desenharRanking() {
   const base = document.getElementById("base").value;
   const estilo = document.getElementById("estilo").value;
   const soRanqueados = document.getElementById("ranqueado").value === "sim";
+  // "Só top 15": lutas no top 15 contam à parte do mínimo de lutas (que é a amostra da métrica), para não cortar
+  // quem chegou ao topo há pouco tempo (Khamzat: 10 lutas com nota, 4 como top 15)
+  const minRanqueado = Math.min(LUTAS_RANQUEADO, minLutas);
   const faixa = FAIXAS_IDADE[document.getElementById("idade").value];
   const naFaixa = (l) => {
     if (!faixa) return true;
@@ -378,7 +381,7 @@ function desenharRanking() {
   };
 
   const elegiveis = lutadores
-    .filter((l) => lutasDaMetrica(metrica, l) >= minLutas && (!categoria || l.cat === categoria) && (!base || l.base === base) && (!estilo || l.estilo === estilo) && (!soRanqueados || l.nr >= minLutas) && naFaixa(l))
+    .filter((l) => lutasDaMetrica(metrica, l) >= minLutas && (!categoria || l.cat === categoria) && (!base || l.base === base) && (!estilo || l.estilo === estilo) && (!soRanqueados || l.nr >= minRanqueado) && naFaixa(l))
     .filter((l) => !metrica.requisito || metrica.requisito(l))
     .map((l) => ({ l, v: calcular(metrica, l) }))
     .filter((x) => x.v !== null);
@@ -394,7 +397,7 @@ function desenharRanking() {
   const doEstilo = estilo ? ` de estilo ${estilo.toLowerCase()}` : "";
   const daIdade = faixa ? ` (${faixa.rotulo.toLowerCase()} hoje)` : "";
   const nota = `${elegiveis.length} lutadores${daBase}${doEstilo}${doPeso}${daIdade} com pelo menos ${minLutas} ${minLutas === 1 ? (metrica.lutas ? "luta com nota" : "luta") : (metrica.lutas ? "lutas com nota" : "lutas")} no período.`
-    + (soRanqueados ? ` Só quem entrou em pelo menos ${minLutas} ${minLutas === 1 ? "luta" : "lutas"} do período no top 15 da categoria pelo Elo do site (não é o ranking oficial do UFC, que só existe desde 2013).` : "")
+    + (soRanqueados ? ` Só quem entrou em pelo menos ${minRanqueado} ${minRanqueado === 1 ? "luta" : "lutas"} do período no top 15 da categoria pelo Elo do site (não é o ranking oficial do UFC, que só existe desde 2013).` : "")
     + (categoria ? " Categoria = a da luta mais recente de cada um; quem mudou de divisão entra com todas as lutas." : "")
     + (metrica.nota ? " " + metrica.nota : "");
   document.getElementById("nota-ranking").textContent = nota;
@@ -820,6 +823,7 @@ const periodoDaUrl = () => {
   return p in PERIODOS ? p : PADROES.p;
 };
 const TAMANHOS_TOP = [10, 15, 20];
+const LUTAS_RANQUEADO = 3; // filtro "Só top 15": lutas mínimas como top 15 (ou o mín. de lutas, se menor)
 let urlPronta = false; // só escreve na URL depois de aplicar o estado inicial
 
 function lerEstadoDaUrl() {

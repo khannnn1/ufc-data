@@ -168,26 +168,33 @@ function linkNome(nome, classe = "nome-lutador") {
 // Nome em destaque (link para o perfil) e, embaixo, categoria e anos de UFC
 // Melhor posição que cada lutador teve no top 15 pelo Elo, na carreira inteira (lado[10] de dados/lutas.json:
 // posição na véspera de cada luta). Não muda com o filtro de período.
+// Quem venceu uma disputa de cinturão (luta[5], inclui interino) aparece como "campeão" no lugar da posição:
+// o Elo não sabe do cinturão, então um campeão pode nunca ter sido o nº 1 dele.
 function melhoresPosicoes(dadosLutas) {
   const melhor = new Map();
   for (const luta of dadosLutas?.lutas || []) {
     for (const lado of [luta[8], luta[9]]) {
-      if (lado[10] && !(melhor.get(lado[0]) <= lado[10])) melhor.set(lado[0], lado[10]);
+      if (luta[5] && lado[1] === "W") melhor.set(lado[0], "campeao");
+      else if (lado[10] && melhor.get(lado[0]) !== "campeao" && !(melhor.get(lado[0]) <= lado[10])) melhor.set(lado[0], lado[10]);
     }
   }
   return melhor;
 }
 const TITULO_MELHOR_POSICAO = "Melhor posição no top 15 da categoria pelo Elo (não é o ranking oficial)";
-const textoMelhorPosicao = (posicao) => (posicao ? `melhor #${posicao}` : "");
+const TITULO_CAMPEAO = "Venceu disputa de cinturão no UFC (inclui cinturão interino)";
+// "campeã" nas categorias femininas (as únicas com mulheres no UFC)
+const textoCampeao = (cat) => (/^Women/.test(cat || "") ? "campeã" : "campeão");
+const textoMelhorPosicao = (posicao, cat) => (posicao === "campeao" ? textoCampeao(cat) : posicao ? `melhor #${posicao}` : "");
+const tituloMelhorPosicao = (posicao) => (posicao === "campeao" ? TITULO_CAMPEAO : TITULO_MELHOR_POSICAO);
 
 function identificacao(l) {
   const bloco = document.createElement("div");
   bloco.className = "identificacao";
   const sub = document.createElement("span");
   sub.className = "sub-lutador";
-  sub.textContent = [l.cat ? (CATEGORIAS[l.cat] || l.cat) : "", anosDeUfc(l), textoMelhorPosicao(l.melhor)]
+  sub.textContent = [l.cat ? (CATEGORIAS[l.cat] || l.cat) : "", anosDeUfc(l), textoMelhorPosicao(l.melhor, l.cat)]
     .filter(Boolean).join(" · ");
-  if (l.melhor) sub.title = TITULO_MELHOR_POSICAO;
+  if (l.melhor) sub.title = tituloMelhorPosicao(l.melhor);
   bloco.append(linkNome(l.nome), sub);
   return bloco;
 }
