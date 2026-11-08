@@ -13,6 +13,7 @@ ARQUIVO_RESUMO = RAIZ / "data" / "processed" / "dataset_final_resumo_limpo.csv"
 ARQUIVO_ROUND = RAIZ / "data" / "processed" / "dataset_final_round_limpo.csv"
 ARQUIVO_EVENTOS = RAIZ / "data" / "processed" / "eventos.csv"
 ARQUIVO_LUTADORES = RAIZ / "data" / "processed" / "lutadores.csv"
+ARQUIVO_FOTOS = RAIZ / "data" / "raw" / "fotos.csv"  # gerado por `python -m src.fotos` (opcional)
 ARQUIVO_SAIDA = RAIZ / "dados" / "lutadores.json"
 PASTA_SAIDA = RAIZ / "dados"
 
@@ -96,11 +97,23 @@ def agregar_rounds(df_round):
     return por_lutador
 
 
+def periodo_de_atividade(df, datas_eventos):
+    """{lutador: [ano da 1ª luta, ano da última]} no UFC, pelas datas dos eventos.
+
+    Calculado sobre a base inteira (não sobre o recorte do filtro de período do site): é a carreira
+    no UFC, mostrada ao lado do nome nas tabelas (ex.: 2019–2022).
+    """
+    anos = df.merge(datas_eventos[["Event_URL", "Event_Date"]], on="Event_URL")
+    anos = anos.assign(ano=anos["Event_Date"].str[:4].astype(int)).groupby("Fighter")["ano"].agg(["min", "max"])
+    return {nome: [int(linha["min"]), int(linha["max"])] for nome, linha in anos.iterrows()}
+
+
 def dados_fisicos(df, lutadores, datas_eventos):
-    """{nome: {cat, alt, env, base, nasc}} para os cartões do comparador (campos ausentes ficam de fora).
+    """{nome: {cat, alt, env, base, nasc, foto}} para os cartões e tabelas (campos ausentes ficam de fora).
 
     cat = categoria da luta mais recente, ignorando peso casado (não é divisão); só se o lutador
     nunca lutou fora dele fica "Catch Weight". alt/env em cm inteiros, nasc em 'AAAA-MM-DD'.
+    foto = URL da foto (coluna Photo_URL de lutadores, se houver; ver src/fotos.py).
     """
     lutas = df.merge(datas_eventos[["Event_URL", "Event_Date"]], on="Event_URL")
     lutas["peso_casado"] = lutas["Weight_Class"] == "Catch Weight"
@@ -112,7 +125,7 @@ def dados_fisicos(df, lutadores, datas_eventos):
     fisico = {}
     for linha in base.itertuples(index=False):
         campos = {"cat": linha.Weight_Class, "alt": linha.Height_cm, "env": linha.Reach_cm,
-                  "base": linha.Stance, "nasc": linha.DOB}
+                  "base": linha.Stance, "nasc": linha.DOB, "foto": getattr(linha, "Photo_URL", None)}
         campos = {k: v for k, v in campos.items() if pd.notna(v)}
         for k in ("alt", "env"):
             if k in campos:
@@ -168,8 +181,12 @@ def historico_vantagens(df, lutadores, datas_eventos):
     return historico
 
 
-def montar_json(df, df_round, datas_eventos, lutadores, periodo=None):
-    """Conteúdo do JSON do site para um recorte já filtrado (resumo, por round e datas dos eventos)."""
+def montar_json(df, df_round, datas_eventos, lutadores, periodo=None, carreira=None):
+    """Conteúdo do JSON do site para um recorte já filtrado (resumo, por round e datas dos eventos).
+
+    carreira = periodo_de_atividade da base inteira; sem ele, é calculado sobre o próprio recorte.
+    """
+    carreira = carreira if carreira is not None else periodo_de_atividade(df, datas_eventos)
     agregado = agregar_lutadores(df)
     rounds = agregar_rounds(df_round)
     datas = datas_eventos.loc[datas_eventos["Event_URL"].isin(df["Event_URL"]), "Event_Date"]
@@ -184,7 +201,7 @@ def montar_json(df, df_round, datas_eventos, lutadores, periodo=None):
         "vantagens": historico_vantagens(df, lutadores, datas_eventos),
         "lutadores": [
             {**{k: (int(v) if isinstance(v, (int, float)) and k != "nome" else v) for k, v in linha.items()},
-             **fisico.get(linha["nome"], {}), "r": rounds.get(linha["nome"], [])}
+             **fisico.get(linha["nome"], {}), "anos": carreira.get(linha["nome"]), "r": rounds.get(linha["nome"], [])}
             for linha in agregado.to_dict(orient="records")
         ],
     }
@@ -199,18 +216,28 @@ def filtrar_periodo(df, df_round, datas_eventos, inicio):
     return df, df_round[df_round["Fight_URL"].isin(set(df["Fight_URL"]))]
 
 
+def juntar_fotos(lutadores, caminho_fotos=None):
+    """Acrescenta Photo_URL (de data/raw/fotos.csv, se existir) ao cadastro de lutadores."""
+    caminho_fotos = Path(caminho_fotos or ARQUIVO_FOTOS)
+    if not caminho_fotos.exists():
+        return lutadores
+    fotos = pd.read_csv(caminho_fotos)[["Fighter_URL", "Photo_URL"]].drop_duplicates("Fighter_URL")
+    return lutadores.merge(fotos, on="Fighter_URL", how="left")
+
+
 def exportar_lutadores(caminho_csv=ARQUIVO_RESUMO, caminho_round=ARQUIVO_ROUND, pasta_saida=PASTA_SAIDA):
     """Lê os datasets limpos e grava um JSON por período de PERIODOS (o do histórico todo é lutadores.json)."""
     df = pd.read_csv(caminho_csv, low_memory=False)
     df_round = pd.read_csv(caminho_round, low_memory=False)
     datas_eventos = pd.read_csv(ARQUIVO_EVENTOS)
-    lutadores = pd.read_csv(ARQUIVO_LUTADORES)
+    lutadores = juntar_fotos(pd.read_csv(ARQUIVO_LUTADORES))
+    carreira = periodo_de_atividade(df, datas_eventos)  # base inteira, igual em todos os períodos
 
     Path(pasta_saida).mkdir(parents=True, exist_ok=True)
     saidas = {}
     for chave, periodo in PERIODOS.items():
         recorte, recorte_round = filtrar_periodo(df, df_round, datas_eventos, inicio_do_periodo(periodo))
-        saida = montar_json(recorte, recorte_round, datas_eventos, lutadores, chave)
+        saida = montar_json(recorte, recorte_round, datas_eventos, lutadores, chave, carreira)
         with open(arquivo_do_periodo(chave, pasta_saida), "w", encoding="utf-8") as f:
             json.dump(saida, f, ensure_ascii=False, separators=(",", ":"))
         saidas[chave] = saida

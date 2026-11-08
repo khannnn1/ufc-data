@@ -222,6 +222,7 @@ __marimo__/
 data/raw/*.csv
 data/processed/*.csv
 data/*.db
+data/amostras_ufccom/
 
 # Arquivo temporário do Code Runner (evitar reincidência do erro anterior)
 tempCodeRunnerFile.ipynb

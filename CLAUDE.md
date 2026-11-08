@@ -35,6 +35,7 @@ ProjetoUFC/
 │   ├── banco.py          # monta data/ufc.db (SQLite) a partir dos CSVs limpos
 │   ├── consultas.py      # lê e executa as consultas de sql/consultas.sql
 │   ├── powerbi.py        # modelo estrela em CSV para o Power BI (powerbi/dados/)
+│   ├── fotos.py          # `python -m src.fotos`: foto de cada lutador no ufc.com -> data/raw/fotos.csv
 │   └── config.py         # constantes (COLUNAS_OF, COLUNAS_PCT)
 ├── dados/
 │   └── lutadores.json  # totais por lutador (VERSIONADO: o site lê daqui)
@@ -116,9 +117,17 @@ Definido em `src/visualizacao.py`:
   `python -m src.banco` na raiz
 - **consultas.py**: `carregar_consultas()` ({nome: sql}),
   `consultar(nome)` (DataFrame)
+- **fotos.py**: `slug_ufc(nome)` ("Sean O'Malley" -> sean-omalley), `extrair_foto(html, url_final)`,
+  `lutadores_para_coletar`, `coletar_fotos(limite)`. Página /athlete/<slug> do ufc.com com `requests`
+  (sem anti-bot; redireciona para ufc.com.br). Rosto = meta og:image, na versão reduzida
+  `styles/event_results_athlete_headshot/s3/<mesmo caminho>` se estiver na página (a 1ª img de headshot
+  pode ser de OUTRO lutador). Nome inexistente cai em /search com status 200; sem foto =
+  no-profile-image.png. robots.txt: crawl-delay 15 e Disallow /athletes/all -> só páginas de atleta,
+  15 s entre elas (~11 h a base toda), da luta mais recente para a mais antiga, retomável, salva a cada
+  10. Homônimos (mesmo slug) ficam sem foto. O site só aponta para a URL (imagens não vão pro repo).
 
 ## Testes
-`python -m pytest` na raiz (52 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
+`python -m pytest` na raiz (59 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
 tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos CSVs
 limpos; `test_atualizar_historico.py` roda `atualizar(historico=True)` com um navegador falso; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
 e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
@@ -379,8 +388,12 @@ atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
   vitorias_a, lutas], ...]}`, limite null = última faixa; bases com aviso de
   acaso quando o intervalo de Wilson inclui 50%, `intervaloWilson`), gerado por `historico_vantagens` em `src/exportar.py` com as faixas do
   gráfico 19 (`FAIXAS_VANTAGEM`). Oculta sem os 2 lutadores ou com o mesmo nos dois.
-- Rankings: métrica + categoria + base + idade + mín. de lutas + top N; clique na barra leva o lutador
-  ao comparador; tabela equivalente em `<details>`. Precisões exigem
+- Rankings: métrica + categoria + base + idade + mín. de lutas + top N, em TABELA (estilo app de
+  resultados: posição, foto redonda ou iniciais (`avatar`), nome com categoria e anos de UFC
+  (`identificacao`, `anosDeUfc`), barra proporcional ao 1º, valor, lutas, cartel; no celular só valor);
+  clique/Enter na linha leva o lutador ao comparador (`levarAoComparador`). Cartões do comparador
+  também têm foto e "UFC 2008–2024". No JSON: `anos` = [1º ano, último ano] da carreira inteira
+  (`periodo_de_atividade`, igual em todos os períodos) e `foto` (de data/raw/fotos.csv, via `juntar_fotos`). Precisões exigem
   amostra mínima de tentativas (`requisito` em cada métrica). Filtro de
   categoria (`CATEGORIAS_RANKING`, sem peso casado) usa `l.cat`, a categoria
   da luta mais recente: quem mudou de divisão entra com todas as lutas.
