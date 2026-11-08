@@ -90,7 +90,7 @@
     <li><strong>Estilo:</strong> cada lutador é classificado como striker, wrestler, finalizador ou completo pelos números das lutas anteriores a cada luta (nada do futuro entra na nota de uma luta antiga). O estilo reforça no ataque o peso do que é o jogo dele (golpes para o striker, quedas e controle para o wrestler). O que ele sofreu conta igual para todos, e os pesos são ajustados para que nenhum estilo ganhe vantagem na média. Na prática, o estilo muda a nota em poucos décimos: ele diz mais sobre o lutador do que sobre a nota.</li>
     <li><strong>Adversário:</strong> vencer alguém com retrospecto forte (medido por um Elo, como no xadrez) soma até 0,4 ponto; perder para essa pessoa soma metade, e perder para alguém fraco tira ponto. O Elo anda mais rápido nas 3 primeiras lutas e conta a decisão dividida como uma vitória apertada.</li>
   </ul>
-  <p id="ranqueados"><strong>Top 15 pelo Elo:</strong> o mesmo Elo define um ranking por categoria na véspera de cada luta: os 15 de maior Elo entre quem lutou na categoria nos últimos 2 anos e tem pelo menos 3 lutas no UFC (peso casado não muda a categoria). Ele aparece como "#4" no card do evento e no filtro "Ranqueado" dos rankings. Não é o ranking oficial do UFC, que só existe desde 2013 e não tem histórico público, mas vale para toda a base.</p>
+  <p id="ranqueados"><strong>Top 15 pelo Elo:</strong> o mesmo Elo define um ranking por categoria na véspera de cada luta: os 15 de maior Elo entre quem lutou na categoria nos últimos 2 anos e tem pelo menos 3 lutas no UFC (peso casado não muda a categoria). Ele aparece como "#4" no card do evento, como "melhor #N" (a melhor posição da carreira) ao lado do nome nos rankings, no comparador e no perfil, e no filtro "Ranqueado" dos rankings. Não é o ranking oficial do UFC, que só existe desde 2013 e não tem histórico público, mas vale para toda a base.</p>
   <p>Na base toda, o vencedor tem nota média 7,6 e o perdedor 5,8, e notas a partir de 9 aparecem em menos de 1% das atuações. Clicando na nota, o site mostra quanto veio de cada parte. Lutas antigas sem estatísticas ficam sem nota.</p>
 
   <h2>O que os números não dizem</h2>
@@ -109,7 +109,7 @@
   Projeto de <a href="https://github.com/khannnn1/ufc-data">código aberto no GitHub</a> · Dados de <a href="http://ufcstats.com">ufcstats.com</a> · Fotos de <a href="https://www.ufc.com">ufc.com</a>
 </footer>
 
-<script src="js/site.js?v=4"></script>
+<script src="js/site.js?v=5"></script>
 <script>
   // Números do topo e período da base, lidos de dados/analises.json (o texto fixo é só o padrão)
   carregarAnalises().then((d) => {

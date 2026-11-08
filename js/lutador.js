@@ -44,8 +44,13 @@ function topo(l, historico, estilo) {
   secao.appendChild(avatar(l, "enorme"));
   const titulo = elemento("div", "titulo");
   titulo.appendChild(elemento("h1", "", l.nome));
-  titulo.appendChild(elemento("div", "sub",
-    [l.cat ? (CATEGORIAS[l.cat] || l.cat) : "", l.anos ? `UFC ${anosDeUfc(l)}` : "", estilo ? `Estilo: ${estilo}` : ""].filter(Boolean).join(" · ")));
+  const posicoes = historico.map((h) => h.eu[10]).filter(Boolean);
+  const melhor = posicoes.length ? Math.min(...posicoes) : null;
+  const sub = elemento("div", "sub",
+    [l.cat ? (CATEGORIAS[l.cat] || l.cat) : "", l.anos ? `UFC ${anosDeUfc(l)}` : "", estilo ? `Estilo: ${estilo}` : "",
+      melhor ? `Melhor posição: #${melhor}` : ""].filter(Boolean).join(" · "));
+  if (melhor) sub.title = TITULO_MELHOR_POSICAO;
+  titulo.appendChild(sub);
   const c = elemento("div", "cartel-grande", cartel(l));
   c.appendChild(elemento("small", "", "cartel no UFC"));
   titulo.appendChild(c);

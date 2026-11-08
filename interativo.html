@@ -183,8 +183,9 @@
     table.atuacoes .col-metodo { display: none; }
     /* Nome ocupa o que sobra e corta com reticências: valor e nota sempre visíveis, sem rolagem lateral */
     table.ranking td:nth-child(2), table.atuacoes td:nth-child(2) { width: 100%; max-width: 0; }
-    .identificacao .nome-lutador, .identificacao .sub-lutador { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    table.atuacoes .identificacao .sub-lutador { white-space: normal; }
+    .identificacao .nome-lutador { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* subtítulo (categoria · anos · melhor posição) quebra a linha em vez de cortar */
+    .identificacao .sub-lutador { white-space: normal; }
     header { padding: 36px 16px 24px; }
     header h1 { font-size: 1.6rem; }
     .cartoes, .paineis { grid-template-columns: minmax(0, 1fr); }
@@ -274,7 +275,7 @@
 
   <section id="ranking">
     <h2>Monte o seu ranking</h2>
-    <p class="intro">Escolha a métrica e filtre por categoria, base, estilo, ranqueados, idade e mínimo de lutas no período. Os anos ao lado do nome são a carreira no UFC (da primeira à última luta). Clique numa linha para levar o lutador ao comparador.</p>
+    <p class="intro">Escolha a métrica e filtre por categoria, base, estilo, ranqueados, idade e mínimo de lutas no período. Os anos ao lado do nome são a carreira no UFC (da primeira à última luta), e "melhor #N" é a melhor posição que o lutador alcançou no top 15 da categoria pelo Elo. Clique numa linha para levar o lutador ao comparador.</p>
 
     <div class="controles">
       <div class="campo metrica">
@@ -350,7 +351,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <!-- ?v=N: aumente a cada mudança no JS, para o navegador não usar a versão antiga em cache -->
-<script src="js/site.js?v=4"></script>
-<script src="js/interativo.js?v=21"></script>
+<script src="js/site.js?v=5"></script>
+<script src="js/interativo.js?v=22"></script>
 </body>
 </html>

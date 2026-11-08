@@ -452,6 +452,9 @@ exige `nr` = lutas do período como top 15 >= mín. de lutas).
 Padrão do ranking (2026-11-08, pedido do usuário): nota média, só top 15, mín. 10 lutas, top 10 (`PADROES` +
 `interativo.html`); "Todos" vai na URL como `rq=todos`. Atalhos da página inicial que não são de nota abrem com
 `rq=todos&min=4` (analises.js).
+Melhor posição da carreira ("melhor #N", 2026-11-08): `melhoresPosicoes(dadosLutas)` em site.js (mínimo de lado[10] em
+todas as lutas, ignora o período), `l.melhor` em `anexarNotas`; aparece em `identificacao` (rankings), cartões do
+comparador e subtítulo do perfil (do histórico). No celular o subtítulo quebra linha em vez de cortar.
 Página inicial: bloco `notas` em analises.json (`notas_do_periodo` em src/analises.py: média, por estilo
 [estilo, atuações, lutadores, nota média, % vitórias] e as 5 melhores atuações), cartões "Melhores atuações" e
 "Nota média por estilo" e atalho do ranking de nota.
