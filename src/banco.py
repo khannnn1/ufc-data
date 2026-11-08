@@ -78,7 +78,7 @@ def montar_tabelas(resumo, por_round, datas_eventos, dados_lutadores):
     desempenho_round["luta_id"] = desempenho_round["Fight_URL"].map(id_da_luta)
     desempenho_round = desempenho_round[["luta_id", "lutador", "round", *ESTATISTICAS.values()]]
 
-    notas, _ = calcular_notas(resumo, datas_eventos)
+    notas, info = calcular_notas(resumo, datas_eventos)  # estilo em `notas` = o da véspera de cada luta
     notas = notas.assign(luta_id=notas["Fight_URL"].map(id_da_luta)).rename(columns={
         "Fighter": "lutador", "Estilo": "estilo", "Nota": "nota", "resultado": "parte_resultado",
         "desempenho": "parte_desempenho", "adversario": "parte_adversario"})
@@ -87,7 +87,8 @@ def montar_tabelas(resumo, por_round, datas_eventos, dados_lutadores):
         ["parte_resultado", "parte_desempenho", "parte_adversario"]].round(3)
 
     return {"eventos": eventos, "lutas": lutas, "lutadores": lutadores, "desempenho": desempenho,
-            "desempenho_round": desempenho_round, "notas": notas}
+            "desempenho_round": desempenho_round, "notas": notas,
+            "estilo_atual": info["estilos"]}  # {nome: estilo pela carreira até hoje}; não vira tabela no banco
 
 
 def criar_banco(caminho_banco=ARQUIVO_BANCO):
@@ -102,7 +103,7 @@ def criar_banco(caminho_banco=ARQUIVO_BANCO):
         for nome in ORDEM_TABELAS:
             tabelas[nome].to_sql(nome, conexao, if_exists="append", index=False)
 
-    return {nome: len(tabela) for nome, tabela in tabelas.items()}
+    return {nome: len(tabelas[nome]) for nome in ORDEM_TABELAS}
 
 
 if __name__ == "__main__":

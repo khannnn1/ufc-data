@@ -143,7 +143,7 @@ Definido em `src/visualizacao.py`:
   10. Homônimos (mesmo slug) ficam sem foto. O site só aponta para a URL (imagens não vão pro repo).
 
 ## Testes
-`python -m pytest` na raiz (76 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
+`python -m pytest` na raiz (77 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
 tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos CSVs
 limpos; `test_atualizar_historico.py` roda `atualizar(historico=True)` com um navegador falso; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
 e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
@@ -416,15 +416,20 @@ git push origin main
 
 ## Rating por luta (em construção desde 2026-11-08)
 `src/rating.py`, `calcular_notas(resumo, datas_eventos)`: nota = 6,6 + resultado + desempenho + adversário,
-limitada a [3, 10]. Estilo pelos números da carreira (`classificar_estilos`: Striker / Wrestler / Finalizador /
-Completo; < 3 lutas = Completo). Desempenho = regressão logística (numpy, sem sklearn) nas lutas decididas
-pelos juízes sobre as diferenças por minuto (cabeça, corpo+perna, KD, quedas, controle, finalização,
-reversão; taxas suavizadas com +5 min), ataque com os pesos do estilo (`MULTIPLICADORES`, reescalados
-para não favorecer estilo) e defesa com os pesos universais; desvio de 0,55 ponto. Resultado em `RESULTADO`
-(nocaute/finalização vale mais quanto mais cedo). Adversário = Elo antes da luta, ±0,4.
-Calibração na base completa: média 6,8; vencedor 7,6, perdedor 5,9; >= 9 em 0,5%; decisões: maior
-desempenho = vencedor em 84,5%, decisões divididas com 0,46 ponto de diferença média. Wrestlers têm média
-maior (6,95) porque vencem mais (56%). Holloway × Kattar = 9,7.
+limitada a [3, 10]. Estilo (Striker / Wrestler / Finalizador / Completo, por 15 min): na nota de cada luta, só com as
+lutas ANTERIORES (`estilos_por_luta`, < 3 lutas = Completo); o rótulo do site/dim_lutador é o da carreira até hoje
+(`classificar_estilos`). Desempenho = regressão logística (numpy, sem sklearn) nas lutas decididas pelos juízes
+sobre as diferenças por minuto (cabeça, corpo+perna, KD, quedas, controle, finalização, reversão, quedas erradas
+= tentadas − certas, peso negativo; taxas suavizadas com +5 min). As colunas são PADRONIZADAS antes da L2 (sem isso
+a L2 encolhia o KD para 1,5 golpe na cabeça; padronizado vale ~7,5, como nos estudos). Ataque com os pesos do estilo
+(`MULTIPLICADORES`, reescalados para não favorecer estilo) e defesa com os pesos universais; desvio de 0,55 ponto.
+Resultado em `RESULTADO` (nocaute/finalização vale mais quanto mais cedo). Adversário = 0,2 × Elo do adversário
+em desvios-padrão (z), ±0,4; cheio para quem vence, metade (se positivo) para quem perde. Elo: K = 64, 128 nas 3
+primeiras lutas, decisão dividida/majoritária = 0,6 (`_atualizar_elo`, também usado pelo top 15).
+Calibração na base completa (2026-11-08, depois da crítica em Claude Doc "Crítica do rating por luta"): média 6,70,
+desvio 1,04; vencedor 7,61, perdedor 5,79; >= 9 em 0,5%; perdedor acima do vencedor em 2,0% das lutas; decisões:
+maior desempenho = vencedor em 85,1%; desvio das partes: resultado 0,56, desempenho 0,55, adversário 0,17.
+O estilo muda a nota em poucos décimos (antes 0,02 em média): é mais rótulo que peso, de propósito.
 No site (site.js: `seloNota`, `classeNota`, `fmtNota`, `mediaDasNotas`, `ESTILOS`, detalhamento em caixa
 flutuante `abrirDetalheNota`): selo em cada lado do card do evento e "melhor atuação" na lista de eventos;
 no perfil, nota média + últimas 5 no topo, estilo no subtítulo, barras "Nota em cada luta" e coluna no
