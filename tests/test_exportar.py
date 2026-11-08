@@ -113,3 +113,21 @@ def test_json_traz_anos_da_carreira_e_foto(resumo, por_round, datas_eventos, lut
     # Os anos são da carreira inteira, mesmo no recorte (que só tem E1, de 2024-03)
     assert corte["A"]["anos"] == [2024, 2024] and corte["A"]["foto"] == "https://exemplo/a.png"
     assert "foto" not in corte["B"]
+
+
+def test_montar_lutas_historico_com_vencedor_primeiro(resumo, datas_eventos):
+    import numpy as np
+
+    from src.exportar import montar_lutas
+    resumo = resumo.copy()
+    resumo.loc[resumo["Fight_URL"] == "F2", "Sig_str_landed"] = np.nan  # luta antiga sem estatística
+    dados = montar_lutas(resumo, datas_eventos)
+    # E1 (2024-03-01) é o mais recente: índice 0
+    assert dados["eventos"] == [["Evento E1", "2024-03-01"], ["Evento E2", "2024-02-01"]]
+    assert [l[0] for l in dados["lutas"]] == [0, 0, 1]
+    f3 = dados["lutas"][2]
+    # [evento, categoria, método, round, tempo, cinturão, luta da noite, performance, vencedor, perdedor]
+    assert f3[:8] == [1, "Lightweight", "Submission", 2, "1:00", 1, 0, 0]
+    assert f3[8] == ["A", "W", 0, 15, 30, 0, 0, 30] and f3[9][:2] == ["C", "L"]
+    f2 = next(l for l in dados["lutas"] if l[8][0] == "C" and l[0] == 0)
+    assert f2[8][3] is None and f2[9][3] is None  # estatística ausente vira null
