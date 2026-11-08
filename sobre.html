@@ -18,7 +18,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="css/site.css?v=3">
+<link rel="stylesheet" href="css/site.css?v=4">
 <style>
   .sobre { max-width: 760px; }
   .sobre h1 { font-size: 1.9rem; margin: 0 0 8px; }
@@ -82,6 +82,16 @@
     <li><strong>Lutadores com o mesmo nome</strong> são separados pelo ano de nascimento, como "Bruno Silva (1989)" e "Bruno Silva (1990)".</li>
   </ul>
 
+  <h2 id="nota">Como a nota de cada luta é calculada</h2>
+  <p>Cada lutador recebe uma nota de 3 a 10 em cada luta com estatísticas, a partir de uma base de 6,6:</p>
+  <ul>
+    <li><strong>Resultado:</strong> vitória soma e derrota tira. Nocaute e finalização valem mais quanto mais cedo acontecem, e decisão dividida vale menos que unânime.</li>
+    <li><strong>Desempenho:</strong> o que o lutador fez menos o que sofreu, por minuto: golpes na cabeça, no corpo e na perna, knockdowns, quedas, tempo de controle, tentativas de finalização e reversões. Os pesos não foram escolhidos à mão: saem de uma regressão logística em mais de 4 mil lutas decididas pelos juízes, que mede quanto cada estatística pesa para vencer. Só com esses pesos, quem teve o melhor desempenho é o vencedor em 84% das decisões.</li>
+    <li><strong>Estilo:</strong> cada lutador é classificado pelos números da carreira como striker, wrestler, finalizador ou completo. O estilo reforça no ataque o peso do que é o jogo dele (golpes para o striker, quedas e controle para o wrestler). O que ele sofreu conta igual para todos, e os pesos são ajustados para que nenhum estilo ganhe vantagem na média.</li>
+    <li><strong>Adversário:</strong> vencer, ou até perder, para alguém com retrospecto forte (medido por um Elo, como no xadrez) soma até 0,4 ponto.</li>
+  </ul>
+  <p>Na base toda, o vencedor tem nota média 7,6 e o perdedor 5,9, e notas a partir de 9 aparecem em menos de 1% das atuações. Clicando na nota, o site mostra quanto veio de cada parte. Lutas antigas sem estatísticas ficam sem nota.</p>
+
   <h2>O que os números não dizem</h2>
   <ul>
     <li><strong>Associação não é causa.</strong> Vencedores acertam mais knockdowns, mas o knockdown muitas vezes já é o começo do fim da luta.</li>
@@ -98,7 +108,7 @@
   Projeto de <a href="https://github.com/khannnn1/ufc-data">código aberto no GitHub</a> · Dados de <a href="http://ufcstats.com">ufcstats.com</a> · Fotos de <a href="https://www.ufc.com">ufc.com</a>
 </footer>
 
-<script src="js/site.js?v=3"></script>
+<script src="js/site.js?v=4"></script>
 <script>
   // Números do topo e período da base, lidos de dados/analises.json (o texto fixo é só o padrão)
   carregarAnalises().then((d) => {

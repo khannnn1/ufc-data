@@ -18,7 +18,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="css/site.css?v=3">
+<link rel="stylesheet" href="css/site.css?v=4">
 <style>
   h1 { font-size: 1.6rem; margin: 0 0 4px; }
   .intro { color: var(--muted); margin: 0 0 18px; font-size: 0.92rem; }
@@ -40,6 +40,10 @@
   .lista-eventos a.evento:hover, .lista-eventos a.evento:focus-visible { background: var(--card-hover); outline: none; }
   .evento .data { color: var(--muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
   .evento .nome-evento { font-weight: 600; }
+  .evento .melhor-nota { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; font-weight: 400; font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
+  .evento .melhor-nota .selo-nota { height: 20px; min-width: 30px; font-size: 0.74rem; }
+  .placar .selos { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .placar .lado.direita .selos { flex-direction: row-reverse; }
   .evento .principal { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 0.88rem; }
   .evento .principal .x { color: var(--muted); font-size: 0.75rem; }
   .evento .principal .lado { display: flex; align-items: center; gap: 8px; min-width: 0; }
@@ -64,7 +68,7 @@
   .placar .lado { display: flex; align-items: center; gap: 12px; min-width: 0; }
   .placar .lado.direita { flex-direction: row-reverse; text-align: right; }
   .placar .lado.direita .identificacao { align-items: flex-end; }
-  .placar .lado.perdeu { opacity: 0.55; }
+  .placar .lado.perdeu > :not(.selos), .placar .lado.perdeu .resultado { opacity: 0.55; } /* a nota fica nítida */
   .placar .lado .nome-lutador { font-size: 1rem; }
   .placar .centro { text-align: center; min-width: 140px; }
   .placar .centro .metodo { font-weight: 700; }
@@ -80,7 +84,12 @@
     .evento .principal { grid-column: 1 / -1; }
     .placar { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
     .placar .centro { grid-column: 1 / -1; grid-row: 2; min-width: 0; }
-    .placar .lado { gap: 8px; }
+    .placar .lado { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 6px 8px; align-items: center; }
+    .placar .lado.direita { grid-template-columns: minmax(0, 1fr) 36px; }
+    .placar .lado.direita .avatar { grid-column: 2; grid-row: 1; }
+    .placar .lado.direita .identificacao { grid-column: 1; grid-row: 1; }
+    .placar .lado .selos { grid-column: 1 / -1; }
+    .placar .lado.direita .selos { justify-content: flex-start; }
     .placar .lado .avatar { width: 36px; height: 36px; }
     .placar .lado .nome-lutador { font-size: 0.92rem; overflow-wrap: anywhere; }
   }
@@ -96,7 +105,7 @@
   Projeto de <a href="https://github.com/khannnn1/ufc-data">código aberto no GitHub</a> · Dados de <a href="http://ufcstats.com">ufcstats.com</a> · Fotos de <a href="https://www.ufc.com">ufc.com</a>
 </footer>
 
-<script src="js/site.js?v=3"></script>
-<script src="js/eventos.js?v=1"></script>
+<script src="js/site.js?v=4"></script>
+<script src="js/eventos.js?v=2"></script>
 </body>
 </html>

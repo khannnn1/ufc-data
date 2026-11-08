@@ -143,7 +143,7 @@ Definido em `src/visualizacao.py`:
   10. Homônimos (mesmo slug) ficam sem foto. O site só aponta para a URL (imagens não vão pro repo).
 
 ## Testes
-`python -m pytest` na raiz (72 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
+`python -m pytest` na raiz (73 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
 tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos CSVs
 limpos; `test_atualizar_historico.py` roda `atualizar(historico=True)` com um navegador falso; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
 e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
@@ -383,7 +383,8 @@ git push origin main
   ativo do menu. Busca: palavra que começa com o termo antes de "contém", depois mais lutas.
 - `dados/lutas.json` (`montar_lutas` em exportar.py, ~1,2 MB): `{"eventos": [[nome, data, id]],
   "lutas": [[evento, cat, método, round, tempo, cinturão, luta_noite, performance, lado1, lado2]]}`,
-  lado = [nome, W/L/D/NC, kd, sl, sa, tdl, tda, ctrl] (null = sem estatística), vencedor primeiro;
+  lado = [nome, W/L/D/NC, kd, sl, sa, tdl, tda, ctrl, nota, [resultado, desempenho, adversário]] (null = sem
+  estatística/sem nota; nota de src/rating.py), vencedor primeiro; `estilos` = {nome: estilo};
   id = código do evento no link do ufcstats (estável); dentro do evento, ordem do card (luta
   principal primeiro) = ordem das linhas no CSV resumo, porque o scraper lê o evento de cima para baixo.
 - `lutador.html?n=Nome` (`js/lutador.js`): topo com foto, cartel, "Comparar" (leva a
@@ -420,7 +421,14 @@ para não favorecer estilo) e defesa com os pesos universais; desvio de 0,55 pon
 (nocaute/finalização vale mais quanto mais cedo). Adversário = Elo antes da luta, ±0,4.
 Calibração na base completa: média 6,8; vencedor 7,6, perdedor 5,9; >= 9 em 0,5%; decisões: maior
 desempenho = vencedor em 84,5%, decisões divididas com 0,46 ponto de diferença média. Wrestlers têm média
-maior (6,95) porque vencem mais (56%). Holloway × Kattar = 9,7. Próximo: exibir no card do evento e no perfil.
+maior (6,95) porque vencem mais (56%). Holloway × Kattar = 9,7.
+No site (site.js: `seloNota`, `classeNota`, `fmtNota`, `mediaDasNotas`, `ESTILOS`, detalhamento em caixa
+flutuante `abrirDetalheNota`): selo em cada lado do card do evento e "melhor atuação" na lista de eventos;
+no perfil, nota média + últimas 5 no topo, estilo no subtítulo, barras "Nota em cada luta" e coluna no
+histórico. Classe CSS é `selo-nota` (NÃO `.nota`: lutador.html, index.html e sobre.html já usam `.nota`
+para parágrafos de observação). Faixas: < 6 vermelho, 6–6,9 amarelo, 7–7,9 verde, 8+ azul.
+Explicação para o público em sobre.html#nota. Próximo: rankings (nota média, filtro por estilo, melhores
+atuações), comparador e página inicial.
 
 ## Próximos passos / direção atual
 Ordem combinada (2026-11-08) para o site profissional: 1 estrutura comum + 2 perfil (feitos, PR #4);

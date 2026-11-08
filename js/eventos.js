@@ -58,7 +58,16 @@ function desenharLista(principal, dadosLutas, porNome) {
       const item = el("li");
       const link = el("a", "evento");
       link.href = linkEventoUrl(id);
-      link.append(el("span", "data", fmtData(data)), el("span", "nome-evento", nome));
+      const nomeEvento = el("span", "nome-evento", nome);
+      // Melhor atuação da noite: maior nota entre todos os lados do card
+      let melhor = null;
+      for (const luta of lutas) for (const lado of [luta[8], luta[9]]) if (lado[8] != null && (!melhor || lado[8] > melhor[8])) melhor = lado;
+      if (melhor) {
+        const destaque = el("span", "melhor-nota", "Melhor atuação: ");
+        destaque.append(el("span", "", melhor[0]), " ", seloNota(melhor[8]));
+        nomeEvento.appendChild(destaque);
+      }
+      link.append(el("span", "data", fmtData(data)), nomeEvento);
       const principalLuta = el("span", "principal");
       if (lutas.length) {
         const [, , , , , , , , a, b] = lutas[0];
@@ -88,7 +97,7 @@ function desenharLista(principal, dadosLutas, porNome) {
 
 // ---------- Card de um evento ----------
 
-function ladoDoPlacar(lado, porNome, direita, temVencedor) {
+function ladoDoPlacar(lado, porNome, direita, temVencedor, estilos) {
   const [nome, resultado] = lado;
   const caixa = el("div", `lado${direita ? " direita" : ""}${temVencedor && resultado === "L" ? " perdeu" : ""}`);
   const id = el("div", "identificacao");
@@ -97,7 +106,11 @@ function ladoDoPlacar(lado, porNome, direita, temVencedor) {
   id.append(linkNome(nome), sub);
   const selo = el("span", `resultado ${resultado}`, RESULTADOS[resultado] || resultado);
   selo.title = RESULTADOS_LONGOS[resultado] || resultado;
-  caixa.append(avatar(l || { nome }, "grande"), id, selo);
+  const notaLado = lado[8];
+  const extras = el("div", "selos");
+  extras.appendChild(selo);
+  if (notaLado !== null && notaLado !== undefined) extras.appendChild(seloNota(notaLado, lado[9], { nome, estilo: estilos[nome] }));
+  caixa.append(avatar(l || { nome }, "grande"), id, extras);
   return caixa;
 }
 
@@ -139,7 +152,8 @@ function desenharEvento(principal, dadosLutas, porNome, id) {
     const centro = el("div", "centro");
     centro.append(el("div", "metodo", METODOS[metodo] || metodo),
       el("div", "detalhe", [round ? `${round}º round` : "", tempo || ""].filter(Boolean).join(" · ")));
-    placar.append(ladoDoPlacar(a, porNome, false, temVencedor), centro, ladoDoPlacar(b, porNome, true, temVencedor));
+    const estilos = dadosLutas.estilos || {};
+    placar.append(ladoDoPlacar(a, porNome, false, temVencedor, estilos), centro, ladoDoPlacar(b, porNome, true, temVencedor, estilos));
     cartao.append(rotulo, placar);
 
     // Estatísticas dos dois lados (a = [nome, res, kd, sl, sa, tdl, tda, ctrl])

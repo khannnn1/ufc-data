@@ -132,6 +132,18 @@ def test_montar_lutas_historico_com_vencedor_primeiro(resumo, datas_eventos):
     f3 = dados["lutas"][2]
     # [evento, categoria, método, round, tempo, cinturão, luta da noite, performance, vencedor, perdedor]
     assert f3[:8] == [1, "Lightweight", "Submission", 2, "1:00", 1, 0, 0]
-    assert f3[8] == ["A", "W", 0, 15, 30, 0, 0, 30] and f3[9][:2] == ["C", "L"]
+    assert f3[8] == ["A", "W", 0, 15, 30, 0, 0, 30, None, None] and f3[9][:2] == ["C", "L"]
+    assert "estilos" not in dados
     f2 = next(l for l in dados["lutas"] if l[8][0] == "C" and l[0] == 0)
     assert f2[8][3] is None and f2[9][3] is None  # estatística ausente vira null
+
+
+def test_montar_lutas_com_nota_e_estilo(resumo, datas_eventos):
+    from src.exportar import montar_lutas
+    from src.rating import calcular_notas
+    notas, info = calcular_notas(resumo, datas_eventos)
+    dados = montar_lutas(resumo, datas_eventos, notas, info["estilos"])
+    a = dados["lutas"][2][8]  # F3, A venceu
+    linha = notas[(notas["Fight_URL"] == "F3") & (notas["Fighter"] == "A")].iloc[0]
+    assert a[8] == linha["Nota"] and a[9] == [round(linha["resultado"], 2), round(linha["desempenho"], 2), round(linha["adversario"], 2)]
+    assert dados["estilos"] == {"A": "Completo", "B": "Completo", "C": "Completo", "D": "Completo"}
