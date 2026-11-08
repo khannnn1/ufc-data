@@ -143,7 +143,7 @@ Definido em `src/visualizacao.py`:
   10. Homônimos (mesmo slug) ficam sem foto. O site só aponta para a URL (imagens não vão pro repo).
 
 ## Testes
-`python -m pytest` na raiz (75 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
+`python -m pytest` na raiz (76 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
 tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos CSVs
 limpos; `test_atualizar_historico.py` roda `atualizar(historico=True)` com um navegador falso; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
 e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
@@ -386,8 +386,8 @@ git push origin main
   ativo do menu. Busca: palavra que começa com o termo antes de "contém", depois mais lutas.
 - `dados/lutas.json` (`montar_lutas` em exportar.py, ~1,2 MB): `{"eventos": [[nome, data, id]],
   "lutas": [[evento, cat, método, round, tempo, cinturão, luta_noite, performance, lado1, lado2]]}`,
-  lado = [nome, W/L/D/NC, kd, sl, sa, tdl, tda, ctrl, nota, [resultado, desempenho, adversário]] (null = sem
-  estatística/sem nota; nota de src/rating.py), vencedor primeiro; `estilos` = {nome: estilo};
+  lado = [nome, W/L/D/NC, kd, sl, sa, tdl, tda, ctrl, nota, [resultado, desempenho, adversário], posição]
+  (null = sem estatística/sem nota/fora do top 15; nota de src/rating.py; posição = top 15 pelo Elo, ver Rating), vencedor primeiro; `estilos` = {nome: estilo};
   id = código do evento no link do ufcstats (estável); dentro do evento, ordem do card (luta
   principal primeiro) = ordem das linhas no CSV resumo, porque o scraper lê o evento de cima para baixo.
 - `lutador.html?n=Nome` (`js/lutador.js`): topo com foto, cartel, "Comparar" (leva a
@@ -436,6 +436,12 @@ junto com o período), `nm` (nota média), `nn` (lutas com nota) e `estilo` de c
 `dados.periodo.inicio` — assim lutadores*.json (com fotos, só regeneráveis no PC) não mudam. Métrica `nota_media`
 (campo `lutas` próprio = nn para o "mín. de lutas"), filtro `#estilo` (URL `estilo`), seção `#atuacoes` (top 20 do
 período, filtros categoria/estilo; empate: maior desempenho, depois mais recente) e nota/estilo nos cartões.
+Top 15 pelo Elo (`posicoes_no_ranking` em rating.py, 2026-11-08, pedido do usuário para contextualizar rankings):
+na véspera de cada luta, os 15 de maior Elo da categoria entre quem lutou nela por último (peso casado não muda a
+categoria), nos últimos 730 dias, com 3+ lutas. NÃO é o ranking oficial (só existe desde 2013, sem histórico
+público). Quem muda de divisão só entra na nova depois de lutar nela. Vai como 11º item do lado em lutas.json
+(4.265 lados ranqueados); no site: "#N" no card do evento e filtro "Ranqueado" nos rankings (URL `rq=sim`,
+exige `nr` = lutas do período como top 15 >= mín. de lutas).
 Página inicial: bloco `notas` em analises.json (`notas_do_periodo` em src/analises.py: média, por estilo
 [estilo, atuações, lutadores, nota média, % vitórias] e as 5 melhores atuações), cartões "Melhores atuações" e
 "Nota média por estilo" e atalho do ranking de nota.

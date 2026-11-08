@@ -147,3 +147,6 @@ def test_montar_lutas_com_nota_e_estilo(resumo, datas_eventos):
     linha = notas[(notas["Fight_URL"] == "F3") & (notas["Fighter"] == "A")].iloc[0]
     assert a[8] == linha["Nota"] and a[9] == [round(linha["resultado"], 2), round(linha["desempenho"], 2), round(linha["adversario"], 2)]
     assert dados["estilos"] == {"A": "Completo", "B": "Completo", "C": "Completo", "D": "Completo"}
+    # posição no top 15 pelo Elo: 11º item de cada lado, null fora do top
+    com_posicao = montar_lutas(resumo, datas_eventos, notas, info["estilos"], {("F3", "A"): 4})["lutas"][2]
+    assert com_posicao[8][10] == 4 and com_posicao[9][10] is None

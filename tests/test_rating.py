@@ -64,3 +64,28 @@ def test_notas_do_mini_dataset(resumo, datas_eventos):
     # nota = base + partes, arredondada
     linha = notas.iloc[0]
     assert linha["Nota"] == round(BASE + linha["resultado"] + linha["desempenho"] + linha["adversario"], 1)
+
+
+def _lutas_ranking():
+    linhas = [  # (luta, evento, categoria, vencedor, perdedor)
+        ("f1", "e1", "Lightweight", "A", "B"),
+        ("f2", "e2", "Lightweight", "A", "C"),
+        ("f3", "e3", "Catch Weight", "B", "C"),
+    ]
+    df = pd.DataFrame([{"Fight_URL": f, "Event_URL": e, "Weight_Class": c, "Fighter": x, "Resultado": r}
+                       for f, e, c, v, p in linhas for x, r in [(v, "W"), (p, "L")]])
+    datas = pd.DataFrame({"Event_URL": ["e1", "e2", "e3"], "Event_Date": ["2020-01-01", "2020-06-01", "2023-01-01"]})
+    return df, datas
+
+
+def test_posicoes_no_ranking_na_vespera_da_luta():
+    from src.rating import posicoes_no_ranking
+    df, datas = _lutas_ranking()
+    # f1: ninguém tinha lutas; f2: A venceu B e lidera (C estreia, fora); f3 (peso casado) usa o peso-leve:
+    # A 1º, C 2º (perdeu para quem tinha Elo maior, perde menos pontos que B), B 3º
+    assert posicoes_no_ranking(df, datas, top=2, min_lutas=1, inatividade_dias=10_000) == {("f2", "A"): 1, ("f3", "C"): 2}
+    assert posicoes_no_ranking(df, datas, top=3, min_lutas=1, inatividade_dias=10_000)[("f3", "B")] == 3
+    # inatividade: em 2023, quem não luta há mais de 2 anos sai do ranking
+    assert posicoes_no_ranking(df, datas, top=3, min_lutas=1, inatividade_dias=730) == {("f2", "A"): 1}
+    # mínimo de lutas: B e C têm só 1 luta antes de f3
+    assert posicoes_no_ranking(df, datas, top=3, min_lutas=2, inatividade_dias=10_000) == {}
