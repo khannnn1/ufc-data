@@ -42,8 +42,26 @@ def test_elo_antes_da_luta_e_adversario_forte_vale_mais():
                           "Adversario": ["B", "A", "C", "A"], "Resultado": ["W", "L", "L", "W"]})
     elo = calcular_elo(lutas)
     assert elo[("L1", "A")] == elo[("L1", "B")] == 1500
-    assert elo[("L2", "A")] == 1516 and elo[("L2", "C")] == 1500  # A venceu a 1ª: +16 (k=32, 50%)
-    assert bonus_adversario(1700) > bonus_adversario(1500) == 0 > bonus_adversario(1300)
+    assert elo[("L2", "A")] == 1564 and elo[("L2", "C")] == 1500  # estreia: K = 128, chance de 50% -> +64
+    # decisão dividida vale 0,6 para o vencedor: sobe menos
+    dividida = calcular_elo(lutas.assign(Method=["Decision - Split"] * 4))
+    assert 1500 < dividida[("L2", "A")] < 1564
+    # adversário em desvios-padrão; quem perde para alguém forte leva metade, para alguém fraco perde cheio
+    assert bonus_adversario(1700, "W", 1500, 100) == 0.4 > bonus_adversario(1600, "W", 1500, 100) == 0.2
+    assert bonus_adversario(1600, "L", 1500, 100) == 0.1 and bonus_adversario(1400, "L", 1500, 100) == -0.2
+    assert bonus_adversario(1500, "W", 1500, 100) == 0
+
+
+def test_estilo_na_vespera_nao_olha_o_futuro():
+    from src.rating import estilos_por_luta
+    df = _carreira("X", 6, 90, 0, 30, 0)
+    # as 3 primeiras lutas trocando, as 3 últimas no chão: na 4ª ainda é striker, na 6ª já é wrestler (como na carreira toda)
+    df.loc[3:, ["Sig_str_landed", "Td_landed", "Ctrl_seconds"]] = [10, 6, 700]
+    df["Event_URL"] = [f"e{i}" for i in range(6)]
+    datas = pd.DataFrame({"Event_URL": df["Event_URL"], "Event_Date": [f"2020-0{i + 1}-01" for i in range(6)]})
+    vespera = estilos_por_luta(df, datas)
+    assert [vespera[(f"X{i}", "X")] for i in range(6)] == ["Completo"] * 3 + ["Striker", "Completo", "Wrestler"]
+    assert classificar_estilos(df)["X"] == "Wrestler"
 
 
 def test_pares_tem_o_proprio_e_o_sofrido(resumo):

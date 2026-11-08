@@ -416,7 +416,7 @@ function analiseEstilos(d) {
   c.appendChild(frase([ESTILOS_PLURAL[maior[0]] || maior[0]], " têm a maior nota média (", [fmt2.format(maior[3])], ") e vencem ", [pct0(maior[4])],
     " das lutas. A nota acompanha o resultado: os pesos do estilo são ajustados para nenhum deles sair na frente só pelo jeito de lutar."));
   const { area, canvas } = areaDoGrafico(estilos.length * 40 + 20);
-  c.append(area, el("p", "nota", `Barras: % de vitórias de cada estilo; entre parênteses, a nota média (média geral ${fmt2.format(media)}). O estilo vem dos números da carreira; quem tem menos de 3 lutas entra como completo.`),
+  c.append(area, el("p", "nota", `Barras: % de vitórias de cada estilo; entre parênteses, a nota média (média geral ${fmt2.format(media)}). O estilo de cada atuação é o da véspera da luta, só com as lutas anteriores; até a 3ª luta, completo.`),
     tabela(["Estilo", "Atuações", "Lutadores", "Nota média", "Vitórias"], estilos.map(([e, n, l, m, v]) => [e, fmtInt.format(n), fmtInt.format(l), fmt2.format(m), pct(v)])));
   novoGrafico(canvas, {
     type: "bar",
@@ -462,6 +462,8 @@ function desenharAtalhos(periodo) {
   for (const [m, titulo, sub] of ATALHOS) {
     const a = el("a", "", [el("strong", "", titulo), el("span", "", sub)]);
     const params = new URLSearchParams({ m });
+    // o padrão do ranking (só top 15, mín. 10 lutas) é pensado para a nota; os outros atalhos abrem com todos
+    if (m !== "nota_media") { params.set("rq", "todos"); params.set("min", "4"); }
     if (periodo !== PERIODO_PADRAO) params.set("p", periodo);
     a.href = `interativo.html?${params}#ranking`;
     caixa.appendChild(a);

@@ -53,8 +53,9 @@ def montar_modelo(tabelas):
     dim_lutador.insert(0, "lutador_id", range(1, len(dim_lutador) + 1))
     id_do_lutador = dim_lutador.set_index("url")["lutador_id"]
     dim_lutador["base"] = dim_lutador["base"].map(BASES_PT)
-    estilo = tabelas["notas"].drop_duplicates("lutador").set_index("lutador")["estilo"]
-    dim_lutador["estilo"] = dim_lutador["nome"].map(estilo)  # sem nota (lutas antigas): vazio
+    # estilo de hoje (carreira até a última luta), o mesmo rótulo do site; só para quem tem nota
+    com_nota = set(tabelas["notas"]["lutador"])
+    dim_lutador["estilo"] = dim_lutador["nome"].map(lambda n: tabelas["estilo_atual"].get(n) if n in com_nota else None)
     dim_lutador = dim_lutador.drop(columns="url")
 
     dim_luta = lutas.merge(eventos[["evento_id", "nome", "data"]], on="evento_id").rename(columns={"nome": "evento"})

@@ -295,7 +295,7 @@
       </div>
       <div class="campo">
         <label for="ranqueado" title="Top 15 da categoria pelo Elo do site, na véspera de cada luta (não é o ranking oficial)">Ranqueado</label>
-        <select id="ranqueado"><option value="">Todos</option><option value="sim">Só top 15 (Elo)</option></select>
+        <select id="ranqueado"><option value="">Todos</option><option value="sim" selected>Só top 15 (Elo)</option></select>
       </div>
       <div class="campo">
         <label for="idade">Idade</label>
@@ -303,7 +303,7 @@
       </div>
       <div class="campo numero">
         <label for="min-lutas">Mín. de lutas</label>
-        <input id="min-lutas" type="number" min="1" max="12" value="4">
+        <input id="min-lutas" type="number" min="1" max="12" value="10">
       </div>
       <div class="campo numero">
         <label for="tamanho">Top</label>
@@ -351,6 +351,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <!-- ?v=N: aumente a cada mudança no JS, para o navegador não usar a versão antiga em cache -->
 <script src="js/site.js?v=4"></script>
-<script src="js/interativo.js?v=20"></script>
+<script src="js/interativo.js?v=21"></script>
 </body>
 </html>

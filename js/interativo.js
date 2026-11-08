@@ -806,7 +806,7 @@ function desenharDispersao() {
 // O estado da página fica na URL (?a=...&b=...&m=...&min=...&top=...&cat=...&base=...&idade=...): quem abre o link vê a mesma
 // comparação e o mesmo ranking. Valores inválidos na URL são ignorados e ficam os padrões.
 
-const PADROES = { a: "Islam Makhachev", b: "Merab Dvalishvili", m: "taxa_vitoria", min: 4, top: 10, rm: "sig", cat: "", base: "", estilo: "", rq: "", idade: "", p: "tudo" };
+const PADROES = { a: "Islam Makhachev", b: "Merab Dvalishvili", m: "nota_media", min: 10, top: 10, rm: "sig", cat: "", base: "", estilo: "", rq: "sim", idade: "", p: "tudo" };
 // Filtro de período: um JSON por período, gerado por src/exportar.py (PERIODOS, mesmas chaves)
 const PERIODOS = {
   tudo: { rotulo: "Todo o histórico", arquivo: "dados/lutadores.json" },
@@ -841,7 +841,7 @@ function lerEstadoDaUrl() {
     base: p.get("base") in BASES_RANKING ? p.get("base") : PADROES.base,
     idade: p.get("idade") in FAIXAS_IDADE ? p.get("idade") : PADROES.idade,
     estilo: p.get("estilo") in ESTILOS ? p.get("estilo") : PADROES.estilo,
-    rq: p.get("rq") === "sim" ? "sim" : PADROES.rq,
+    rq: { sim: "sim", todos: "" }[p.get("rq")] ?? PADROES.rq, // padrão = só top 15; "todos" desliga
     p: periodoDaUrl(),
   };
 }
@@ -868,7 +868,8 @@ function atualizarUrl() {
     const valor = document.getElementById(id).value;
     if (valor) p.set(id, valor);
   }
-  if (document.getElementById("ranqueado").value) p.set("rq", "sim");
+  const rq = document.getElementById("ranqueado").value;
+  if (rq !== PADROES.rq) p.set("rq", rq || "todos");
   // replaceState: atualiza o endereço sem criar uma entrada nova no histórico a cada mudança
   history.replaceState(null, "", `${location.pathname}?${p}${location.hash}`);
 

@@ -133,7 +133,7 @@ def notas_do_periodo(df, notas, datas_eventos, n=5):
     {"media": nota média, "estilos": [[estilo, atuações, lutadores, nota média, % de vitórias], ...],
      "melhores": [[nome, nota, [resultado, desempenho, adversário], adversário, evento, data, id do evento,
                    método, round, resultado W/L/D/NC, estilo], ...]} (as n maiores notas; empate: desempenho, mais recente).
-    O estilo é o da carreira inteira, como no site.
+    O estilo é o da véspera de cada luta (src/rating.py, `estilos_por_luta`).
     """
     notas = notas[notas["Fight_URL"].isin(set(df["Fight_URL"]))]
     if notas.empty:
