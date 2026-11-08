@@ -383,6 +383,55 @@ function analiseArbitros(d) {
   return c;
 }
 
+// ---------- Nota por luta (src/rating.py) ----------
+
+const ESTILOS_PLURAL = { Striker: "Strikers", Wrestler: "Wrestlers", Finalizador: "Finalizadores", Completo: "Completos" };
+const fmt2 = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function analiseMelhores(d, periodo) {
+  const { melhores } = d.notas;
+  const c = cartao("Melhores atuações");
+  c.appendChild(frase("As maiores notas do período, de 0 a 10 (base 6,6). Clique na nota para ver de onde ela veio."));
+  const lista = el("ol", "atuacoes-lista");
+  for (const [nome, nota, partes, adv, evento, data, idEvento, metodo, round, res, estilo] of melhores) {
+    const link = el("a", "", evento);
+    link.href = linkEventoUrl(idEvento);
+    const detalhe = el("span", "sub", [`${RESULTADOS_LONGOS[res] || res} contra ${adv} · ${METODOS[metodo] || metodo}${round ? ` no ${round}º round` : ""} · `, link, ` · ${fmtData(data)}`]);
+    const texto = el("div", "texto", [linkNome(nome), detalhe]);
+    lista.appendChild(el("li", "", [seloNota(nota, partes, { nome, estilo }), texto]));
+  }
+  const mais = el("a", "", "Ver as 20 melhores, com filtro por categoria e estilo");
+  const params = new URLSearchParams();
+  if (periodo !== PERIODO_PADRAO) params.set("p", periodo);
+  mais.href = `interativo.html${params.size ? `?${params}` : ""}#atuacoes`;
+  c.append(lista, el("p", "nota", [mais]));
+  return c;
+}
+
+function analiseEstilos(d) {
+  const { estilos, media } = d.notas;
+  const c = cartao("Nota média por estilo");
+  const maior = estilos.reduce((a, b) => (b[3] > a[3] ? b : a));
+  const vitorias = estilos.map((e) => e[4]);
+  c.appendChild(frase([ESTILOS_PLURAL[maior[0]] || maior[0]], " têm a maior nota média (", [fmt2.format(maior[3])], ") e vencem ", [pct0(maior[4])],
+    " das lutas. A nota acompanha o resultado: os pesos do estilo são ajustados para nenhum deles sair na frente só pelo jeito de lutar."));
+  const { area, canvas } = areaDoGrafico(estilos.length * 40 + 20);
+  c.append(area, el("p", "nota", `Barras: % de vitórias de cada estilo; entre parênteses, a nota média (média geral ${fmt2.format(media)}). O estilo vem dos números da carreira; quem tem menos de 3 lutas entra como completo.`),
+    tabela(["Estilo", "Atuações", "Lutadores", "Nota média", "Vitórias"], estilos.map(([e, n, l, m, v]) => [e, fmtInt.format(n), fmtInt.format(l), fmt2.format(m), pct(v)])));
+  novoGrafico(canvas, {
+    type: "bar",
+    data: { labels: estilos.map(([e, , , m]) => `${e} (${fmt2.format(m)})`), datasets: [{ data: vitorias, backgroundColor: CORES.azul, borderRadius: 4, barPercentage: 0.7 }] },
+    options: {
+      indexAxis: "y", maintainAspectRatio: false, layout: { padding: { right: 48, top: 14 } },
+      scales: { x: { ...eixoOculto, min: 0, max: Math.max(...vitorias) }, y: eixoCategorias },
+      plugins: { legend: { display: false }, valoresNaPonta: { formatar: pct0 }, linhaReferencia: { valor: 50, rotulo: "50%" },
+        tooltip: { callbacks: { label: (x) => `${pct(x.parsed.x)} de vitórias`, footer: (i) => `${fmtInt.format(estilos[i[0].dataIndex][1])} atuações, ${fmtInt.format(estilos[i[0].dataIndex][2])} lutadores` } } },
+    },
+    plugins: [valoresNaPonta, linhaReferencia],
+  });
+  return c;
+}
+
 // ---------- Números-chave e atalhos ----------
 
 function desenharNumeros(d) {
@@ -396,6 +445,7 @@ function desenharNumeros(d) {
 }
 
 const ATALHOS = [
+  ["nota_media", "Nota média", "nota de 0 a 10 por luta"],
   ["vitorias", "Vitórias", "total no período"],
   ["taxa_vitoria", "Taxa de vitória", "com mínimo de lutas"],
   ["ko", "Nocautes", "vitórias por KO/TKO"],
@@ -432,6 +482,7 @@ function aplicarPeriodo(periodo) {
   caixa.innerHTML = "";
   caixa.append(analiseMetodos(d), analiseRoundFinal(d), analiseCategorias(d), analiseVencedores(d), analiseCinturao(d),
     analiseDistribuicao(d, "alvo"), analiseDistribuicao(d, "origem"), analiseRounds(d), analiseArbitros(d));
+  if (d.notas?.melhores.length) caixa.append(analiseMelhores(d, periodo), analiseEstilos(d));
   pendentes.splice(0).forEach((criar) => criar());
   desenharAtalhos(periodo);
 

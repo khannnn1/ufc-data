@@ -66,7 +66,7 @@
   <ol class="etapas">
     <li><strong>Coleta</strong> em Python com Selenium e BeautifulSoup (o ufcstats exige JavaScript). Cada luta tem as estatísticas totais e round a round dos dois lados.</li>
     <li><strong>Limpeza</strong> com Pandas: "X of Y" vira acertos e tentativas, tempos viram segundos, medidas em pés e polegadas viram centímetros, "---" vira ausente (não zero).</li>
-    <li><strong>Modelagem</strong> em um banco SQLite com 4 tabelas e em um modelo estrela para o Power BI, com as mesmas perguntas respondidas em SQL e conferidas com Pandas.</li>
+    <li><strong>Modelagem</strong> em um banco SQLite (lutas, lutadores, estatísticas e a nota de cada luta) e em um modelo estrela para o Power BI, com as mesmas perguntas respondidas em SQL e conferidas com Pandas.</li>
     <li><strong>Site</strong> estático no GitHub Pages: os totais são exportados em JSON e as médias, os rankings e os gráficos (Chart.js) são calculados no navegador.</li>
     <li><strong>Atualização</strong> com um comando (<code>python -m src.atualizar</code>) que coleta só os eventos novos e regenera tudo. Testes automatizados (pytest) rodam a cada mudança.</li>
   </ol>

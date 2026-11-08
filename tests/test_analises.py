@@ -1,4 +1,4 @@
-from src.analises import (arbitros, disputas_cinturao, distribuicao, metodos, montar_analises, numeros_chave,
+from src.analises import (arbitros, notas_do_periodo, disputas_cinturao, distribuicao, metodos, montar_analises, numeros_chave,
                           por_categoria, round_final, vencedores_perdedores)
 
 
@@ -40,3 +40,15 @@ def test_montar_analises_tem_todas_as_secoes(resumo, por_round):
     chaves = set(montar_analises(resumo, por_round))
     assert chaves == {"numeros", "metodos", "round_final", "categorias", "vencedores_perdedores", "alvo",
                       "origem", "cinturao", "rounds", "arbitros"}
+
+
+def test_notas_do_periodo(resumo, por_round, datas_eventos):
+    from src.rating import calcular_notas
+    notas, _ = calcular_notas(resumo, datas_eventos)
+    r = notas_do_periodo(resumo, notas, datas_eventos, n=3)
+    assert sum(e[1] for e in r["estilos"]) == len(notas) == 6
+    assert [m[1] for m in r["melhores"]] == sorted(notas["Nota"], reverse=True)[:3]
+    assert r["melhores"][0][9] == "W" and r["melhores"][0][5]  # vencedor no topo, com data do evento
+    assert "notas" in montar_analises(resumo, por_round, notas, datas_eventos)
+    # recorte sem lutas com nota
+    assert notas_do_periodo(resumo.iloc[0:0], notas, datas_eventos)["melhores"] == []

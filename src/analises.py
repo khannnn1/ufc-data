@@ -124,8 +124,40 @@ def arbitros(df, n=10):
     return [[nome, int(linha["size"]), round(float(linha["mean"]) * 100, 1)] for nome, linha in g.iterrows()]
 
 
-def montar_analises(df, df_round):
-    """Todas as análises de um recorte (já filtrado pelo período)."""
+ORDEM_ESTILOS = ["Striker", "Wrestler", "Finalizador", "Completo"]
+
+
+def notas_do_periodo(df, notas, datas_eventos, n=5):
+    """Notas por luta (src/rating.py) das lutas do recorte.
+
+    {"media": nota média, "estilos": [[estilo, atuações, lutadores, nota média, % de vitórias], ...],
+     "melhores": [[nome, nota, [resultado, desempenho, adversário], adversário, evento, data, id do evento,
+                   método, round, resultado W/L/D/NC, estilo], ...]} (as n maiores notas; empate: desempenho, mais recente).
+    O estilo é o da carreira inteira, como no site.
+    """
+    notas = notas[notas["Fight_URL"].isin(set(df["Fight_URL"]))]
+    if notas.empty:
+        return {"media": None, "estilos": [], "melhores": []}
+    estilos = []
+    for estilo in ORDEM_ESTILOS:
+        grupo = notas[notas["Estilo"] == estilo]
+        if len(grupo):
+            estilos.append([estilo, int(len(grupo)), int(grupo["Fighter"].nunique()), round(float(grupo["Nota"].mean()), 2),
+                            _pct((grupo["Resultado"] == "W").sum(), len(grupo))])
+    lutas = (df.drop_duplicates("Fight_URL")[["Fight_URL", "Event_URL", "Event_Name", "Final_Round"]]
+             .merge(datas_eventos[["Event_URL", "Event_Date"]], on="Event_URL", how="left"))
+    topo = notas.merge(lutas, on="Fight_URL", how="left")
+    topo = topo.sort_values(["Nota", "desempenho", "Event_Date"], ascending=False).head(n)
+    melhores = [[l.Fighter, float(l.Nota), [round(float(l.resultado), 2), round(float(l.desempenho), 2), round(float(l.adversario), 2)],
+                 l.Adversario, l.Event_Name, l.Event_Date, l.Event_URL.rstrip("/").rsplit("/", 1)[-1], l.Method,
+                 None if pd.isna(l.Final_Round) else int(l.Final_Round), l.Resultado, l.Estilo]
+                for l in topo.itertuples(index=False)]
+    return {"media": round(float(notas["Nota"].mean()), 2), "estilos": estilos, "melhores": melhores}
+
+
+def montar_analises(df, df_round, notas=None, datas_eventos=None):
+    """Todas as análises de um recorte (já filtrado pelo período); `notas` = 1º retorno de calcular_notas."""
+    extra = {} if notas is None else {"notas": notas_do_periodo(df, notas, datas_eventos)}
     return {
         "numeros": numeros_chave(df),
         "metodos": metodos(df),
@@ -137,4 +169,5 @@ def montar_analises(df, df_round):
         "cinturao": disputas_cinturao(df),
         "rounds": golpes_por_round(df_round),
         "arbitros": arbitros(df),
+        **extra,
     }

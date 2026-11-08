@@ -293,6 +293,7 @@ def exportar_lutadores(caminho_csv=ARQUIVO_RESUMO, caminho_round=ARQUIVO_ROUND, 
     lutadores = juntar_fotos(pd.read_csv(ARQUIVO_LUTADORES))
     carreira = periodo_de_atividade(df, datas_eventos)  # base inteira, igual em todos os períodos
 
+    notas, info = calcular_notas(df, datas_eventos)  # nota de cada lutador em cada luta (src/rating.py)
     Path(pasta_saida).mkdir(parents=True, exist_ok=True)
     saidas, analises = {}, {}
     for chave, periodo in PERIODOS.items():
@@ -301,11 +302,10 @@ def exportar_lutadores(caminho_csv=ARQUIVO_RESUMO, caminho_round=ARQUIVO_ROUND, 
         with open(arquivo_do_periodo(chave, pasta_saida), "w", encoding="utf-8") as f:
             json.dump(saida, f, ensure_ascii=False, separators=(",", ":"))
         saidas[chave] = saida
-        analises[chave] = {**montar_analises(recorte, recorte_round), "periodo": saida["periodo"]}
+        analises[chave] = {**montar_analises(recorte, recorte_round, notas, datas_eventos), "periodo": saida["periodo"]}
     with open(Path(pasta_saida) / "analises.json", "w", encoding="utf-8") as f:
         json.dump({"gerado_em": date.today().isoformat(), "periodos": {c: p["rotulo"] for c, p in PERIODOS.items()},
                    **analises}, f, ensure_ascii=False, separators=(",", ":"))
-    notas, info = calcular_notas(df, datas_eventos)  # nota de cada lutador em cada luta (src/rating.py)
     with open(Path(pasta_saida) / "lutas.json", "w", encoding="utf-8") as f:
         json.dump(montar_lutas(df, datas_eventos, notas, info["estilos"]), f, ensure_ascii=False, separators=(",", ":"))
     return saidas

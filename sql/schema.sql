@@ -2,6 +2,7 @@
 -- Os CSVs têm uma linha por lutador em cada luta, com os dados da luta repetidos nas duas linhas;
 -- aqui eles são separados em evento -> luta -> desempenho de cada lutador (-> por round).
 
+DROP TABLE IF EXISTS notas;
 DROP TABLE IF EXISTS desempenho_round;
 DROP TABLE IF EXISTS desempenho;
 DROP TABLE IF EXISTS lutas;
@@ -89,6 +90,20 @@ CREATE TABLE desempenho_round (
     clinch            INTEGER NOT NULL,
     chao              INTEGER NOT NULL,
     PRIMARY KEY (luta_id, lutador, round),
+    FOREIGN KEY (luta_id, lutador) REFERENCES desempenho (luta_id, lutador)
+);
+
+-- Nota de 3 a 10 de cada lutador em cada luta com estatísticas (src/rating.py): 6,6 de base +
+-- resultado + desempenho (pesos da regressão nas decisões, ataque com os pesos do estilo) + adversário (Elo)
+CREATE TABLE notas (
+    luta_id            INTEGER NOT NULL,
+    lutador            TEXT    NOT NULL,
+    estilo             TEXT    NOT NULL CHECK (estilo IN ('Striker', 'Wrestler', 'Finalizador', 'Completo')),
+    nota               REAL    NOT NULL CHECK (nota BETWEEN 3 AND 10),
+    parte_resultado    REAL    NOT NULL,
+    parte_desempenho   REAL    NOT NULL,
+    parte_adversario   REAL    NOT NULL,
+    PRIMARY KEY (luta_id, lutador),
     FOREIGN KEY (luta_id, lutador) REFERENCES desempenho (luta_id, lutador)
 );
 
