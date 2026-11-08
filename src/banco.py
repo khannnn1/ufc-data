@@ -6,6 +6,7 @@ from pathlib import Path
 import pandas as pd
 
 from src.limpeza import adicionar_duracao
+from src.rating import calcular_notas
 
 RAIZ = Path(__file__).resolve().parent.parent
 ARQUIVO_RESUMO = RAIZ / "data" / "processed" / "dataset_final_resumo_limpo.csv"
@@ -34,8 +35,13 @@ DADOS_DA_LUTA = {
 }
 
 
+# Ordem de inserção (chaves estrangeiras)
+ORDEM_TABELAS = ["eventos", "lutas", "lutadores", "desempenho", "desempenho_round", "notas"]
+
+
 def montar_tabelas(resumo, por_round, datas_eventos, dados_lutadores):
-    """Separa os CSVs (uma linha por lutador-luta) em eventos, lutas, lutadores, desempenho e desempenho_round."""
+    """Separa os CSVs (uma linha por lutador-luta) em eventos, lutas, lutadores, desempenho e desempenho_round,
+    e calcula as notas de cada lutador em cada luta (src/rating.py)."""
     eventos = resumo[["Event_URL", "Event_Name"]].drop_duplicates("Event_URL")
     eventos["data"] = eventos["Event_URL"].map(datas_eventos.set_index("Event_URL")["Event_Date"])
     if eventos["data"].isna().any():
@@ -72,12 +78,20 @@ def montar_tabelas(resumo, por_round, datas_eventos, dados_lutadores):
     desempenho_round["luta_id"] = desempenho_round["Fight_URL"].map(id_da_luta)
     desempenho_round = desempenho_round[["luta_id", "lutador", "round", *ESTATISTICAS.values()]]
 
+    notas, _ = calcular_notas(resumo, datas_eventos)
+    notas = notas.assign(luta_id=notas["Fight_URL"].map(id_da_luta)).rename(columns={
+        "Fighter": "lutador", "Estilo": "estilo", "Nota": "nota", "resultado": "parte_resultado",
+        "desempenho": "parte_desempenho", "adversario": "parte_adversario"})
+    notas = notas[["luta_id", "lutador", "estilo", "nota", "parte_resultado", "parte_desempenho", "parte_adversario"]]
+    notas[["parte_resultado", "parte_desempenho", "parte_adversario"]] = notas[
+        ["parte_resultado", "parte_desempenho", "parte_adversario"]].round(3)
+
     return {"eventos": eventos, "lutas": lutas, "lutadores": lutadores, "desempenho": desempenho,
-            "desempenho_round": desempenho_round}
+            "desempenho_round": desempenho_round, "notas": notas}
 
 
 def criar_banco(caminho_banco=ARQUIVO_BANCO):
-    """Recria o banco do zero: executa o schema e insere as cinco tabelas."""
+    """Recria o banco do zero: executa o schema e insere as seis tabelas."""
     tabelas = montar_tabelas(pd.read_csv(ARQUIVO_RESUMO), pd.read_csv(ARQUIVO_ROUND), pd.read_csv(ARQUIVO_EVENTOS),
                              pd.read_csv(ARQUIVO_LUTADORES))
 
@@ -85,7 +99,7 @@ def criar_banco(caminho_banco=ARQUIVO_BANCO):
         conexao.execute("PRAGMA foreign_keys = ON")
         conexao.executescript(ARQUIVO_SCHEMA.read_text(encoding="utf-8"))
         # Ordem importa por causa das chaves estrangeiras
-        for nome in ["eventos", "lutas", "lutadores", "desempenho", "desempenho_round"]:
+        for nome in ORDEM_TABELAS:
             tabelas[nome].to_sql(nome, conexao, if_exists="append", index=False)
 
     return {nome: len(tabela) for nome, tabela in tabelas.items()}

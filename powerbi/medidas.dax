@@ -121,3 +121,15 @@ Precisão de quedas (ranking) = IF ( SUM ( fato_desempenho[quedas_tentadas] ) >=
 Golpes sig. por round = DIVIDE ( SUM ( fato_round[sig_acertados] ), COUNTROWS ( fato_round ) )
 
 Média geral - golpes sig. por round = CALCULATE ( [Golpes sig. por round], REMOVEFILTERS ( dim_lutador ) )
+
+
+// ---------- Nota por luta (src/rating.py: 3 a 10, base 6,6) ----------
+// Lutas sem estatísticas (anos 1990) não têm nota: AVERAGE ignora os vazios
+
+Nota média = AVERAGE ( fato_desempenho[nota] )
+
+Atuações com nota = COUNT ( fato_desempenho[nota] )
+
+Nota média (ranking) = IF ( [Atuações com nota] >= [Mínimo de lutas selecionado], [Nota média] )
+
+Média geral - nota = CALCULATE ( [Nota média], REMOVEFILTERS ( dim_lutador ) )

@@ -171,10 +171,20 @@
   .barra span { display: block; height: 100%; background: var(--vermelho); border-radius: 4px; }
   .barra-valor strong { min-width: 4.5em; text-align: right; font-variant-numeric: tabular-nums; }
   .col-cartel { color: var(--muted); }
+  table.atuacoes td { vertical-align: middle; }
+  table.atuacoes td.posicao { color: var(--muted); font-weight: 600; width: 2.5em; }
+  table.atuacoes .sub-lutador a { color: inherit; }
+  table.atuacoes td.vazio { color: var(--muted); }
+  .cartao .nota-cartao { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
 
   .cartao .topo-cartao { display: flex; align-items: center; gap: 14px; margin-bottom: 4px; }
 
   @media (max-width: 700px) {
+    table.atuacoes .col-metodo { display: none; }
+    /* Nome ocupa o que sobra e corta com reticências: valor e nota sempre visíveis, sem rolagem lateral */
+    table.ranking td:nth-child(2), table.atuacoes td:nth-child(2) { width: 100%; max-width: 0; }
+    .identificacao .nome-lutador, .identificacao .sub-lutador { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    table.atuacoes .identificacao .sub-lutador { white-space: normal; }
     header { padding: 36px 16px 24px; }
     header h1 { font-size: 1.6rem; }
     .cartoes, .paineis { grid-template-columns: minmax(0, 1fr); }
@@ -264,7 +274,7 @@
 
   <section id="ranking">
     <h2>Monte o seu ranking</h2>
-    <p class="intro">Escolha a métrica e filtre por categoria, base, idade e mínimo de lutas no período. Os anos ao lado do nome são a carreira no UFC (da primeira à última luta). Clique numa linha para levar o lutador ao comparador.</p>
+    <p class="intro">Escolha a métrica e filtre por categoria, base, estilo, idade e mínimo de lutas no período. Os anos ao lado do nome são a carreira no UFC (da primeira à última luta). Clique numa linha para levar o lutador ao comparador.</p>
 
     <div class="controles">
       <div class="campo metrica">
@@ -278,6 +288,10 @@
       <div class="campo">
         <label for="base">Base</label>
         <select id="base"><option value="">Todas</option></select>
+      </div>
+      <div class="campo">
+        <label for="estilo">Estilo</label>
+        <select id="estilo"><option value="">Todos</option></select>
       </div>
       <div class="campo">
         <label for="idade">Idade</label>
@@ -307,6 +321,23 @@
     </div>
   </section>
 
+  <section id="atuacoes">
+    <h2>Melhores atuações</h2>
+    <p class="intro">As maiores notas em uma única luta no período escolhido. Clique na nota para ver como ela foi calculada e no evento para ver o card completo.</p>
+    <div class="controles">
+      <div class="campo categoria">
+        <label for="categoria-atuacoes">Categoria</label>
+        <select id="categoria-atuacoes"><option value="">Todas</option></select>
+      </div>
+      <div class="campo">
+        <label for="estilo-atuacoes">Estilo</label>
+        <select id="estilo-atuacoes"><option value="">Todos</option></select>
+      </div>
+    </div>
+    <div class="tabela-wrap"><table id="tabela-atuacoes" class="atuacoes"></table></div>
+    <p class="nota" id="nota-atuacoes"></p>
+  </section>
+
 </main>
 
 <footer>
@@ -316,6 +347,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <!-- ?v=N: aumente a cada mudança no JS, para o navegador não usar a versão antiga em cache -->
 <script src="js/site.js?v=4"></script>
-<script src="js/interativo.js?v=18"></script>
+<script src="js/interativo.js?v=19"></script>
 </body>
 </html>

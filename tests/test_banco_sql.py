@@ -5,7 +5,7 @@ import sqlite3
 import pandas as pd
 import pytest
 
-from src.banco import ARQUIVO_SCHEMA, montar_tabelas
+from src.banco import ARQUIVO_SCHEMA, ORDEM_TABELAS, montar_tabelas
 from src.consultas import ARQUIVO_CONSULTAS, carregar_consultas
 
 
@@ -15,7 +15,7 @@ def conexao(resumo, por_round, datas_eventos, lutadores):
     con = sqlite3.connect(":memory:")
     con.execute("PRAGMA foreign_keys = ON")  # uma chave estrangeira quebrada faz o INSERT falhar
     con.executescript(ARQUIVO_SCHEMA.read_text(encoding="utf-8"))
-    for nome in ["eventos", "lutas", "lutadores", "desempenho", "desempenho_round"]:
+    for nome in ORDEM_TABELAS:
         tabelas[nome].to_sql(nome, con, if_exists="append", index=False)
     yield con
     con.close()
@@ -99,7 +99,7 @@ def test_luta_antiga_sem_estatisticas_entra_com_null(resumo, por_round, datas_ev
     con = sqlite3.connect(":memory:")
     con.execute("PRAGMA foreign_keys = ON")
     con.executescript(ARQUIVO_SCHEMA.read_text(encoding="utf-8"))
-    for nome in ["eventos", "lutas", "lutadores", "desempenho", "desempenho_round"]:
+    for nome in ORDEM_TABELAS:
         tabelas[nome].to_sql(nome, con, if_exists="append", index=False)
 
     linha = con.execute("""SELECT d.resultado, d.kd, d.sig_acertados, l.duracao_seg FROM desempenho d
@@ -108,3 +108,13 @@ def test_luta_antiga_sem_estatisticas_entra_com_null(resumo, por_round, datas_ev
     for nome, sql in carregar_consultas().items():  # todas as consultas aceitam os NULL
         pd.read_sql_query(sql, con)
     con.close()
+
+
+def test_notas_no_banco(conexao):
+    assert conexao.execute("SELECT COUNT(*) FROM notas").fetchone()[0] == 6
+    melhores = consultar(conexao, "melhores_atuacoes")
+    assert len(melhores) == 6 and melhores["nota"].is_monotonic_decreasing
+    vencedores = conexao.execute("""SELECT COUNT(*) FROM notas n JOIN desempenho d USING (luta_id, lutador)
+                                    WHERE d.resultado = 'W' AND n.nota > 6.6""").fetchone()[0]
+    assert vencedores == 3
+    assert consultar(conexao, "nota_por_estilo")["atuacoes"].sum() == 6

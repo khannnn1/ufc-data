@@ -389,3 +389,36 @@ FROM por_luta AS pl
 LEFT JOIN perdedor AS p USING (luta_id)
 GROUP BY pl.bonus_luta
 ORDER BY pl.bonus_luta DESC;
+
+-- nome: melhores_atuacoes
+-- As 10 maiores notas em uma única luta (src/rating.py), com o adversário e o evento.
+-- Desempate: maior parte de desempenho, depois a luta mais recente.
+SELECT
+    n.lutador,
+    n.estilo,
+    n.nota,
+    adv.lutador   AS adversario,
+    l.metodo,
+    e.nome        AS evento,
+    e.data
+FROM notas AS n
+JOIN lutas AS l USING (luta_id)
+JOIN eventos AS e USING (evento_id)
+JOIN desempenho AS adv ON adv.luta_id = n.luta_id AND adv.lutador <> n.lutador
+ORDER BY n.nota DESC, n.parte_desempenho DESC, e.data DESC
+LIMIT 10;
+
+-- nome: nota_por_estilo
+-- Nota média e taxa de vitória por estilo: se um estilo tiver nota bem maior SEM vencer mais,
+-- a fórmula está favorecendo esse estilo.
+SELECT
+    n.estilo,
+    COUNT(*)                                        AS atuacoes,
+    COUNT(DISTINCT n.lutador)                       AS lutadores,
+    ROUND(AVG(n.nota), 2)                           AS nota_media,
+    ROUND(100.0 * AVG(d.resultado = 'W'), 1)        AS vitorias_pct,
+    ROUND(AVG(n.parte_desempenho), 2)               AS desempenho_medio
+FROM notas AS n
+JOIN desempenho AS d USING (luta_id, lutador)
+GROUP BY n.estilo
+ORDER BY nota_media DESC;

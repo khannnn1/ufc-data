@@ -84,6 +84,18 @@
   .cor-amarelo { background: var(--amarelo); }
   .cor-cinza { background: #555; }
 
+  /* Melhores atuações */
+  .atuacoes-lista { list-style: none; margin: 0; padding: 0; }
+  .atuacoes-lista li { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 12px; align-items: center;
+                       padding: 9px 0; border-bottom: 1px solid var(--grid-line); }
+  .atuacoes-lista li:last-child { border-bottom: none; }
+  .atuacoes-lista .texto { min-width: 0; }
+  .atuacoes-lista .selo-nota { justify-self: start; }
+  .atuacoes-lista .nome-lutador { font-weight: 600; }
+  .atuacoes-lista .sub { display: block; color: var(--muted); font-size: 0.8rem; }
+  .atuacoes-lista .sub a { color: var(--muted); }
+  .analise .nota a { color: var(--text); }
+
   /* Atalhos para os rankings */
   .secao-titulo { font-size: 1.2rem; margin: 32px 0 4px; }
   .secao-sub { color: var(--muted); margin: 0 0 14px; font-size: 0.9rem; }
@@ -133,7 +145,7 @@
   </div>
 
   <h2 class="secao-titulo">Rankings</h2>
-  <p class="secao-sub">Os líderes de cada estatística no período escolhido, com filtros por categoria, base e idade.</p>
+  <p class="secao-sub">Os líderes de cada estatística no período escolhido, com filtros por categoria, base, estilo e idade.</p>
   <div class="atalhos" id="atalhos"></div>
 
   <p class="mais">Também há <a href="graficos.html">gráficos fixos do histórico</a> (idade × envergadura, canhoto × ortodoxo, o que faz uma Luta da Noite), o <a href="interativo.html#comparador">comparador de lutadores</a> e o <a href="eventos.html">card de cada evento</a>.</p>
@@ -145,6 +157,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="js/site.js?v=4"></script>
-<script src="js/analises.js?v=2"></script>
+<script src="js/analises.js?v=3"></script>
 </body>
 </html>

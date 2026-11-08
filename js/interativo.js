@@ -24,6 +24,7 @@ const formatos = {
   decimal: (v) => (Math.abs(v) < 1 ? fmt2.format(v) : fmt1.format(v)),
   pct: (v) => fmt0.format(v) + "%",
   minutos: (v) => fmt1.format(v) + " min",
+  nota: (v) => fmt1.format(v),
 };
 
 // ---------- Métricas ----------
@@ -38,6 +39,12 @@ const lutasComEstat = (l) => l.ne ?? l.n;
 const duracaoComEstat = (l) => l.de ?? l.dur;
 
 const METRICAS = {
+  // Nota de cada luta (src/rating.py, gravada em dados/lutas.json): média no período. nm e nn são
+  // calculados aqui, ao aplicar o período (anexarNotas), a partir das lutas do período.
+  nota_media: {
+    rotulo: "Nota média (0 a 10)", valor: (l) => l.nm, formato: "nota", requisito: (l) => l.nn > 0, lutas: (l) => l.nn || 0,
+    nota: "Média das notas de cada luta no período; lutas antigas sem estatísticas não têm nota.",
+  },
   vitorias: { rotulo: "Vitórias (total)", valor: (l) => l.w, formato: "inteiro", total: true },
   taxa_vitoria: {
     rotulo: "Taxa de vitória (%)", valor: (l) => (l.w / lutasComResultado(l)) * 100, formato: "pct",
@@ -69,7 +76,7 @@ const METRICAS = {
 };
 
 // Painéis do comparador: médias por luta ou percentuais, cada um na sua escala.
-const METRICAS_COMPARADOR = ["sig_luta", "precisao", "volume_min", "td_luta", "precisao_td", "ctrl_luta", "sub_luta", "kd_luta"];
+const METRICAS_COMPARADOR = ["nota_media", "sig_luta", "precisao", "volume_min", "td_luta", "precisao_td", "ctrl_luta", "sub_luta", "kd_luta"];
 METRICAS.kd_luta = { rotulo: "Knockdowns por luta", valor: (l) => l.kd / lutasComEstat(l), formato: "decimal" };
 
 // Métricas por luta só fazem sentido com ao menos uma luta com estatísticas
@@ -80,7 +87,7 @@ for (const chave of ["sig_luta", "td_luta", "ctrl_luta", "sub_luta", "kd_luta"])
 for (const chave of ["sig_luta", "volume_min", "precisao", "td_luta", "precisao_td", "ctrl_luta", "sub_luta", "chao_pct"]) {
   METRICAS[chave].estat = true;
 }
-const lutasDaMetrica = (metrica, l) => (metrica.estat ? lutasComEstat(l) : l.n);
+const lutasDaMetrica = (metrica, l) => (metrica.lutas ? metrica.lutas(l) : metrica.estat ? lutasComEstat(l) : l.n);
 
 // Valor de uma métrica ou null se não der para calcular (ex.: nenhuma queda tentada).
 function calcular(metrica, lutador) {
@@ -112,6 +119,8 @@ const valoresNaPonta = {
 // ---------- Estado ----------
 
 let lutadores = [];
+let dadosLutas = null; // dados/lutas.json: notas de cada luta e estilo de cada lutador
+let atuacoes = []; // notas das lutas do período, da maior para a menor (Melhores atuações)
 let porNome = new Map();
 let vantagens = null; // % histórico de vitórias de quem é mais novo / tem mais envergadura, por faixa (JSON)
 const graficos = { paineis: [], ranking: null, dispersao: null, rounds: null };
@@ -151,11 +160,15 @@ function preencherCartao(elemento, l) {
     <div class="detalhe">${l.n} ${l.n === 1 ? "luta" : "lutas"} no período ·
       ${l.ko} por nocaute · ${l.subw} por finalização</div>
     ${lutasComEstat(l) < l.n ? `<div class="detalhe">Estatísticas de ${lutasComEstat(l)} das ${l.n} lutas (as mais antigas não têm)</div>` : ""}
-    <div class="detalhe fisico"></div>`;
+    <div class="detalhe fisico"></div>
+    <div class="nota-cartao"></div>`;
   elemento.querySelector(".nome").appendChild(linkNome(l.nome, "")); // nome leva ao perfil
   elemento.querySelector(".categoria").textContent =
-    [l.cat ? (CATEGORIAS[l.cat] || l.cat) : "", l.anos ? `UFC ${anosDeUfc(l)}` : ""].filter(Boolean).join(" · ");
+    [l.cat ? (CATEGORIAS[l.cat] || l.cat) : "", l.anos ? `UFC ${anosDeUfc(l)}` : "", l.estilo || ""].filter(Boolean).join(" · ");
   elemento.querySelector(".topo-cartao").prepend(avatar(l, "grande"));
+  const notaCartao = elemento.querySelector(".nota-cartao");
+  if (l.nn) notaCartao.append(seloNota(l.nm), `nota média em ${l.nn} ${l.nn === 1 ? "luta" : "lutas"}`);
+  else notaCartao.remove();
   elemento.querySelector(".fisico").textContent = linhaFisico(l);
 }
 
@@ -352,6 +365,7 @@ function desenharRanking() {
   const tamanho = parseInt(document.getElementById("tamanho").value, 10);
   const categoria = document.getElementById("categoria").value;
   const base = document.getElementById("base").value;
+  const estilo = document.getElementById("estilo").value;
   const faixa = FAIXAS_IDADE[document.getElementById("idade").value];
   const naFaixa = (l) => {
     if (!faixa) return true;
@@ -361,7 +375,7 @@ function desenharRanking() {
   };
 
   const elegiveis = lutadores
-    .filter((l) => lutasDaMetrica(metrica, l) >= minLutas && (!categoria || l.cat === categoria) && (!base || l.base === base) && naFaixa(l))
+    .filter((l) => lutasDaMetrica(metrica, l) >= minLutas && (!categoria || l.cat === categoria) && (!base || l.base === base) && (!estilo || l.estilo === estilo) && naFaixa(l))
     .filter((l) => !metrica.requisito || metrica.requisito(l))
     .map((l) => ({ l, v: calcular(metrica, l) }))
     .filter((x) => x.v !== null);
@@ -374,8 +388,9 @@ function desenharRanking() {
 
   const doPeso = categoria ? ` do ${CATEGORIAS[categoria].toLowerCase()}` : "";
   const daBase = base ? ` ${{ Orthodox: "ortodoxos", Southpaw: "canhotos", Switch: "que trocam de base" }[base]}` : "";
+  const doEstilo = estilo ? ` de estilo ${estilo.toLowerCase()}` : "";
   const daIdade = faixa ? ` (${faixa.rotulo.toLowerCase()} hoje)` : "";
-  const nota = `${elegiveis.length} lutadores${daBase}${doPeso}${daIdade} com pelo menos ${minLutas} ${minLutas === 1 ? "luta" : "lutas"} no período.`
+  const nota = `${elegiveis.length} lutadores${daBase}${doEstilo}${doPeso}${daIdade} com pelo menos ${minLutas} ${minLutas === 1 ? (metrica.lutas ? "luta com nota" : "luta") : (metrica.lutas ? "lutas com nota" : "lutas")} no período.`
     + (categoria ? " Categoria = a da luta mais recente de cada um; quem mudou de divisão entra com todas as lutas." : "")
     + (metrica.nota ? " " + metrica.nota : "");
   document.getElementById("nota-ranking").textContent = nota;
@@ -789,7 +804,7 @@ function desenharDispersao() {
 // O estado da página fica na URL (?a=...&b=...&m=...&min=...&top=...&cat=...&base=...&idade=...): quem abre o link vê a mesma
 // comparação e o mesmo ranking. Valores inválidos na URL são ignorados e ficam os padrões.
 
-const PADROES = { a: "Islam Makhachev", b: "Merab Dvalishvili", m: "taxa_vitoria", min: 4, top: 10, rm: "sig", cat: "", base: "", idade: "", p: "tudo" };
+const PADROES = { a: "Islam Makhachev", b: "Merab Dvalishvili", m: "taxa_vitoria", min: 4, top: 10, rm: "sig", cat: "", base: "", estilo: "", idade: "", p: "tudo" };
 // Filtro de período: um JSON por período, gerado por src/exportar.py (PERIODOS, mesmas chaves)
 const PERIODOS = {
   tudo: { rotulo: "Todo o histórico", arquivo: "dados/lutadores.json" },
@@ -823,6 +838,7 @@ function lerEstadoDaUrl() {
     cat: CATEGORIAS_RANKING.includes(p.get("cat")) ? p.get("cat") : PADROES.cat,
     base: p.get("base") in BASES_RANKING ? p.get("base") : PADROES.base,
     idade: p.get("idade") in FAIXAS_IDADE ? p.get("idade") : PADROES.idade,
+    estilo: p.get("estilo") in ESTILOS ? p.get("estilo") : PADROES.estilo,
     p: periodoDaUrl(),
   };
 }
@@ -845,7 +861,7 @@ function atualizarUrl() {
   const periodo = document.getElementById("periodo").value;
   if (periodo && periodo !== PADROES.p) p.set("p", periodo);
   // base e idade, como a categoria, só entram na URL quando filtradas
-  for (const id of ["base", "idade"]) {
+  for (const id of ["base", "estilo", "idade"]) {
     const valor = document.getElementById(id).value;
     if (valor) p.set(id, valor);
   }
@@ -890,6 +906,7 @@ async function carregarDados(periodo) {
 // Troca a base em uso (lutadores, médias gerais, resumo do topo) pela de um período
 function aplicarDados(dados) {
   lutadores = dados.lutadores;
+  anexarNotas(dados);
   vantagens = dados.vantagens || null;
   porNome = new Map(lutadores.map((l) => [l.nome.toLowerCase(), l]));
   // "2023-04-08" -> "abr/2023" (sem new Date(): evita mudar o dia por fuso horário)
@@ -908,6 +925,72 @@ function aplicarDados(dados) {
   prepararRounds();
 }
 
+// Nota média (nm), lutas com nota (nn) e estilo de cada lutador no período, e a lista de atuações,
+// a partir de dados/lutas.json (lado = [nome, res, kd, sl, sa, tdl, tda, ctrl, nota, partes])
+function anexarNotas(dados) {
+  atuacoes = [];
+  if (!dadosLutas) return;
+  const inicio = dados.periodo?.inicio || "";
+  const soma = new Map();
+  for (const luta of dadosLutas.lutas) {
+    const [nomeEvento, data, idEvento] = dadosLutas.eventos[luta[0]];
+    if (data < inicio) continue;
+    for (const [eu, adv] of [[luta[8], luta[9]], [luta[9], luta[8]]]) {
+      if (eu[8] == null) continue;
+      const s = soma.get(eu[0]) || { total: 0, n: 0 };
+      s.total += eu[8];
+      s.n += 1;
+      soma.set(eu[0], s);
+      atuacoes.push({ nome: eu[0], nota: eu[8], partes: eu[9], resultado: eu[1], adv: adv[0], evento: nomeEvento, idEvento, data,
+        cat: luta[1], metodo: luta[2], round: luta[3], tempo: luta[4] });
+    }
+  }
+  atuacoes.sort((x, y) => y.nota - x.nota || y.partes[1] - x.partes[1] || y.data.localeCompare(x.data));
+  for (const l of lutadores) {
+    const s = soma.get(l.nome);
+    l.nn = s ? s.n : 0;
+    l.nm = s ? Math.round((s.total / s.n) * 100) / 100 : null;
+    l.estilo = dadosLutas.estilos?.[l.nome] || null;
+  }
+}
+
+function desenharAtuacoes() {
+  const categoria = document.getElementById("categoria-atuacoes").value;
+  const estilo = document.getElementById("estilo-atuacoes").value;
+  const estilos = dadosLutas?.estilos || {};
+  const lista = atuacoes.filter((a) => (!categoria || a.cat === categoria) && (!estilo || estilos[a.nome] === estilo)).slice(0, 20);
+  const tabela = document.getElementById("tabela-atuacoes");
+  tabela.innerHTML = `<caption class="visualmente-oculto">Melhores atuações do período</caption>
+    <thead><tr><th class="num">#</th><th>Lutador</th><th>Nota</th><th class="col-metodo">Resultado</th></tr></thead>`;
+  const corpo = document.createElement("tbody");
+  lista.forEach((a, i) => {
+    const linha = document.createElement("tr");
+    const l = lutadores.find((x) => x.nome === a.nome) || { nome: a.nome };
+    linha.innerHTML = `<td class="num posicao">${i + 1}</td><td><div class="lutador-linha"></div></td><td class="celula-nota"></td>
+      <td class="col-metodo"><div></div><div class="sub-lutador"></div></td>`;
+    const id = document.createElement("div");
+    id.className = "identificacao";
+    const sub = document.createElement("span");
+    sub.className = "sub-lutador";
+    const evento = document.createElement("a");
+    evento.href = linkEventoUrl(a.idEvento);
+    evento.textContent = a.evento;
+    sub.append(`contra ${a.adv} · `, evento, ` · ${fmtData(a.data)}`);
+    id.append(linkNome(a.nome), sub);
+    linha.querySelector(".lutador-linha").append(avatar(l), id);
+    linha.querySelector(".celula-nota").appendChild(seloNota(a.nota, a.partes, { nome: a.nome, estilo: estilos[a.nome] }));
+    const met = linha.querySelector(".col-metodo");
+    met.firstElementChild.textContent = `${RESULTADOS_LONGOS[a.resultado] || a.resultado} · ${METODOS[a.metodo] || a.metodo}`;
+    met.lastElementChild.textContent = [a.round ? `${a.round}º round` : "", a.tempo, a.cat ? CATEGORIAS[a.cat] || a.cat : ""].filter(Boolean).join(" · ");
+    corpo.appendChild(linha);
+  });
+  if (!lista.length) corpo.innerHTML = `<tr><td colspan="4" class="vazio">${dadosLutas ? "Nenhuma atuação com esses filtros." : "Não foi possível carregar as notas."}</td></tr>`;
+  tabela.appendChild(corpo);
+  document.getElementById("nota-atuacoes").textContent = dadosLutas
+    ? `${fmt0.format(atuacoes.length)} atuações com nota no período. Empates: maior parte de desempenho, depois a luta mais recente.`
+    : "";
+}
+
 async function trocarPeriodo() {
   const seletor = document.getElementById("periodo");
   seletor.disabled = true;
@@ -917,12 +1000,14 @@ async function trocarPeriodo() {
   aplicarDados(dados);
   desenharComparador();
   desenharRanking();
+  desenharAtuacoes();
   atualizarUrl();
 }
 
 async function iniciar() {
   const periodoInicial = periodoDaUrl();
-  const dados = await carregarDados(periodoInicial);
+  const [dados, lutas] = await Promise.all([carregarDados(periodoInicial), carregarLutas().catch((erro) => { console.error(erro); return null; })]);
+  dadosLutas = lutas;
   if (!dados) return;
   aplicarDados(dados);
 
@@ -961,11 +1046,16 @@ async function iniciar() {
     return select;
   };
   preencher("base", Object.entries(BASES_RANKING));
+  preencher("estilo", Object.keys(ESTILOS).map((e) => [e, e]));
+  preencher("estilo-atuacoes", Object.keys(ESTILOS).map((e) => [e, e]));
+  preencher("categoria-atuacoes", CATEGORIAS_RANKING.map((c) => [c, CATEGORIAS[c]]));
+  ["categoria-atuacoes", "estilo-atuacoes"].forEach((id) => document.getElementById(id).addEventListener("change", desenharAtuacoes));
   preencher("idade", Object.entries(FAIXAS_IDADE).map(([k, f]) => [k, f.rotulo]));
 
   const estado = lerEstadoDaUrl();
   seletorCategoria.value = estado.cat;
   document.getElementById("base").value = estado.base;
+  document.getElementById("estilo").value = estado.estilo;
   document.getElementById("idade").value = estado.idade;
   seletorRound.value = estado.rm;
   seletor.value = estado.m;
@@ -975,7 +1065,7 @@ async function iniciar() {
   document.getElementById("lutador-b").value = estado.b;
 
   ["lutador-a", "lutador-b"].forEach((id) => configurarCampoLutador(document.getElementById(id)));
-  ["metrica", "min-lutas", "tamanho", "categoria", "base", "idade"].forEach((id) => document.getElementById(id).addEventListener("change", desenharRanking));
+  ["metrica", "min-lutas", "tamanho", "categoria", "base", "estilo", "idade"].forEach((id) => document.getElementById(id).addEventListener("change", desenharRanking));
   seletorRound.addEventListener("change", () => { desenharRounds(); atualizarUrl(); });
   document.querySelectorAll("button.copiar").forEach((botao) => {
     botao.addEventListener("click", () => copiarLink(botao.dataset.secao, botao.nextElementSibling));
@@ -983,6 +1073,7 @@ async function iniciar() {
 
   desenharComparador();
   desenharRanking();
+  desenharAtuacoes();
   urlPronta = true;
   atualizarUrl();
 

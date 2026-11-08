@@ -24,7 +24,7 @@ ProjetoUFC/
 │   ├── 02_visualizacao.ipynb          # geração dos gráficos
 │   └── 03_sql.ipynb                   # mesmas perguntas em SQL + conferência com Pandas
 ├── sql/
-│   ├── schema.sql       # esquema do banco SQLite (4 tabelas)
+│   ├── schema.sql       # esquema do banco SQLite (6 tabelas, com `notas`)
 │   └── consultas.sql    # consultas nomeadas ("-- nome: x")
 ├── src/
 │   ├── scraper.py       # coleta (Selenium + BeautifulSoup)
@@ -143,7 +143,7 @@ Definido em `src/visualizacao.py`:
   10. Homônimos (mesmo slug) ficam sem foto. O site só aponta para a URL (imagens não vão pro repo).
 
 ## Testes
-`python -m pytest` na raiz (73 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
+`python -m pytest` na raiz (75 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
 tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos CSVs
 limpos; `test_atualizar_historico.py` roda `atualizar(historico=True)` com um navegador falso; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
 e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
@@ -157,7 +157,8 @@ tem pywinpty, só Windows). Import novo em src/ -> incluir no requirements-test.
 modelo estrela a partir de `montar_tabelas`: `fato_desempenho` (lutador × luta, com
 vitoria/derrota/empate 0/1, duracao_seg, idade_na_luta, adversario_id), `fato_round`,
 `dim_luta` (categoria em PT, `metodo_grupo` Nocaute/Finalização/Decisão/Outro), `dim_lutador`
-(lutador_id inteiro, base em PT) e `dim_calendario`. CSV com `;`, vírgula decimal e
+(lutador_id inteiro, base em PT, `estilo` do rating) e `dim_calendario`; `fato_desempenho` tem também
+`nota` e `parte_resultado/desempenho/adversario` (vazias em lutas sem estatística). CSV com `;`, vírgula decimal e
 UTF-8 com BOM (Power BI em pt-BR). Medidas em `powerbi/medidas.dax` (nomes sem "." nem
 ":" em tabela/parâmetro); percentuais de luta via DISTINCTCOUNT(luta_id). O DAX não é
 testado automaticamente: só vale depois de conferido no Power BI Desktop (roteiro e
@@ -171,7 +172,9 @@ categoria, disputa_titulo, bonus_luta, bonus_performance — flags 0/1) →
 altura_cm, envergadura_cm, base, nascimento); resultado W/L/D/NC; kd, sig_acertados,
 sig_tentados, total_*, quedas, quedas_tentadas, tent_finalizacao,
 reversoes, controle_seg, cabeca/corpo/perna, distancia/clinch/chao) →
-`desempenho_round` (mesmas estatísticas + round, sem resultado).
+`desempenho_round` (mesmas estatísticas + round, sem resultado) e `notas` (PK/FK luta_id+lutador →
+`desempenho`; estilo, nota 3–10, parte_resultado/desempenho/adversario; montada por `calcular_notas` em
+`montar_tabelas`; ordem de carga em `ORDEM_TABELAS` de banco.py). Consultas `melhores_atuacoes` e `nota_por_estilo`.
 `eventos.data` ('AAAA-MM-DD', vinda de `data/processed/eventos.csv`) é a
 referência de tempo: ordenar lutas por `e.data`. `evento_id` é atribuído em
 ordem de data decrescente (1 = mais recente; 795 = UFC 2, 1994-03-11).
@@ -427,8 +430,15 @@ flutuante `abrirDetalheNota`): selo em cada lado do card do evento e "melhor atu
 no perfil, nota média + últimas 5 no topo, estilo no subtítulo, barras "Nota em cada luta" e coluna no
 histórico. Classe CSS é `selo-nota` (NÃO `.nota`: lutador.html, index.html e sobre.html já usam `.nota`
 para parágrafos de observação). Faixas: < 6 vermelho, 6–6,9 amarelo, 7–7,9 verde, 8+ azul.
-Explicação para o público em sobre.html#nota. Próximo: rankings (nota média, filtro por estilo, melhores
-atuações), comparador e página inicial.
+Explicação para o público em sobre.html#nota.
+Rankings/comparador (interativo.js): `anexarNotas` calcula no navegador, a partir de dados/lutas.json (carregado
+junto com o período), `nm` (nota média), `nn` (lutas com nota) e `estilo` de cada lutador SÓ nas lutas a partir de
+`dados.periodo.inicio` — assim lutadores*.json (com fotos, só regeneráveis no PC) não mudam. Métrica `nota_media`
+(campo `lutas` próprio = nn para o "mín. de lutas"), filtro `#estilo` (URL `estilo`), seção `#atuacoes` (top 20 do
+período, filtros categoria/estilo; empate: maior desempenho, depois mais recente) e nota/estilo nos cartões.
+Página inicial: bloco `notas` em analises.json (`notas_do_periodo` em src/analises.py: média, por estilo
+[estilo, atuações, lutadores, nota média, % vitórias] e as 5 melhores atuações), cartões "Melhores atuações" e
+"Nota média por estilo" e atalho do ranking de nota.
 
 ## Próximos passos / direção atual
 Ordem combinada (2026-11-08) para o site profissional: 1 estrutura comum + 2 perfil (feitos, PR #4);
