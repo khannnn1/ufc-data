@@ -509,8 +509,9 @@ atual é por aprendizado. `index.html` segue com os PNGs fixos e linka para
   também têm foto e "UFC 2008–2024". No JSON: `anos` = [1º ano, último ano] da carreira inteira
   (`periodo_de_atividade`, igual em todos os períodos) e `foto` (de data/raw/fotos.csv, via `juntar_fotos`). Precisões exigem
   amostra mínima de tentativas (`requisito` em cada métrica). Filtro de
-  categoria (`CATEGORIAS_RANKING`, sem peso casado) usa `l.cat`, a categoria
-  da luta mais recente: quem mudou de divisão entra com todas as lutas.
+  categoria (`CATEGORIAS_RANKING`, sem peso casado, `naCategoria`): entra quem tem `l.cat` (categoria da luta
+  mais recente) igual OU `LUTAS_NA_CATEGORIA` (3)+ lutas nela na carreira (`l.porCat`, contado de lutas.json em
+  `anexarNotas`; 2026-11-09: Holloway sumia do pena/leve por 1 luta no meio-médio). Médias usam todas as lutas.
   Desempate: métricas com `total: true` (vitórias, KO, sub, KD) por MENOS
   lutas, como nos PNGs; médias/taxas por MAIS lutas; depois nome.
   Filtro de base (`BASES_RANKING`, usa `l.base`) e de faixa de idade
