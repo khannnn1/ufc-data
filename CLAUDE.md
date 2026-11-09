@@ -63,7 +63,7 @@ ProjetoUFC/
 ├── lutador.html        # perfil do lutador (lutador.html?n=Nome)
 ├── eventos.html        # eventos por ano; eventos.html?id=<código ufcstats> = card do evento
 ├── requirements.txt
-└── README.md
+└── README.md           # vitrine: capturas em img/readme/*.png (1280×800, iniciais no lugar das fotos)
 ```
 
 ## Padrão visual (dark mode / editorial)
