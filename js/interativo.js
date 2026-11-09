@@ -386,7 +386,7 @@ function desenharRanking() {
   };
 
   const elegiveis = lutadores
-    .filter((l) => lutasDaMetrica(metrica, l) >= minLutas && (!categoria || l.cat === categoria) && (!base || l.base === base) && (!estilo || l.estilo === estilo) && (!soRanqueados || l.nr >= minRanqueado) && chegouA(l, posicao) && lutouNosAnos(l) && naFaixa(l))
+    .filter((l) => lutasDaMetrica(metrica, l) >= minLutas && naCategoria(l, categoria) && (!base || l.base === base) && (!estilo || l.estilo === estilo) && (!soRanqueados || l.nr >= minRanqueado) && chegouA(l, posicao) && lutouNosAnos(l) && naFaixa(l))
     .filter((l) => !metrica.requisito || metrica.requisito(l))
     .map((l) => ({ l, v: calcular(metrica, l) }))
     .filter((x) => x.v !== null);
@@ -405,7 +405,7 @@ function desenharRanking() {
     + (soRanqueados ? ` Só quem entrou em pelo menos ${minRanqueado} ${minRanqueado === 1 ? "luta" : "lutas"} do período no top 15 da categoria pelo Elo do site (não é o ranking oficial do UFC, que só existe desde 2013).` : "")
     + (posicao ? ` ${posicao === "campeao" ? "Só quem venceu disputa de cinturão" : posicao === "1" ? "Só quem chegou a nº 1 da categoria pelo Elo (ou foi campeão)" : `Só quem chegou ao top ${posicao} da categoria pelo Elo (ou foi campeão)`} em algum momento da carreira.` : "")
     + (anoDe || anoAte ? ` Só quem lutou no UFC ${anoDe && anoAte ? (anoDe === anoAte ? `em ${anoDe}` : `entre ${anoDe} e ${anoAte}`) : anoDe ? `de ${anoDe} em diante` : `até ${anoAte}`} (as estatísticas seguem o período escolhido no topo).` : "")
-    + (categoria ? " Categoria = a da luta mais recente de cada um; quem mudou de divisão entra com todas as lutas." : "")
+    + (categoria ? ` Categoria: quem lutou por último nela ou tem pelo menos ${LUTAS_NA_CATEGORIA} lutas nela na carreira; as médias usam todas as lutas do período.` : "")
     + (metrica.nota ? " " + metrica.nota : "");
   document.getElementById("nota-ranking").textContent = nota;
 
@@ -838,6 +838,10 @@ const chegouA = (l, alvo) => {
   if (alvo === "campeao") return l.melhor === "campeao";
   return l.melhor === "campeao" || (l.melhor != null && l.melhor <= Number(alvo));
 };
+// Filtro de categoria: a da última luta (l.cat) ou qualquer uma com LUTAS_NA_CATEGORIA+ lutas na carreira
+// (l.porCat, de lutas.json). Sem isso, Holloway sumia do pena e do leve por uma luta no meio-médio.
+const LUTAS_NA_CATEGORIA = 3;
+const naCategoria = (l, categoria) => !categoria || l.cat === categoria || (l.porCat?.get(categoria) || 0) >= LUTAS_NA_CATEGORIA;
 const LUTAS_RANQUEADO = 3; // filtro "Só top 15": lutas mínimas como top 15 (ou o mín. de lutas, se menor)
 let urlPronta = false; // só escreve na URL depois de aplicar o estado inicial
 
@@ -984,6 +988,15 @@ function anexarNotas(dados) {
     }
   }
   const melhor = melhoresPosicoes(dadosLutas); // carreira inteira, fora do recorte de período
+  const porCat = new Map(); // lutas de cada lutador em cada categoria, na carreira inteira
+  for (const luta of dadosLutas.lutas) {
+    if (!luta[1]) continue;
+    for (const lado of [luta[8], luta[9]]) {
+      const m = porCat.get(lado[0]) || new Map();
+      m.set(luta[1], (m.get(luta[1]) || 0) + 1);
+      porCat.set(lado[0], m);
+    }
+  }
   atuacoes.sort((x, y) => y.nota - x.nota || y.partes[1] - x.partes[1] || y.data.localeCompare(x.data));
   for (const l of lutadores) {
     const s = soma.get(l.nome);
@@ -992,6 +1005,7 @@ function anexarNotas(dados) {
     l.estilo = dadosLutas.estilos?.[l.nome] || null;
     l.nr = ranqueado.get(l.nome) || 0;
     l.melhor = melhor.get(l.nome) || null;
+    l.porCat = porCat.get(l.nome) || null;
   }
 }
 
