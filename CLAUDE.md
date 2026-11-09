@@ -145,7 +145,7 @@ Definido em `src/visualizacao.py`:
   (Jon Jones usa o headshot de 2024-11; o de 2025-10 corta a cabeça).
 
 ## Testes
-`python -m pytest` na raiz (78 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
+`python -m pytest` na raiz (80 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
 tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos CSVs
 limpos; `test_atualizar_historico.py` roda `atualizar(historico=True)` com um navegador falso; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
 e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
@@ -267,7 +267,7 @@ Head, Body, Leg, Distance, Clinch, Ground, além de `Ctrl_seconds`.
 Dados da luta vindos da página do evento: `Weight_Class` (ex: "Lightweight",
 "Women's Strawweight", "Catch Weight" = peso casado; "Open Weight" = peso aberto, 117 lutas
 nos torneios antigos; "Super Heavyweight" só 1), `Title_Bout`, `Fight_Bonus`, `Perf_Bonus` (0/1;
-503 disputas de cinturão e 612 Lutas da Noite no histórico).
+503 marcadas com cinturão, das quais 65 são finais do TUF: 438 disputas de verdade; 612 Lutas da Noite no histórico).
 `Fighter_URL` é o identificador único do lutador: uma por pessoa, mesmo
 com nomes repetidos. Homônimos ganham o ano de nascimento no `Fighter` dos processados
 (resumo e por round), via `desambiguar_homonimos` no `src.atualizar`:
@@ -350,9 +350,9 @@ str. %, Td %) indicam zero tentativas, tratados como NaN (não 0%).
     ortodoxo 52% (IC 48–56%), switch × canhoto 54% em 197 lutas; tracejado em 50%
 21. `disputas_de_cinturao.png` — painéis (formato do 10) disputa de
     cinturão (amarelo) × demais lutas (azul), uma linha por luta: duração
-    média 14,7 × 10,3 min, golpes sig. por minuto por lutador 3,3 × 3,5,
-    KD a cada 15 min 0,26 × 0,31, Luta da Noite 15% × 6%
-    (2,4×), Performance 29% × 19% (503 disputas); rodapé: disputa fecha o card
+    média 15,4 × 10,3 min, golpes sig. por minuto por lutador 3,3 × 3,5,
+    KD a cada 15 min 0,26 × 0,31, Luta da Noite 17% × 6%
+    (2,7×), Performance 29% × 19% (438 disputas, sem as finais do TUF); rodapé: disputa fecha o card
 22. `luta_da_noite.png` — mesmos painéis, Luta da Noite (vermelho) × demais
     (azul), uma linha por luta: golpes sig./min por lutador 4,8 × 3,4, lutas
     com KD 47% × 35%, "ida e volta" (perdedor também derrubou) 17% × 5%,
@@ -460,8 +460,10 @@ comparador e subtítulo do perfil (do histórico). Quem venceu disputa de cintur
 Filtro "Chegou a" (`#melhor-posicao`, URL `mp`: campeao/1/3/5/10, `OPCOES_MELHOR_POSICAO`/`chegouA` em interativo.js): melhor
 posição da carreira, campeão conta como nº 1. Finais do TUF: o ufcstats marca com o ícone de cinturão; `tipo_de_disputa`
 (exportar.py) grava cinturão = 2 em lutas.json quando o formato é "3 Rnd..." a partir de 2005 (65 lutas). O JS mostra
-"Final do TUF" e não conta como campeão nem no filtro "Disputas de cinturão" do perfil. ATENÇÃO: gráfico 21, analises.json,
-SQL e Power BI ainda contam as 503 (inclui as 65 finais).
+"Final do TUF" e não conta como campeão nem no filtro "Disputas de cinturão" do perfil. Desde 2026-11-09,
+`separar_finais_de_torneio(df, datas_eventos)` (limpeza.py; põe Title_Bout = 0 e Final_TUF = 1, idempotente) é aplicado em
+`exportar_lutadores` (analises.json), `montar_tabelas` (SQLite `disputa_titulo` e Power BI) e nos notebooks 02/03:
+gráfico 21, página inicial, SQL e Power BI contam 438 disputas.
 Filtro "Lutou de/até" (`#ano-de`/`#ano-ate`, URL `de`/`ate`, 2026-11-08): carreira (`l.anos`) cruza o intervalo; não
 recorta as estatísticas (isso é o período do topo). No celular o subtítulo quebra linha em vez de cortar.
 Página inicial: bloco `notas` em analises.json (`notas_do_periodo` em src/analises.py: média, por estilo
