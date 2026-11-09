@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.limpeza import adicionar_duracao
+from src.limpeza import adicionar_duracao, separar_finais_de_torneio
 from src.rating import calcular_notas
 
 RAIZ = Path(__file__).resolve().parent.parent
@@ -42,6 +42,7 @@ ORDEM_TABELAS = ["eventos", "lutas", "lutadores", "desempenho", "desempenho_roun
 def montar_tabelas(resumo, por_round, datas_eventos, dados_lutadores):
     """Separa os CSVs (uma linha por lutador-luta) em eventos, lutas, lutadores, desempenho e desempenho_round,
     e calcula as notas de cada lutador em cada luta (src/rating.py)."""
+    resumo = separar_finais_de_torneio(resumo, datas_eventos)  # final do TUF: disputa_titulo = 0
     eventos = resumo[["Event_URL", "Event_Name"]].drop_duplicates("Event_URL")
     eventos["data"] = eventos["Event_URL"].map(datas_eventos.set_index("Event_URL")["Event_Date"])
     if eventos["data"].isna().any():

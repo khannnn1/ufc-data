@@ -107,3 +107,34 @@ def adicionar_duracao(df, coluna_saida="Duracao_seg"):
     df[coluna_saida] = [duracao_segundos(r, t, f) for r, t, f in zip(df["Final_Round"], tempo, formatos)]
     df[coluna_saida] = pd.to_numeric(df[coluna_saida])
     return df
+
+
+INICIO_TUF = "2005-01-01"  # 1ª final do The Ultimate Fighter: 2005-04-09
+
+
+def tipo_de_disputa(titulo, formato, data):
+    """0 = luta comum, 1 = disputa de cinturão do UFC, 2 = final de torneio (TUF e afins).
+
+    O ufcstats marca as finais do TUF com o mesmo ícone de cinturão. Desde 2005, disputa de cinturão do UFC
+    tem 5 rounds; as finais de torneio têm 3 ("3 Rnd (5-5-5)" ou "3 Rnd + OT", com round extra).
+    Antes disso há disputas de 3 rounds de verdade (UFC 26), então a regra só vale a partir do TUF.
+    """
+    if not titulo or pd.isna(titulo):
+        return 0
+    if isinstance(formato, str) and formato.startswith("3 Rnd") and str(data) >= INICIO_TUF:
+        return 2
+    return 1
+
+
+def separar_finais_de_torneio(df, datas_eventos):
+    """Tira as finais do TUF de Title_Bout (vira 0) e marca em Final_TUF (0/1). Idempotente.
+
+    Usado por quem conta disputas de cinturão (análises, banco/Power BI, notebooks); 65 lutas na base completa.
+    """
+    if "Final_TUF" in df.columns or "Title_Bout" not in df.columns:
+        return df
+    datas = df["Event_URL"].map(datas_eventos.set_index("Event_URL")["Event_Date"])
+    formatos = df["Time_Format"] if "Time_Format" in df.columns else pd.Series(None, index=df.index, dtype=object)
+    tipo = [tipo_de_disputa(t, f, d) for t, f, d in zip(df["Title_Bout"], formatos, datas)]
+    final = pd.Series([int(t == 2) for t in tipo], index=df.index)
+    return df.assign(Title_Bout=df["Title_Bout"].where(final == 0, 0), Final_TUF=final)

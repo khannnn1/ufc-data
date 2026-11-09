@@ -171,3 +171,16 @@ def test_final_do_tuf_nao_e_disputa_de_cinturao():
     assert tipo_de_disputa(1, "3 Rnd (5-5-5)", "2013-06-08") == 2
     assert tipo_de_disputa(1, "3 Rnd (5-5-5)", "2000-06-09") == 1  # UFC 26: disputa de 3 rounds antes do TUF
     assert tipo_de_disputa(1, None, "2024-01-01") == 1
+
+
+def test_separar_finais_de_torneio_tira_do_cinturao(resumo, datas_eventos):
+    from src.limpeza import separar_finais_de_torneio
+    df = resumo.copy()
+    df["Title_Bout"] = 1
+    df["Time_Format"] = "5 Rnd (5-5-5-5-5)"
+    df.loc[df["Fight_URL"] == "F2", "Time_Format"] = "3 Rnd + OT (5-5-5-5)"  # final do TUF (2024)
+    saida = separar_finais_de_torneio(df, datas_eventos)
+    assert set(saida.loc[saida["Fight_URL"] == "F2", "Title_Bout"]) == {0}
+    assert set(saida.loc[saida["Fight_URL"] == "F2", "Final_TUF"]) == {1}
+    assert set(saida.loc[saida["Fight_URL"] != "F2", "Title_Bout"]) == {1}
+    assert separar_finais_de_torneio(saida, datas_eventos) is saida  # idempotente
