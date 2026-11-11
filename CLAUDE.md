@@ -233,7 +233,8 @@ todo dia às 12:00 (StartWhenAvailable: se o PC estava desligado, roda ao ligar)
 principal (só com o usuário logado: o Chrome abre uma janela, ver scraping). Roda numa CÓPIA SÓ DELA: git worktree `..\ufc-data-publicacao` (branch local `publicacao`, push em
 `HEAD:main`), com `data\` como junção para o `data\` da pasta principal (base única). A cada execução faz
 `reset --hard origin/main` na cópia (recusa rodar na pasta principal: compara --git-dir com --git-common-dir), então
-NADA se edita nela. Coleta só eventos de ANTES de hoje (`atualizar(hoje=ontem)`: evento do dia pode estar em
+NADA se edita nela. O reset roda num processo e o resto num processo NOVO (`--copia-pronta`), para valer o código
+recém-baixado. Todo subprocess com `stdin=DEVNULL`: com pythonw não há stdin e herdá-lo dá WinError 6. Coleta só eventos de ANTES de hoje (`atualizar(hoje=ontem)`: evento do dia pode estar em
 andamento e `completar_lutas_evento` não relê um evento já registrado). Publica se a base tem evento mais novo que o
 último de `dados/lutas.json` (compara com o site, não com a coleta do dia: o que ficou pendente sai na próxima).
 Antes do push: fotos dos estreantes (`coletar_fotos(limite=40)`, falha não bloqueia), exportar, banco, Power BI,

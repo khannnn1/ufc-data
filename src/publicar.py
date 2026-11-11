@@ -34,7 +34,8 @@ FOTOS_POR_EXECUCAO = 40  # ~10 min com a pausa de 15 s do ufc.com; cobre os estr
 
 def git(*args, cwd=RAIZ):
     """Roda um comando git e devolve a saída; erro vira exceção com a mensagem do git."""
-    r = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, encoding="utf-8")
+    r = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, encoding="utf-8",
+                       stdin=subprocess.DEVNULL)
     if r.returncode:
         raise RuntimeError(f"git {' '.join(args)}: {(r.stderr or r.stdout).strip()}")
     return r.stdout.strip()
@@ -57,7 +58,7 @@ def preparar_copia(cwd=RAIZ):
 def enviar(mensagem, cwd=RAIZ):
     """Commit só dos arquivos do site e push para a main. Devolve False se não havia nada a enviar."""
     git("add", "--", *PUBLICAVEIS, cwd=cwd)
-    if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=cwd).returncode == 0:
+    if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=cwd, stdin=subprocess.DEVNULL).returncode == 0:
         return False
     git("commit", "-m", mensagem, cwd=cwd)
     try:
@@ -138,8 +139,6 @@ def publicar(enviar_ao_github=True, hoje=None):
     from src.powerbi import exportar_powerbi
 
     hoje = hoje or date.today()
-    if enviar_ao_github:
-        preparar_copia()
     antes = resumo_do_site()
     print(f"Último evento no site: {antes['ultimo']} ({antes['eventos']} eventos, {antes['lutas']} lutas).")
 
@@ -167,7 +166,8 @@ def publicar(enviar_ao_github=True, hoje=None):
     depois = resumo_do_site()
     novos = eventos_depois_de(depois, antes["ultimo"])
     problemas = conferir(antes, depois)
-    testes = subprocess.run([sys.executable, "-m", "pytest", "-q"], cwd=RAIZ, capture_output=True, text=True)
+    testes = subprocess.run([sys.executable, "-m", "pytest", "-q"], cwd=RAIZ, capture_output=True, text=True,
+                            stdin=subprocess.DEVNULL)
     if testes.returncode:
         problemas.append("testes falharam:\n" + testes.stdout[-3000:])
     if problemas:
@@ -188,12 +188,21 @@ def publicar(enviar_ao_github=True, hoje=None):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--sem-enviar", action="store_true", help="atualiza e confere, mas não faz commit nem push")
+    parser.add_argument("--copia-pronta", action="store_true", help=argparse.SUPPRESS)  # uso interno (ver abaixo)
     args = parser.parse_args()
 
     ARQUIVO_LOG.parent.mkdir(parents=True, exist_ok=True)
     sys.stdout = sys.stderr = Log(ARQUIVO_LOG, sys.__stdout__)
-    print(f"\n===== {datetime.now():%Y-%m-%d %H:%M} =====")
+    if not args.copia_pronta:
+        print(f"\n===== {datetime.now():%Y-%m-%d %H:%M} =====")
     try:
+        if not args.sem_enviar and not args.copia_pronta:
+            # Alinha a cópia com a origin/main e roda o resto num processo NOVO: este aqui já carregou o
+            # código antigo, e uma correção recém-mesclada só valeria na execução seguinte.
+            preparar_copia()
+            filho = subprocess.run([sys.executable, "-m", "src.publicar", "--copia-pronta"], cwd=RAIZ,
+                                   stdin=subprocess.DEVNULL)
+            sys.exit(filho.returncode)
         publicar(enviar_ao_github=not args.sem_enviar)
     except Exception:
         print(traceback.format_exc())

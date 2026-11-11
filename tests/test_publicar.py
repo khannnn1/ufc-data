@@ -56,7 +56,9 @@ def test_mensagem_do_commit_lista_os_eventos():
 
 
 def _git(*args, cwd):
-    return subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True, text=True).stdout.strip()
+    # stdin=DEVNULL: a tarefa agendada roda com pythonw, sem stdin, e herdá-lo dá WinError 6
+    return subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True, text=True,
+                          stdin=subprocess.DEVNULL).stdout.strip()
 
 
 @pytest.fixture
