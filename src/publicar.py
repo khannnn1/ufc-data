@@ -19,6 +19,7 @@ Qualquer falha: nada é publicado, o motivo vai para data/publicacao.log e a sa�
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 import traceback
@@ -58,7 +59,8 @@ def preparar_copia(cwd=RAIZ):
 def enviar(mensagem, cwd=RAIZ):
     """Commit só dos arquivos do site e push para a main. Devolve False se não havia nada a enviar."""
     git("add", "--", *PUBLICAVEIS, cwd=cwd)
-    if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=cwd, stdin=subprocess.DEVNULL).returncode == 0:
+    if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=cwd, stdin=subprocess.DEVNULL,
+                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
         return False
     git("commit", "-m", mensagem, cwd=cwd)
     try:
@@ -120,14 +122,36 @@ class Log:
         self.tela = tela
 
     def write(self, texto):
-        if self.tela:
-            self.tela.write(texto)
         self.arquivo.write(texto)
         self.arquivo.flush()
+        if self.tela:
+            try:
+                self.tela.write(texto)
+            except (OSError, ValueError):  # tela inválida (pythonw): fica só o arquivo
+                self.tela = None
 
     def flush(self):
         if self.tela:
-            self.tela.flush()
+            try:
+                self.tela.flush()
+            except (OSError, ValueError):
+                self.tela = None
+
+
+# Marca de que a saída deste processo já vai para o log (ver saidas_validas)
+SAIDA_NO_LOG = "UFC_PUBLICAR_SAIDA_NO_LOG"
+
+
+def saidas_validas():
+    """False sob pythonw (a tarefa agendada): não há stdin/stdout/stderr de verdade, e um subprocesso que os
+    herde (git, pytest, notebooks) falha com WinError 6. Nesse caso o __main__ se relança com os três
+    apontando para arquivos de verdade."""
+    for f in (sys.__stdin__, sys.__stdout__, sys.__stderr__):
+        try:
+            os.fstat(f.fileno())
+        except (AttributeError, OSError, ValueError):
+            return False
+    return True
 
 
 def publicar(enviar_ao_github=True, hoje=None):
@@ -192,7 +216,17 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     ARQUIVO_LOG.parent.mkdir(parents=True, exist_ok=True)
-    sys.stdout = sys.stderr = Log(ARQUIVO_LOG, sys.__stdout__)
+    if os.environ.get(SAIDA_NO_LOG) != "1" and not saidas_validas():
+        # pythonw: relança este mesmo comando com entrada vazia e saída/erros no log; os filhos dele
+        # (git, pytest, notebooks, Chrome) herdam identificadores válidos.
+        with open(ARQUIVO_LOG, "a", encoding="utf-8") as log:
+            relancado = subprocess.run([sys.executable, "-m", "src.publicar", *sys.argv[1:]], cwd=RAIZ,
+                                       stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT,
+                                       env={**os.environ, SAIDA_NO_LOG: "1", "PYTHONUNBUFFERED": "1",
+                                            "PYTHONIOENCODING": "utf-8"})
+        os._exit(relancado.returncode)  # sem o flush final da saída inválida (que viraria código 120)
+    if os.environ.get(SAIDA_NO_LOG) != "1":  # no console: tela + log; relançado: a saída já é o log
+        sys.stdout = sys.stderr = Log(ARQUIVO_LOG, sys.__stdout__)
     if not args.copia_pronta:
         print(f"\n===== {datetime.now():%Y-%m-%d %H:%M} =====")
     try:
