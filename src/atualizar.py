@@ -233,9 +233,10 @@ def urls_de_lutadores(lutas_evento):
 
 
 def atualizar(pasta_dados=RAIZ / "data", exportar_site=True, max_paginas=10, driver=None, historico=False,
-              limite=None):
+              limite=None, hoje=None):
     """Coleta eventos novos (ou, com historico, todos os que faltam), atualiza CSVs brutos/limpos e eventos.csv;
-    opcionalmente JSON e banco. limite = no máximo N eventos nesta execução."""
+    opcionalmente JSON e banco. limite = no máximo N eventos nesta execução. hoje = data limite ('AAAA-MM-DD',
+    padrão: hoje); a rotina automática (src.publicar) passa ontem, para não pegar um evento ainda em andamento."""
     arq = caminhos(pasta_dados)
     bruto_resumo = pd.read_csv(arq["bruto_resumo"])
     urls_base = list(dict.fromkeys(bruto_resumo["Event_URL"]))
@@ -256,7 +257,7 @@ def atualizar(pasta_dados=RAIZ / "data", exportar_site=True, max_paginas=10, dri
             raise RuntimeError(f"{len(faltando)} eventos da base não apareceram na listagem; aumente max_paginas.")
 
         mais_recente = max(datas[u] for u in urls_base)
-        novos = eventos_a_coletar(listagem, urls_base, datas, date.today().isoformat(), historico)
+        novos = eventos_a_coletar(listagem, urls_base, datas, hoje or date.today().isoformat(), historico)
         total = len(novos)
         novos = novos[:limite] if limite else novos
 

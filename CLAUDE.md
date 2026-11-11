@@ -29,6 +29,7 @@ ProjetoUFC/
 ├── src/
 │   ├── scraper.py       # coleta (Selenium + BeautifulSoup)
 │   ├── atualizar.py      # `python -m src.atualizar`: busca eventos novos e regenera tudo
+│   ├── publicar.py       # rotina diária: atualizar + conferir + commit/push só dos arquivos do site (ver abaixo)
 │   ├── limpeza.py        # tratamento de dados
 │   ├── visualizacao.py   # estilo e funções de plotagem
 │   ├── exportar.py       # gera dados/lutadores.json para o site interativo
@@ -52,6 +53,7 @@ ProjetoUFC/
 │   ├── analises.js     # página inicial (lê dados/analises.json)
 │   └── eventos.js      # lista de eventos e card de cada evento
 ├── powerbi/            # dados/*.csv (VERSIONADOS), medidas.dax, tema_ufc.json, README (roteiro)
+├── scripts/agendar_publicacao.ps1  # agenda o src.publicar no Agendador de Tarefas do Windows
 ├── tests/              # pytest: conftest.py (mini-dataset de 3 lutas) + test_*.py
 ├── pytest.ini          # testpaths = tests, pythonpath = .
 ├── index.html          # página inicial: análises interativas com filtro de período (js/analises.js)
@@ -145,7 +147,7 @@ Definido em `src/visualizacao.py`:
   (Jon Jones usa o headshot de 2024-11; o de 2025-10 corta a cabeça).
 
 ## Testes
-`python -m pytest` na raiz (80 testes, ~3 s, sem rede e sem data/). `tests/conftest.py`
+`python -m pytest` na raiz (87 testes, ~6 s, sem rede e sem data/). `tests/conftest.py`
 tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos CSVs
 limpos; `test_atualizar_historico.py` roda `atualizar(historico=True)` com um navegador falso; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
 e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
@@ -221,6 +223,22 @@ Weight" (peso aberto, torneios) e "Super Heavyweight" existem só nos antigos.
 resumo bruto/limpo; a duração da luta sai de `adicionar_duracao` (limpeza.py),
 usada por banco.py e exportar.py. Sem formato (linhas coletadas antes da
 coluna existir, todas com rounds de 5 min) vale 5 min por round.
+
+## Publicação automática (desde 2026-11-10)
+`src/publicar.py` + `scripts/agendar_publicacao.ps1`: tarefa "UFC Data - publicar" no Agendador de Tarefas do PC,
+todo dia às 12:00 (StartWhenAvailable: se o PC estava desligado, roda ao ligar), com o pythonw do venv da pasta
+principal. Roda numa CÓPIA SÓ DELA: git worktree `..\ufc-data-publicacao` (branch local `publicacao`, push em
+`HEAD:main`), com `data\` como junção para o `data\` da pasta principal (base única). A cada execução faz
+`reset --hard origin/main` na cópia (recusa rodar na pasta principal: compara --git-dir com --git-common-dir), então
+NADA se edita nela. Coleta só eventos de ANTES de hoje (`atualizar(hoje=ontem)`: evento do dia pode estar em
+andamento e `completar_lutas_evento` não relê um evento já registrado). Publica se a base tem evento mais novo que o
+último de `dados/lutas.json` (compara com o site, não com a coleta do dia: o que ficou pendente sai na próxima).
+Antes do push: fotos dos estreantes (`coletar_fotos(limite=40)`, falha não bloqueia), exportar, banco, Power BI,
+notebooks (falha volta figures/ e notebooks/), `conferir` (eventos = antes + novos; lutas novas entre 1 e 20 por
+evento; nenhum lado sem estatística nos eventos novos) e pytest. Commit só de `PUBLICAVEIS` (dados, powerbi/dados,
+figures, notebooks 02/03), mensagem "Base atualizada: <evento> (<data>)"; se a main andou, `pull --rebase` e push de
+novo. Falha = nada publicado + `data/publicacao.log` + código 1. Textos fixos (README, legendas do graficos.html,
+img/og.png) continuam manuais. Mudança de código feita na nuvem chega à rotina sozinha (ela usa a origin/main).
 
 ## Atualização da base
 `python -m src.atualizar` (na raiz, com o venv; ~15 s sem eventos novos):

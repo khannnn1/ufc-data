@@ -152,6 +152,7 @@ pip install -r requirements.txt
 
 - **Coleta e limpeza:** `notebooks/01_scrapper_test_luta.ipynb` (precisa do Google Chrome instalado para o Selenium).
 - **Atualizar com eventos novos:** `python -m src.atualizar` busca só os eventos mais recentes que o último da base (e as páginas de evento e de lutador que faltarem), limpa os dados e regenera o JSON do site e o banco SQL; com `--graficos`, também reexecuta os notebooks de gráficos e SQL.
+- **Publicar sozinho depois de cada evento:** `python -m src.publicar` coleta os eventos já encerrados, regenera tudo, confere os números, roda os testes e publica só os arquivos do site na `main`. O `scripts/agendar_publicacao.ps1` agenda isso no Agendador de Tarefas do Windows (todo dia ao meio-dia, numa cópia de trabalho própria); as instruções estão no topo do script.
 - **Coletar o histórico completo:** `python -m src.atualizar --historico` coleta todos os eventos que faltam, até os primeiros UFCs dos anos 1990. Leva algumas horas; pode ser interrompido com Ctrl+C e retomado rodando o mesmo comando. Para testar antes, `--limite 5` coleta só 5 eventos.
 - **Gráficos:** `notebooks/02_visualizacao.ipynb`.
 - **SQL:** `notebooks/03_sql.ipynb` recria o banco (`data/ufc.db`) e roda as consultas. Para só gerar o banco: `python -m src.banco`.
