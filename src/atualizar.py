@@ -31,6 +31,8 @@ from src.scraper import (anexar_csv, criar_driver, esperar, extrair_dados_luta, 
 RAIZ = Path(__file__).resolve().parent.parent
 URL_LISTAGEM = "http://ufcstats.com/statistics/events/completed?page={}"
 SELETOR_LISTAGEM = "tr.b-statistics__table-row a.b-link_style_black"
+# Desde 2026-11 a verificação do ufcstats leva ~50 s na 1ª página da sessão (depois as páginas abrem em < 1 s)
+ESPERA_VERIFICACAO = 150
 
 
 def caminhos(pasta_dados):
@@ -64,7 +66,7 @@ def listar_eventos(driver, urls_base, datas_conhecidas, max_paginas=10):
         print(f"Lendo a página {pagina} da listagem de eventos...")
         driver.get(URL_LISTAGEM.format(pagina))
         try:
-            esperar(driver, SELETOR_LISTAGEM, espera_max=60)
+            esperar(driver, SELETOR_LISTAGEM, espera_max=ESPERA_VERIFICACAO)
         except TimeoutException:
             if pagina == 1:
                 raise RuntimeError("A listagem de eventos não carregou (anti-bot?); rode de novo.")
@@ -87,7 +89,7 @@ def listar_todos_eventos(driver):
     """Todos os eventos já realizados, numa página só (?page=all), do mais recente ao mais antigo da listagem."""
     print("Lendo a listagem completa de eventos...")
     driver.get(URL_LISTAGEM.format("all"))
-    esperar(driver, SELETOR_LISTAGEM, espera_max=60)
+    esperar(driver, SELETOR_LISTAGEM, espera_max=ESPERA_VERIFICACAO)
     return extrair_eventos_da_pagina(driver.page_source)
 
 

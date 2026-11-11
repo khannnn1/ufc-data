@@ -13,8 +13,13 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-def criar_driver(headless=True):
-    """Cria e configura uma instância do Chrome controlada pelo Selenium."""
+def criar_driver(headless=False):
+    """Cria e configura uma instância do Chrome controlada pelo Selenium.
+
+    Com janela por padrão: desde 2026-11 a verificação do ufcstats não termina no Chrome sem janela
+    (headless): a página fica em branco para sempre. Com janela ela passa em ~50 s. Por isso a coleta
+    (manual ou a rotina agendada, que roda com o usuário logado) abre uma janela do Chrome.
+    """
     options = Options()
     if headless:
         options.add_argument("--headless=new")
