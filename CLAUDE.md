@@ -84,6 +84,9 @@ Definido em `src/visualizacao.py`:
   Solução: Selenium (`webdriver.Chrome`, `--headless=new`,
   `--disable-blink-features=AutomationControlled`, user-agent customizado),
   lendo `driver.page_source` depois do JS rodar.
+  Desde 2026-11-10 a verificação NÃO termina em headless (página fica com 39 caracteres para sempre; o
+  Google abre normal em headless, então é o site). Com janela passa em ~50 s: `criar_driver()` agora abre
+  janela por padrão (headless=False) e a 1ª página da listagem espera até `ESPERA_VERIFICACAO` (150 s).
 - Mapeamento HTML de uma luta:
   - Lutador: `div.b-fight-details__person` (nome em
     `a.b-link.b-fight-details__person-link`, resultado W/L em
@@ -227,7 +230,7 @@ coluna existir, todas com rounds de 5 min) vale 5 min por round.
 ## Publicação automática (desde 2026-11-10)
 `src/publicar.py` + `scripts/agendar_publicacao.ps1`: tarefa "UFC Data - publicar" no Agendador de Tarefas do PC,
 todo dia às 12:00 (StartWhenAvailable: se o PC estava desligado, roda ao ligar), com o pythonw do venv da pasta
-principal. Roda numa CÓPIA SÓ DELA: git worktree `..\ufc-data-publicacao` (branch local `publicacao`, push em
+principal (só com o usuário logado: o Chrome abre uma janela, ver scraping). Roda numa CÓPIA SÓ DELA: git worktree `..\ufc-data-publicacao` (branch local `publicacao`, push em
 `HEAD:main`), com `data\` como junção para o `data\` da pasta principal (base única). A cada execução faz
 `reset --hard origin/main` na cópia (recusa rodar na pasta principal: compara --git-dir com --git-common-dir), então
 NADA se edita nela. Coleta só eventos de ANTES de hoje (`atualizar(hoje=ontem)`: evento do dia pode estar em
