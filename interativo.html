@@ -175,12 +175,25 @@
   table.atuacoes td.posicao { color: var(--muted); font-weight: 600; width: 2.5em; }
   table.atuacoes .sub-lutador a { color: inherit; }
   table.atuacoes td.vazio { color: var(--muted); }
+  table.atuacoes .nome-lutador a { color: inherit; text-decoration: none; }
+  table.atuacoes .nome-lutador a:hover { text-decoration: underline; }
+  table.atuacoes .nome-lutador a.perdedor { color: var(--muted); font-weight: 400; }
+  table.atuacoes td.celula-notas { white-space: nowrap; }
+  table.atuacoes td.celula-notas .selo-nota + .selo-nota { margin-left: 6px; }
+  table.atuacoes td.diferenca { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  table.atuacoes td.diferenca.negativa { color: var(--vermelho); }
   .cartao .nota-cartao { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
 
   .cartao .topo-cartao { display: flex; align-items: center; gap: 14px; margin-bottom: 4px; }
 
   @media (max-width: 700px) {
     table.atuacoes .col-metodo { display: none; }
+    /* Vitórias com menor diferença: sem foto, um nome por linha e as duas notas empilhadas */
+    table.apertadas .avatar, table.apertadas .vs { display: none; }
+    table.apertadas .nome-lutador a { display: block; overflow: hidden; text-overflow: ellipsis; }
+    table.apertadas td.celula-notas .selo-nota { display: block; }
+    table.apertadas td.celula-notas .selo-nota + .selo-nota { margin: 4px 0 0; }
+    table.apertadas th, table.apertadas td { padding-left: 6px; padding-right: 6px; }
     /* Nome ocupa o que sobra e corta com reticências: valor e nota sempre visíveis, sem rolagem lateral */
     table.ranking td:nth-child(2), table.atuacoes td:nth-child(2) { width: 100%; max-width: 0; }
     .identificacao .nome-lutador { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -339,16 +352,28 @@
   </section>
 
   <section id="atuacoes">
-    <h2>Melhores atuações</h2>
-    <p class="intro">As maiores notas em uma única luta no período escolhido. Clique na nota para ver como ela foi calculada e no evento para ver o card completo.</p>
+    <h2 id="titulo-atuacoes">Melhores atuações</h2>
+    <p class="intro" id="intro-atuacoes">As maiores notas em uma única luta no período escolhido. Clique na nota para ver como ela foi calculada e no evento para ver o card completo.</p>
     <div class="controles">
+      <div class="campo metrica">
+        <label for="lista-atuacoes">Lista</label>
+        <select id="lista-atuacoes"></select>
+      </div>
       <div class="campo categoria">
         <label for="categoria-atuacoes">Categoria</label>
         <select id="categoria-atuacoes"><option value="">Todas</option></select>
       </div>
       <div class="campo">
-        <label for="estilo-atuacoes">Estilo</label>
+        <label for="estilo-atuacoes" id="rotulo-estilo-atuacoes">Estilo</label>
         <select id="estilo-atuacoes"><option value="">Todos</option></select>
+      </div>
+      <div class="campo">
+        <label for="metodo-atuacoes">Método</label>
+        <select id="metodo-atuacoes"><option value="">Todos</option></select>
+      </div>
+      <div class="compartilhar">
+        <button type="button" class="copiar" data-secao="atuacoes">Copiar link</button>
+        <span class="copiado" role="status"></span>
       </div>
     </div>
     <div class="tabela-wrap"><table id="tabela-atuacoes" class="atuacoes"></table></div>
@@ -363,7 +388,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <!-- ?v=N: aumente a cada mudança no JS, para o navegador não usar a versão antiga em cache -->
-<script src="js/site.js?v=7"></script>
-<script src="js/interativo.js?v=27"></script>
+<script src="js/site.js?v=8"></script>
+<script src="js/interativo.js?v=28"></script>
 </body>
 </html>

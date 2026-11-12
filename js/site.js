@@ -24,6 +24,14 @@ const METODOS = {
   "DQ": "Desclassificação",
   "Other": "Outro",
 };
+// Grupo do método (perfil: "como vence e como perde"; rankings: filtro das listas de atuações) (mesmos grupos do Power BI)
+function grupoMetodo(metodo) {
+  if (/KO\/TKO|TKO - Doctor/.test(metodo)) return "ko";
+  if (/Submission/.test(metodo)) return "sub";
+  if (/Decision/.test(metodo)) return "dec";
+  return "outro";
+}
+const GRUPOS = [["ko", "Nocaute"], ["sub", "Finalização"], ["dec", "Decisão"], ["outro", "Outros"]];
 const RESULTADOS = { W: "V", L: "D", D: "E", NC: "SR" };
 const RESULTADOS_LONGOS = { W: "Vitória", L: "Derrota", D: "Empate", NC: "Sem resultado" };
 

@@ -1,15 +1,6 @@
 // Perfil do lutador (lutador.html?n=Nome): lê dados/lutadores.json (totais, foto, físico) e
 // dados/lutas.json (histórico de todas as lutas, gerado por montar_lutas em src/exportar.py).
 
-// Grupo do método para "como vence / como perde" (mesmos grupos do Power BI)
-function grupoMetodo(metodo) {
-  if (/KO\/TKO|TKO - Doctor/.test(metodo)) return "ko";
-  if (/Submission/.test(metodo)) return "sub";
-  if (/Decision/.test(metodo)) return "dec";
-  return "outro";
-}
-const GRUPOS = [["ko", "Nocaute"], ["sub", "Finalização"], ["dec", "Decisão"], ["outro", "Outros"]];
-
 const fmt1 = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
 const fmt2 = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
 
