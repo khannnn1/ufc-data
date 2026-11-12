@@ -118,3 +118,13 @@ def test_notas_no_banco(conexao):
                                     WHERE d.resultado = 'W' AND n.nota > 6.6""").fetchone()[0]
     assert vencedores == 3
     assert consultar(conexao, "nota_por_estilo")["atuacoes"].sum() == 6
+
+
+def test_piores_atuacoes_e_vitorias_apertadas(conexao):
+    piores = consultar(conexao, "piores_atuacoes")
+    assert len(piores) == 6 and piores["nota"].is_monotonic_increasing
+    apertadas = consultar(conexao, "vitorias_apertadas_na_nota")
+    assert len(apertadas) == 3  # uma linha por luta com vencedor, do lado de quem venceu
+    assert apertadas["diferenca"].is_monotonic_increasing
+    assert (apertadas["diferenca"] == (apertadas["nota_vencedor"] - apertadas["nota_perdedor"]).round(1)).all()
+    assert (apertadas["vencedor"] != apertadas["perdedor"]).all()

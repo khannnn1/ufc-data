@@ -408,6 +408,45 @@ JOIN desempenho AS adv ON adv.luta_id = n.luta_id AND adv.lutador <> n.lutador
 ORDER BY n.nota DESC, n.parte_desempenho DESC, e.data DESC
 LIMIT 10;
 
+-- nome: piores_atuacoes
+-- As 10 menores notas em uma única luta, com o adversário e o evento.
+-- Desempate: menor parte de desempenho, depois a luta mais recente.
+SELECT
+    n.lutador,
+    n.estilo,
+    n.nota,
+    adv.lutador   AS adversario,
+    l.metodo,
+    e.nome        AS evento,
+    e.data
+FROM notas AS n
+JOIN lutas AS l USING (luta_id)
+JOIN eventos AS e USING (evento_id)
+JOIN desempenho AS adv ON adv.luta_id = n.luta_id AND adv.lutador <> n.lutador
+ORDER BY n.nota ASC, n.parte_desempenho ASC, e.data DESC
+LIMIT 10;
+
+-- nome: vitorias_apertadas_na_nota
+-- As 10 vitórias com menor diferença de nota (vencedor − perdedor); negativa = o perdedor teve nota maior.
+-- Self-join de `notas` pela luta, com o vencedor pelo resultado em `desempenho`.
+-- Desempate: menor diferença na parte de desempenho, depois a luta mais recente.
+SELECT
+    nv.lutador                                            AS vencedor,
+    nv.nota                                               AS nota_vencedor,
+    np.lutador                                            AS perdedor,
+    np.nota                                               AS nota_perdedor,
+    ROUND(nv.nota - np.nota, 1)                           AS diferenca,
+    l.metodo,
+    e.nome                                                AS evento,
+    e.data
+FROM notas AS nv
+JOIN desempenho AS dv ON dv.luta_id = nv.luta_id AND dv.lutador = nv.lutador AND dv.resultado = 'W'
+JOIN notas AS np ON np.luta_id = nv.luta_id AND np.lutador <> nv.lutador
+JOIN lutas AS l ON l.luta_id = nv.luta_id
+JOIN eventos AS e USING (evento_id)
+ORDER BY diferenca ASC, nv.parte_desempenho - np.parte_desempenho ASC, e.data DESC
+LIMIT 10;
+
 -- nome: nota_por_estilo
 -- Nota média e taxa de vitória por estilo: se um estilo tiver nota bem maior SEM vencer mais,
 -- a fórmula está favorecendo esse estilo.
