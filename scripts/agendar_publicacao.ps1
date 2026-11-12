@@ -8,8 +8,10 @@
 # O que este script faz:
 #   - na cópia de publicação (a pasta onde ele está), cria data\ como atalho (junção) para o data\ da
 #     pasta principal: a base continua uma só;
-#   - registra a tarefa "UFC Data - publicar", todo dia no horário escolhido (padrão 12:00), usando o
+#   - registra a tarefa "UFC Data - publicar", todo dia nos horários escolhidos (padrão 12:00 e 20:00), usando o
 #     Python do venv da pasta principal. Se o PC estiver desligado no horário, roda assim que ligar.
+#     O 2º horário é a repescagem: se a execução anterior do dia terminou sem erro, ele não faz nada.
+# Rodar de novo (para mudar os horários):  ...\agendar_publicacao.ps1 -Horas 09:00,21:00
 # Não se edita nada na cópia de publicação: a rotina descarta qualquer mudança nela a cada execução.
 #
 # Rodar agora:      Start-ScheduledTask -TaskName "UFC Data - publicar"
@@ -17,7 +19,7 @@
 # Desligar:         Unregister-ScheduledTask -TaskName "UFC Data - publicar"
 
 param(
-    [string]$Hora = "12:00"
+    [string[]]$Horas = @("12:00", "20:00")
 )
 $ErrorActionPreference = "Stop"
 
@@ -37,13 +39,13 @@ if (-not (Test-Path $Dados)) {
 }
 
 $Acao = New-ScheduledTaskAction -Execute $Pythonw -Argument "-m src.publicar" -WorkingDirectory $Copia
-$Gatilho = New-ScheduledTaskTrigger -Daily -At $Hora
+$Gatilho = @($Horas | ForEach-Object { New-ScheduledTaskTrigger -Daily -At $_ })
 $Config = New-ScheduledTaskSettingsSet -StartWhenAvailable -RunOnlyIfNetworkAvailable `
     -ExecutionTimeLimit (New-TimeSpan -Hours 3) -MultipleInstances IgnoreNew
 Register-ScheduledTask -TaskName "UFC Data - publicar" -Action $Acao -Trigger $Gatilho -Settings $Config `
     -Description "Coleta os eventos do UFC já encerrados e publica o site (src/publicar.py). Log: $Principal\data\publicacao.log" `
     -Force | Out-Null
 
-Write-Host "Tarefa 'UFC Data - publicar' agendada para todo dia às $Hora."
+Write-Host "Tarefa 'UFC Data - publicar' agendada para todo dia às $($Horas -join ' e ')."
 Write-Host "Cópia de publicação: $Copia"
 Write-Host "Log: $(Join-Path $Principal 'data\publicacao.log')"

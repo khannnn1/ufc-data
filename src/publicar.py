@@ -31,6 +31,9 @@ PUBLICAVEIS = ["dados", "powerbi/dados", "figures", "notebooks/02_visualizacao.i
 ARQUIVO_LOG = RAIZ / "data" / "publicacao.log"
 MAX_LUTAS_POR_EVENTO = 20  # nenhum card do UFC passa disso; mais é sinal de coleta duplicada
 FOTOS_POR_EXECUCAO = 40  # ~10 min com a pausa de 15 s do ufc.com; cobre os estreantes de um card
+TENTATIVAS_COLETA = 3  # a verificação do ufcstats às vezes não passa: fecha o Chrome e tenta de novo
+PAUSA_ENTRE_TENTATIVAS = 300  # segundos
+ARQUIVO_ULTIMA_OK = RAIZ / "data" / "publicacao_ultima_ok.txt"  # data da última execução sem erro
 
 
 def git(*args, cwd=RAIZ):
@@ -154,6 +157,49 @@ def saidas_validas():
     return True
 
 
+def coletar_com_tentativas(coletar, tentativas=TENTATIVAS_COLETA, pausa=PAUSA_ENTRE_TENTATIVAS, dormir=None):
+    """Chama coletar() até dar certo, com `pausa` segundos entre as tentativas; a última falha sobe.
+
+    Cada tentativa abre um Chrome novo (atualizar fecha o seu ao sair) e a coleta é retomável, então
+    repetir não duplica nada."""
+    import time
+    dormir = dormir or time.sleep
+    for n in range(1, tentativas + 1):
+        try:
+            return coletar()
+        except Exception as erro:
+            if n == tentativas:
+                raise
+            print(f"Coleta: tentativa {n} de {tentativas} falhou ({erro}). Nova tentativa em {pausa // 60} min.")
+            dormir(pausa)
+
+
+def ja_rodou_hoje(hoje, arquivo=ARQUIVO_ULTIMA_OK):
+    """True se uma execução de hoje já terminou sem erro (o 2º horário do dia então não faz nada)."""
+    arquivo = Path(arquivo)
+    return arquivo.exists() and arquivo.read_text(encoding="utf-8").strip() == hoje.isoformat()
+
+
+def avisar_falha(resumo):
+    """Notificação do Windows (fica na central de notificações) quando a rotina falha. Fora do Windows, nada."""
+    if os.name != "nt":
+        return
+    texto = resumo.replace("'", "''").replace("\n", " ")[:200]
+    script = ("[Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType=WindowsRuntime]"
+              " > $null; $x = [Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent("
+              "[Windows.UI.Notifications.ToastTemplateType]::ToastText02); $t = $x.GetElementsByTagName('text'); "
+              "$t.Item(0).AppendChild($x.CreateTextNode('UFC Data: a publicação falhou')) > $null; "
+              f"$t.Item(1).AppendChild($x.CreateTextNode('{texto} (ver data\\publicacao.log)')) > $null; "
+              "$app = '{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\WindowsPowerShell\\v1.0\\powershell.exe'; "
+              "[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($app).Show("
+              "[Windows.UI.Notifications.ToastNotification]::new($x))")
+    try:
+        subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", script], stdin=subprocess.DEVNULL,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60)
+    except Exception:  # o aviso nunca derruba a rotina; o log continua lá
+        pass
+
+
 def publicar(enviar_ao_github=True, hoje=None):
     """Executa a rotina inteira. Devolve True se publicou."""
     from src.atualizar import atualizar, rodar_notebooks
@@ -166,7 +212,7 @@ def publicar(enviar_ao_github=True, hoje=None):
     antes = resumo_do_site()
     print(f"Último evento no site: {antes['ultimo']} ({antes['eventos']} eventos, {antes['lutas']} lutas).")
 
-    atualizar(exportar_site=False, hoje=(hoje - timedelta(days=1)).isoformat())
+    coletar_com_tentativas(lambda: atualizar(exportar_site=False, hoje=(hoje - timedelta(days=1)).isoformat()))
 
     import pandas as pd
     datas = pd.read_csv(RAIZ / "data" / "processed" / "eventos.csv")["Event_Date"]
@@ -229,6 +275,9 @@ if __name__ == "__main__":
         sys.stdout = sys.stderr = Log(ARQUIVO_LOG, sys.__stdout__)
     if not args.copia_pronta:
         print(f"\n===== {datetime.now():%Y-%m-%d %H:%M} =====")
+    if not args.sem_enviar and not args.copia_pronta and ja_rodou_hoje(date.today()):
+        print("Já rodou hoje sem erro; nada a fazer neste horário.")
+        sys.exit(0)
     try:
         if not args.sem_enviar and not args.copia_pronta:
             # Alinha a cópia com a origin/main e roda o resto num processo NOVO: este aqui já carregou o
@@ -236,8 +285,14 @@ if __name__ == "__main__":
             preparar_copia()
             filho = subprocess.run([sys.executable, "-m", "src.publicar", "--copia-pronta"], cwd=RAIZ,
                                    stdin=subprocess.DEVNULL)
+            if filho.returncode == 0:
+                ARQUIVO_ULTIMA_OK.write_text(date.today().isoformat(), encoding="utf-8")
+            else:
+                avisar_falha("Nada foi publicado; tenta de novo no próximo horário.")
             sys.exit(filho.returncode)
         publicar(enviar_ao_github=not args.sem_enviar)
-    except Exception:
+    except Exception as erro:
         print(traceback.format_exc())
+        if not args.copia_pronta:  # o pai avisa pelo filho; aqui só a falha antes dele (fetch, reset)
+            avisar_falha(str(erro))
         sys.exit(1)

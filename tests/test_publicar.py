@@ -5,8 +5,10 @@ import subprocess
 
 import pytest
 
-from src.publicar import (PUBLICAVEIS, conferir, enviar, eventos_depois_de, mensagem_do_commit, preparar_copia,
-                          resumo_do_site)
+from datetime import date
+
+from src.publicar import (PUBLICAVEIS, coletar_com_tentativas, conferir, enviar, eventos_depois_de, ja_rodou_hoje,
+                          mensagem_do_commit, preparar_copia, resumo_do_site)
 
 
 def _lado(nome, res, sl=10):
@@ -113,3 +115,31 @@ def test_enviar_reaplica_quando_a_main_andou(repos):
     assert enviar("Base atualizada", copia)
     assert _git("show", "main:README.md", cwd=origem) == "mudou na main"
     assert _git("show", "main:dados/x.json", cwd=origem) == '{"novo": 2}'
+
+
+def test_coleta_tenta_de_novo_e_desiste_na_ultima():
+    chamadas, pausas = [], []
+
+    def coletar():
+        chamadas.append(1)
+        if len(chamadas) < 3:
+            raise RuntimeError("A listagem de eventos não carregou (anti-bot?)")
+        return "ok"
+
+    assert coletar_com_tentativas(coletar, tentativas=3, pausa=300, dormir=pausas.append) == "ok"
+    assert (len(chamadas), pausas) == (3, [300, 300])
+
+    def sempre_falha():
+        raise RuntimeError("anti-bot")
+
+    with pytest.raises(RuntimeError, match="anti-bot"):
+        coletar_com_tentativas(sempre_falha, tentativas=2, pausa=1, dormir=pausas.append)
+
+
+def test_ja_rodou_hoje(tmp_path):
+    arquivo = tmp_path / "ok.txt"
+    assert not ja_rodou_hoje(date(2026, 11, 12), arquivo)
+    arquivo.write_text("2026-11-11", encoding="utf-8")
+    assert not ja_rodou_hoje(date(2026, 11, 12), arquivo)
+    arquivo.write_text("2026-11-12\n", encoding="utf-8")
+    assert ja_rodou_hoje(date(2026, 11, 12), arquivo)
