@@ -150,7 +150,7 @@ Definido em `src/visualizacao.py`:
   (Jon Jones usa o headshot de 2024-11; o de 2025-10 corta a cabeça).
 
 ## Testes
-`python -m pytest` na raiz (87 testes, ~6 s, sem rede e sem data/). `tests/conftest.py`
+`python -m pytest` na raiz (89 testes, ~6 s, sem rede e sem data/). `tests/conftest.py`
 tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos CSVs
 limpos; `test_atualizar_historico.py` roda `atualizar(historico=True)` com um navegador falso; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
 e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
@@ -229,7 +229,8 @@ coluna existir, todas com rounds de 5 min) vale 5 min por round.
 
 ## Publicação automática (desde 2026-11-10)
 `src/publicar.py` + `scripts/agendar_publicacao.ps1`: tarefa "UFC Data - publicar" no Agendador de Tarefas do PC,
-todo dia às 12:00 (StartWhenAvailable: se o PC estava desligado, roda ao ligar), com o pythonw do venv da pasta
+todo dia às 12:00 e às 20:00 (repescagem: se uma execução do dia já terminou sem erro, grava a data em
+`data/publicacao_ultima_ok.txt` e a seguinte sai sem fazer nada; StartWhenAvailable: se o PC estava desligado, roda ao ligar), com o pythonw do venv da pasta
 principal (só com o usuário logado: o Chrome abre uma janela, ver scraping). Roda numa CÓPIA SÓ DELA: git worktree `..\ufc-data-publicacao` (branch local `publicacao`, push em
 `HEAD:main`), com `data\` como junção para o `data\` da pasta principal (base única). A cada execução faz
 `reset --hard origin/main` na cópia (recusa rodar na pasta principal: compara --git-dir com --git-common-dir), então
@@ -243,7 +244,9 @@ Antes do push: fotos dos estreantes (`coletar_fotos(limite=40)`, falha não bloq
 notebooks (falha volta figures/ e notebooks/), `conferir` (eventos = antes + novos; lutas novas entre 1 e 20 por
 evento; nenhum lado sem estatística nos eventos novos) e pytest. Commit só de `PUBLICAVEIS` (dados, powerbi/dados,
 figures, notebooks 02/03), mensagem "Base atualizada: <evento> (<data>)"; se a main andou, `pull --rebase` e push de
-novo. Falha = nada publicado + `data/publicacao.log` + código 1. Textos fixos (README, legendas do graficos.html,
+novo. A coleta tenta 3 vezes (`coletar_com_tentativas`, Chrome novo a cada uma, 5 min entre elas): em 2026-11-11 ao
+meio-dia a verificação do ufcstats não passou em 150 s. Falha = nada publicado + `data/publicacao.log` + código 1 +
+notificação do Windows (`avisar_falha`, toast via PowerShell com o AppID do powershell.exe). Textos fixos (README, legendas do graficos.html,
 img/og.png) continuam manuais. Mudança de código feita na nuvem chega à rotina sozinha (ela usa a origin/main).
 
 ## Atualização da base
