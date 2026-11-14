@@ -134,6 +134,17 @@
   .no-papel p { margin: 4px 0; }
   .no-papel .lado-a { color: var(--azul); }
   .no-papel .lado-b { color: var(--vermelho); }
+  /* Previsão: placar com a chance de cada um e uma barra dividida nas cores dos lados */
+  .placar-previsao { display: grid; grid-template-columns: minmax(0, 1fr) 2fr minmax(0, 1fr); gap: 12px; align-items: center; margin: 6px 0 10px; }
+  .placar-previsao .lado { display: flex; flex-direction: column; min-width: 0; }
+  .placar-previsao .lado-b { text-align: right; }
+  .placar-previsao .nome { font-size: 0.82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .placar-previsao strong { font-size: 1.6rem; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .barra-previsao { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: var(--vermelho); }
+  .barra-previsao .parte-a { background: var(--azul); border-right: 2px solid var(--card-bg); }
+  .fatores-previsao { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 18px; }
+  .fatores-previsao .rotulo { color: var(--muted); }
+  .aviso-previsao { color: var(--amarelo); font-size: 0.82rem; }
   .no-papel .rodape { color: var(--muted); font-size: 0.8rem; margin-top: 8px; }
 
   .paineis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
@@ -257,6 +268,7 @@
       <div class="cartao a" id="cartao-a"></div>
       <div class="cartao b" id="cartao-b"></div>
     </div>
+    <div class="no-papel previsao" id="previsao" hidden></div>
     <div class="no-papel" id="no-papel" hidden></div>
     <div class="paineis" id="paineis"></div>
     <p class="nota">Amostras pequenas (poucas lutas no período) oscilam muito: confira o número de lutas no cartão de cada um.</p>
@@ -389,6 +401,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <!-- ?v=N: aumente a cada mudança no JS, para o navegador não usar a versão antiga em cache -->
 <script src="js/site.js?v=8"></script>
-<script src="js/interativo.js?v=28"></script>
+<script src="js/interativo.js?v=29"></script>
 </body>
 </html>

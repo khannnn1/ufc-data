@@ -35,6 +35,7 @@ ProjetoUFC/
 │   ├── exportar.py       # gera dados/lutadores.json para o site interativo
 │   ├── analises.py       # números das análises da página inicial (chamado pelo exportar)
 │   ├── rating.py         # nota 0–10 de cada lutador em cada luta (estilo + regressão + Elo)
+│   ├── previsao.py       # chance de vencer (Elo + idade + envergadura), testada em 2020+ -> dados/previsao.json
 │   ├── banco.py          # monta data/ufc.db (SQLite) a partir dos CSVs limpos
 │   ├── consultas.py      # lê e executa as consultas de sql/consultas.sql
 │   ├── powerbi.py        # modelo estrela em CSV para o Power BI (powerbi/dados/)
@@ -43,7 +44,8 @@ ProjetoUFC/
 ├── dados/
 │   ├── lutadores*.json  # totais por lutador, um por período (VERSIONADO: o site lê daqui)
 │   ├── lutas.json      # histórico de todas as lutas, para perfil e eventos (VERSIONADO)
-│   └── analises.json   # análises da página inicial, um bloco por período (VERSIONADO)
+│   ├── analises.json   # análises da página inicial, um bloco por período (VERSIONADO)
+│   └── previsao.json   # pesos da previsão, Elo de hoje de cada lutador e acerto testado (VERSIONADO)
 ├── css/
 │   └── site.css        # estilo comum (cores, barra do topo, avatar, tabelas, cartões)
 ├── js/
@@ -150,7 +152,7 @@ Definido em `src/visualizacao.py`:
   (Jon Jones usa o headshot de 2024-11; o de 2025-10 corta a cabeça).
 
 ## Testes
-`python -m pytest` na raiz (88 testes, ~6 s, sem rede e sem data/). `tests/conftest.py`
+`python -m pytest` na raiz (94 testes, ~6 s, sem rede e sem data/). `tests/conftest.py`
 tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos CSVs
 limpos; `test_atualizar_historico.py` roda `atualizar(historico=True)` com um navegador falso; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
 e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
@@ -497,6 +499,19 @@ recorta as estatísticas (isso é o período do topo). No celular o subtítulo q
 Página inicial: bloco `notas` em analises.json (`notas_do_periodo` em src/analises.py: média, por estilo
 [estilo, atuações, lutadores, nota média, % vitórias] e as 5 melhores atuações), cartões "Melhores atuações" e
 "Nota média por estilo" e atalho do ranking de nota.
+
+## Previsão de luta (desde 2026-11-14)
+`src/previsao.py`: chance de a vencer b = logística sem intercepto (`regressao_logistica` de rating.py) das diferenças
+a − b: Elo/100 (o mesmo do rating, `percorrer_elo` reproduz `calcular_elo`), idade em anos na data da luta e
+envergadura em cm (ausente = 0). `confrontos_do_resumo(df, datas_eventos, lutadores)` = uma linha por luta em ordem
+cronológica; `montar_previsao(confrontos)` treina até `CORTE` (2020-01-01) e testa depois (acerto, log-loss, Brier,
+calibração por faixa da chance do favorito, `FAIXAS_CALIBRACAO`, e o Elo sozinho como base), e aprende os pesos do
+site com todas as lutas. `exportar_lutadores` grava `dados/previsao.json` ({pesos, corte, teste, elo: {nome:
+[Elo hoje, lutas, data da última]}}). 1ª versão (2026-11-14, gerada na nuvem a partir de lutas.json + lutadores.json):
+teste em 3.465 lutas, favorito venceu 61,8% (só Elo 57,6%), log-loss 0,654; calibrado (faixa 75%+ venceu 79,5%).
+Pesos: Elo 0,468 por 100 pontos, idade −0,067 por ano, envergadura 0,009 por cm. Site: caixa `#previsao` no
+comparador (`chanceDeVencer`/`desenharPrevisao` em interativo.js, mesma conta do Python), idade e envergadura de
+lutadores*.json; avisos para < 3 lutas e parado há 2+ anos; explicação em sobre.html#previsao.
 
 ## Próximos passos / direção atual
 Ordem combinada (2026-11-08) para o site profissional: 1 estrutura comum + 2 perfil (feitos, PR #4);
