@@ -122,6 +122,7 @@ let lutadores = [];
 let dadosLutas = null; // dados/lutas.json: notas de cada luta e estilo de cada lutador
 let atuacoes = []; // notas das lutas do período, da maior para a menor (Melhores atuações)
 let atuacoesPiores = []; // as mesmas, da menor para a maior (Piores atuações)
+let zebrasDoPeriodo = []; // vitórias de quem tinha chance < 50% na véspera (dados/previsao.json), da mais improvável
 let vitoriasNaNota = []; // lutas com vencedor e as duas notas, da menor diferença (vencedor − perdedor) para a maior
 // Listas da seção #atuacoes (seletor "Lista", na URL como `lista` quando não é a padrão)
 const LISTAS_ATUACOES = {
@@ -136,6 +137,10 @@ const LISTAS_ATUACOES = {
   apertadas: {
     rotulo: "Vitórias com menor diferença de nota",
     intro: "Lutas em que a nota de quem venceu ficou mais perto da de quem perdeu. Diferença negativa: o perdedor teve nota maior (desclassificação, decisão dividida, virada no fim). Clique nas notas para ver o detalhamento.",
+  },
+  zebras: {
+    rotulo: "Zebras",
+    intro: "Vitórias mais improváveis: a chance de quem venceu, calculada pela previsão do comparador com o Elo, a idade e a envergadura do dia da luta. Clique no evento para ver o card completo.",
   },
 };
 const LISTA_PADRAO = "melhores";
@@ -1123,6 +1128,7 @@ function anexarNotas(dados) {
   // Piores: menor nota; empate pela menor parte de desempenho, depois a luta mais recente
   atuacoesPiores = [...atuacoes].sort((x, y) => x.nota - y.nota || x.partes[1] - y.partes[1] || y.data.localeCompare(x.data));
   vitoriasNaNota = vitoriasComNota(dadosLutas, inicio);
+  zebrasDoPeriodo = zebrasComLuta(dadosLutas, previsao, inicio);
   for (const l of lutadores) {
     const s = soma.get(l.nome);
     l.nn = s ? s.n : 0;
@@ -1150,6 +1156,26 @@ function vitoriasComNota(dados, inicio = "") {
   return lista.sort((x, y) => x.dif - y.dif || x.difDesempenho - y.difDesempenho || y.data.localeCompare(x.data));
 }
 
+// Zebras de dados/previsao.json ([data, vencedor, perdedor, chance, Elo do vencedor, Elo do perdedor]) com os dados
+// da luta em lutas.json (vencedor é o 1º lado), achada pela data e pelos dois nomes
+function zebrasComLuta(dados, prev, inicio = "") {
+  if (!prev?.zebras) return [];
+  const lutas = new Map();
+  for (const luta of dados.lutas) {
+    const [nomeEvento, data, idEvento] = dados.eventos[luta[0]];
+    if (data >= inicio) lutas.set(`${data}|${luta[8][0]}|${luta[9][0]}`, { luta, nomeEvento, data, idEvento });
+  }
+  const lista = [];
+  for (const [data, venc, perd, chance, eloV, eloP] of prev.zebras) {
+    const achada = lutas.get(`${data}|${venc}|${perd}`);
+    if (!achada) continue;
+    const { luta, nomeEvento, idEvento } = achada;
+    lista.push({ venc, perd, chance, eloV, eloP, notaV: luta[8][8], partesV: luta[8][9], notaP: luta[9][8], partesP: luta[9][9],
+      evento: nomeEvento, idEvento, data, cat: luta[1], metodo: luta[2], round: luta[3], tempo: luta[4] });
+  }
+  return lista; // já vem da menor chance para a maior
+}
+
 const textoResultado = (a) => [a.round ? `${a.round}º round` : "", a.tempo, a.cat ? CATEGORIAS[a.cat] || a.cat : ""].filter(Boolean).join(" · ");
 const fmtDif = (d) => `${d > 0 ? "+" : d < 0 ? "−" : ""}${fmtNota(Math.abs(d))}`;
 
@@ -1158,17 +1184,22 @@ function desenharAtuacoes() {
   const config = LISTAS_ATUACOES[qual];
   document.getElementById("titulo-atuacoes").textContent = config.rotulo;
   document.getElementById("intro-atuacoes").textContent = config.intro;
-  document.getElementById("rotulo-estilo-atuacoes").textContent = qual === "apertadas" ? "Estilo do vencedor" : "Estilo";
+  const confronto = qual === "apertadas" || qual === "zebras"; // listas de lutas (vencedor × perdedor), não de atuações
+  document.getElementById("rotulo-estilo-atuacoes").textContent = confronto ? "Estilo do vencedor" : "Estilo";
   const categoria = document.getElementById("categoria-atuacoes").value;
   const estilo = document.getElementById("estilo-atuacoes").value;
   const metodo = document.getElementById("metodo-atuacoes").value;
   const estilos = dadosLutas?.estilos || {};
   const filtro = (a, nome) => (!categoria || a.cat === categoria) && (!estilo || estilos[nome] === estilo) && (!metodo || grupoMetodo(a.metodo) === metodo);
-  if (qual === "apertadas") desenharVitoriasNaNota(vitoriasNaNota.filter((v) => filtro(v, v.venc)).slice(0, 20), estilos);
+  if (confronto) desenharConfrontos(qual, (qual === "zebras" ? zebrasDoPeriodo : vitoriasNaNota).filter((v) => filtro(v, v.venc)).slice(0, 20), estilos);
   else desenharListaAtuacoes(qual, (qual === "piores" ? atuacoesPiores : atuacoes).filter((a) => filtro(a, a.nome)).slice(0, 20), estilos);
   const nota = document.getElementById("nota-atuacoes");
   if (!dadosLutas) nota.textContent = "";
-  else if (qual === "apertadas") {
+  else if (qual === "zebras") {
+    nota.textContent = previsao?.zebras
+      ? `${fmt0.format(zebrasDoPeriodo.length)} vitórias de quem tinha menos de 50% de chance no período. A chance usa os pesos aprendidos com todas as lutas e só o que se sabia na véspera (Elo, idade, envergadura).`
+      : "Não foi possível carregar a previsão.";
+  } else if (qual === "apertadas") {
     const negativas = vitoriasNaNota.filter((v) => v.dif < 0).length;
     nota.textContent = `${fmt0.format(vitoriasNaNota.length)} vitórias com nota dos dois lados no período, ${fmt0.format(negativas)} com o perdedor à frente na nota. Empates: menor diferença na parte de desempenho, depois a luta mais recente.`;
   } else {
@@ -1208,17 +1239,22 @@ function desenharListaAtuacoes(qual, lista, estilos) {
   tabela.appendChild(corpo);
 }
 
-function desenharVitoriasNaNota(lista, estilos) {
+// Listas de lutas (vencedor × perdedor): "apertadas" (notas e diferença) e "zebras" (chance do vencedor e Elo)
+function desenharConfrontos(qual, lista, estilos) {
+  const zebra = qual === "zebras";
   const tabela = document.getElementById("tabela-atuacoes");
   tabela.classList.add("apertadas");
-  tabela.innerHTML = `<caption class="visualmente-oculto">${LISTAS_ATUACOES.apertadas.rotulo} no período</caption>
-    <thead><tr><th class="num">#</th><th>Vencedor × perdedor</th><th>Notas</th><th class="num">Diferença</th><th class="col-metodo">Resultado</th></tr></thead>`;
+  tabela.innerHTML = `<caption class="visualmente-oculto">${LISTAS_ATUACOES[qual].rotulo} no período</caption>
+    <thead><tr><th class="num">#</th><th>Vencedor × perdedor</th>${zebra
+      ? '<th class="num">Chance</th><th class="num col-elo">Elo</th>'
+      : '<th>Notas</th><th class="num">Diferença</th>'}<th class="col-metodo">Resultado</th></tr></thead>`;
   const corpo = document.createElement("tbody");
   lista.forEach((v, i) => {
     const linha = document.createElement("tr");
     const l = lutadores.find((x) => x.nome === v.venc) || { nome: v.venc };
-    linha.innerHTML = `<td class="num posicao">${i + 1}</td><td><div class="lutador-linha"></div></td><td class="celula-notas"></td>
-      <td class="num diferenca"></td><td class="col-metodo"><div></div><div class="sub-lutador"></div></td>`;
+    linha.innerHTML = `<td class="num posicao">${i + 1}</td><td><div class="lutador-linha"></div></td>${zebra
+      ? '<td class="num diferenca chance"></td><td class="num col-elo"></td>'
+      : '<td class="celula-notas"></td><td class="num diferenca"></td>'}<td class="col-metodo"><div></div><div class="sub-lutador"></div></td>`;
     const id = document.createElement("div");
     id.className = "identificacao";
     const nomes = document.createElement("span");
@@ -1235,18 +1271,23 @@ function desenharVitoriasNaNota(lista, estilos) {
     sub.append(evento, ` · ${fmtData(v.data)}`);
     id.append(nomes, sub);
     linha.querySelector(".lutador-linha").append(avatar(l), id);
-    linha.querySelector(".celula-notas").append(
-      seloNota(v.notaV, v.partesV, { nome: v.venc, estilo: estilos[v.venc] }),
-      seloNota(v.notaP, v.partesP, { nome: v.perd, estilo: estilos[v.perd] }));
-    const dif = linha.querySelector(".diferenca");
-    dif.textContent = fmtDif(v.dif);
-    if (v.dif < 0) dif.classList.add("negativa");
+    if (zebra) {
+      linha.querySelector(".chance").textContent = `${fmt0.format(Math.round(v.chance * 100))}%`;
+      linha.querySelector(".col-elo").textContent = `${fmt0.format(v.eloV)} × ${fmt0.format(v.eloP)}`;
+    } else {
+      linha.querySelector(".celula-notas").append(
+        seloNota(v.notaV, v.partesV, { nome: v.venc, estilo: estilos[v.venc] }),
+        seloNota(v.notaP, v.partesP, { nome: v.perd, estilo: estilos[v.perd] }));
+      const dif = linha.querySelector(".diferenca");
+      dif.textContent = fmtDif(v.dif);
+      if (v.dif < 0) dif.classList.add("negativa");
+    }
     const met = linha.querySelector(".col-metodo");
     met.firstElementChild.textContent = METODOS[v.metodo] || v.metodo;
     met.lastElementChild.textContent = textoResultado(v);
     corpo.appendChild(linha);
   });
-  if (!lista.length) corpo.innerHTML = `<tr><td colspan="5" class="vazio">${dadosLutas ? "Nenhuma luta com esses filtros." : "Não foi possível carregar as notas."}</td></tr>`;
+  if (!lista.length) corpo.innerHTML = `<tr><td colspan="5" class="vazio">${dadosLutas ? "Nenhuma luta com esses filtros." : "Não foi possível carregar os dados."}</td></tr>`;
   tabela.appendChild(corpo);
 }
 

@@ -60,3 +60,13 @@ def test_montar_previsao_separa_treino_e_teste(resumo, datas_eventos, lutadores)
     assert set(r["pesos"]) == {"elo", "idade", "env"}
     assert r["elo"]["A"][1:] == [2, "2024-03-01"]
     assert "teste" not in montar_previsao(c, corte="2000-01-01")  # sem lutas de treino, sem teste
+
+
+def test_zebras_so_vencedores_com_chance_baixa():
+    from src.previsao import zebras
+    d = pd.DataFrame({"data": ["2020-01-01", "2020-02-01", "2020-03-01"], "a": ["X", "Y", "Z"], "b": ["P", "Q", "R"],
+                      "resultado_a": ["W", "L", "W"], "elo_a": [1400, 1700, 1600], "elo_b": [1600, 1500, 1500]})
+    z = zebras(d, np.array([0.3, 0.8, 0.7]))
+    # X venceu com 30%; Q venceu Y com 20%; Z era favorito e venceu: não é zebra
+    assert [r[1] for r in z] == ["Q", "X"]
+    assert z[0][:4] == ["2020-02-01", "Q", "Y", 0.2] and z[0][4:] == [1500, 1700]
