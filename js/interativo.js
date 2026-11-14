@@ -140,6 +140,7 @@ const LISTAS_ATUACOES = {
 };
 const LISTA_PADRAO = "melhores";
 let porNome = new Map();
+let previsao = null; // dados/previsao.json (src/previsao.py): pesos do modelo, Elo de hoje e acerto testado
 let vantagens = null; // % histórico de vitórias de quem é mais novo / tem mais envergadura, por faixa (JSON)
 const graficos = { paineis: [], ranking: null, dispersao: null, rounds: null };
 
@@ -300,6 +301,105 @@ function desenharNoPapel(a, b) {
   caixa.appendChild(nota);
 }
 
+// ---------- Previsão (src/previsao.py) ----------
+// Chance de a vencer = logística das diferenças a − b: Elo/100, idade em anos, envergadura em cm (ausente = 0).
+// Mesma conta de `chance`/`matriz` em src/previsao.py; os pesos vêm de dados/previsao.json.
+const ANO_MS = 365.25 * 24 * 3600 * 1000;
+function chanceDeVencer(a, b) {
+  if (!previsao?.pesos) return null;
+  const [ea, eb] = [previsao.elo[a.nome], previsao.elo[b.nome]];
+  const eloA = ea ? ea[0] : 1500;
+  const eloB = eb ? eb[0] : 1500;
+  const difIdade = a.nasc && b.nasc ? (new Date(b.nasc) - new Date(a.nasc)) / ANO_MS : 0; // idade de a − idade de b
+  const difEnv = a.env && b.env ? a.env - b.env : 0;
+  const { elo, idade, env } = previsao.pesos;
+  const z = elo * (eloA - eloB) / 100 + idade * difIdade + env * difEnv;
+  return { p: 1 / (1 + Math.exp(-z)), eloA, eloB, difIdade, difEnv, ea, eb };
+}
+
+// "entre 60% e 65%" ou, na última faixa, "em 75% ou mais"
+function textoFaixaChance(inicio, calibracao) {
+  const proxima = calibracao.find((f) => f[0] > inicio);
+  const pct = (x) => `${Math.round(x * 100)}%`;
+  return proxima ? `entre ${pct(inicio)} e ${pct(proxima[0])}` : `em ${pct(inicio)} ou mais`;
+}
+
+function desenharPrevisao(a, b) {
+  const caixa = document.getElementById("previsao");
+  caixa.innerHTML = "";
+  const r = a && b && a !== b ? chanceDeVencer(a, b) : null;
+  caixa.hidden = !r;
+  if (!r) return;
+  const pct = (x) => `${fmt0.format(Math.round(x * 100))}%`;
+  const el = (tag, classe, texto) => {
+    const e = document.createElement(tag);
+    if (classe) e.className = classe;
+    if (texto != null) e.textContent = texto; // nomes via textContent: nunca como HTML
+    return e;
+  };
+  caixa.appendChild(el("h3", "", "Previsão"));
+
+  const placar = el("div", "placar-previsao");
+  const ladoA = el("div", "lado lado-a");
+  ladoA.append(el("span", "nome", a.nome), el("strong", "", pct(r.p)));
+  const ladoB = el("div", "lado lado-b");
+  ladoB.append(el("span", "nome", b.nome), el("strong", "", pct(1 - r.p)));
+  const barra = el("div", "barra-previsao");
+  const parteA = el("span", "parte-a");
+  parteA.style.width = `${r.p * 100}%`;
+  barra.append(parteA, el("span", "parte-b"));
+  barra.setAttribute("role", "img");
+  barra.setAttribute("aria-label", `${a.nome} ${pct(r.p)}, ${b.nome} ${pct(1 - r.p)}`);
+  placar.append(ladoA, barra, ladoB);
+  caixa.appendChild(placar);
+
+  // O que entra na conta, com quem leva vantagem em cada item
+  const itens = el("ul", "fatores-previsao");
+  const item = (rotulo, texto, quem) => {
+    const li = el("li");
+    li.append(el("span", "rotulo", rotulo), " ");
+    if (quem) li.append(el("strong", quem === a ? "lado-a" : "lado-b", quem.nome));
+    li.append(texto);
+    itens.appendChild(li);
+  };
+  const difElo = Math.round(r.eloA - r.eloB);
+  if (Math.abs(difElo) < 5) item("Elo", `iguais (${fmt0.format(Math.round(r.eloA))} e ${fmt0.format(Math.round(r.eloB))})`);
+  else item("Elo", ` ${fmt0.format(Math.round(Math.max(r.eloA, r.eloB)))} contra ${fmt0.format(Math.round(Math.min(r.eloA, r.eloB)))}`, difElo > 0 ? a : b);
+  if (!a.nasc || !b.nasc) item("Idade", "sem data de nascimento de um dos dois: não entra na conta");
+  else if (Math.abs(r.difIdade) < 0.5) item("Idade", "praticamente a mesma");
+  else {
+    const anos = Math.round(Math.abs(r.difIdade));
+    item("Idade", ` tem ${anos} ${anos === 1 ? "ano" : "anos"} a menos`, r.difIdade < 0 ? a : b);
+  }
+  if (!a.env || !b.env) item("Envergadura", "sem a medida de um dos dois: não entra na conta");
+  else if (r.difEnv === 0) item("Envergadura", "a mesma");
+  else item("Envergadura", ` tem ${Math.abs(r.difEnv)} cm a mais`, r.difEnv > 0 ? a : b);
+  caixa.appendChild(itens);
+
+  // Avisos: Elo de quem tem poucas lutas diz pouco; Elo parado desde a última luta
+  const avisos = [];
+  for (const [l, e] of [[a, r.ea], [b, r.eb]]) {
+    if (!e || e[1] < 3) avisos.push(`${l.nome} tem ${e ? e[1] : 0} ${e && e[1] === 1 ? "luta" : "lutas"} no UFC: o Elo ainda diz pouco.`);
+    else if (e[2] && (Date.now() - new Date(e[2])) / ANO_MS > 2) avisos.push(`${l.nome} não luta desde ${e[2].slice(0, 4)}: o Elo é o da última luta.`);
+  }
+  for (const aviso of avisos) caixa.appendChild(el("p", "aviso-previsao", aviso));
+
+  const t = previsao.teste;
+  const rodape = el("p", "rodape");
+  if (t) {
+    const fav = Math.max(r.p, 1 - r.p);
+    const faixa = [...t.calibracao].reverse().find((f) => fav >= f[0]);
+    const ano = previsao.corte.slice(0, 4);
+    rodape.textContent = `Regressão logística com Elo, idade e envergadura. Testada em ${fmt0.format(t.lutas)} lutas de ${ano} em diante, aprendendo só com as anteriores: o favorito venceu ${pct(t.acerto)} (só com o Elo, ${pct(t.so_elo.acerto)}).`
+      + (faixa && fav > 0.5 ? ` Quando a chance do favorito ficou ${textoFaixaChance(faixa[0], t.calibracao)}, ele venceu ${pct(faixa[2])} das ${fmt0.format(faixa[3])} lutas.` : "")
+      + " Não considera lesão, preparação, troca de categoria nem estilo. ";
+  }
+  const link = el("a", "", "Como funciona");
+  link.href = "sobre.html#previsao";
+  rodape.appendChild(link);
+  caixa.appendChild(rodape);
+}
+
 function desenharComparador() {
   const nomeA = document.getElementById("lutador-a").value.trim();
   const nomeB = document.getElementById("lutador-b").value.trim();
@@ -312,6 +412,7 @@ function desenharComparador() {
 
   preencherCartao(document.getElementById("cartao-a"), a);
   preencherCartao(document.getElementById("cartao-b"), b);
+  desenharPrevisao(a, b);
   desenharNoPapel(a, b);
 
   graficos.paineis.forEach((g) => g.destroy());
@@ -1164,8 +1265,11 @@ async function trocarPeriodo() {
 
 async function iniciar() {
   const periodoInicial = periodoDaUrl();
-  const [dados, lutas] = await Promise.all([carregarDados(periodoInicial), carregarLutas().catch((erro) => { console.error(erro); return null; })]);
+  const [dados, lutas, prev] = await Promise.all([carregarDados(periodoInicial),
+    carregarLutas().catch((erro) => { console.error(erro); return null; }),
+    fetch("dados/previsao.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).catch((erro) => { console.error(erro); return null; })]);
   dadosLutas = lutas;
+  previsao = prev;
   if (!dados) return;
   aplicarDados(dados);
 

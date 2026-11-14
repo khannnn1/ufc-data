@@ -93,6 +93,16 @@
   <p id="ranqueados"><strong>Top 15 pelo Elo:</strong> o mesmo Elo define um ranking por categoria na véspera de cada luta: os 15 de maior Elo entre quem lutou na categoria nos últimos 2 anos e tem pelo menos 3 lutas no UFC (peso casado não muda a categoria). Ele aparece como "#4" no card do evento, como "melhor #N" (a melhor posição da carreira; quem venceu disputa de cinturão, inclusive interino, aparece como "campeão") ao lado do nome nos rankings, no comparador e no perfil, e no filtro "Ranqueado" dos rankings (quem esteve no top 15 em pelo menos 3 lutas do período; o mínimo de lutas continua valendo para a média). Não é o ranking oficial do UFC, que só existe desde 2013 e não tem histórico público, mas vale para toda a base.</p>
   <p>Na base toda, o vencedor tem nota média 7,6 e o perdedor 5,8, e notas a partir de 9 aparecem em menos de 1% das atuações. Clicando na nota, o site mostra quanto veio de cada parte. Lutas antigas sem estatísticas ficam sem nota.</p>
 
+  <h2 id="previsao">Como a previsão de luta funciona</h2>
+  <p>No comparador, a previsão dá a chance de cada lutador vencer o outro numa luta hoje. Ela usa três diferenças entre os dois, todas conhecidas antes da luta:</p>
+  <ul>
+    <li><strong>Elo:</strong> o mesmo da nota e do top 15, calculado luta a luta desde 1994. É o que mais pesa.</li>
+    <li><strong>Idade:</strong> quem é mais novo vence mais, e a diferença cresce com a distância de idade.</li>
+    <li><strong>Envergadura:</strong> pesa pouco, mas ajuda. Quando falta a idade ou a envergadura de alguém, esse item fica fora da conta.</li>
+  </ul>
+  <p>O peso de cada item sai de uma regressão logística. Para medir o acerto sem trapaça, o modelo foi treinado só com as lutas até 2019 e testado nas lutas de 2020 em diante, que ele não tinha visto. O acerto e a conferência das faixas ("quando o modelo dá 70%, o favorito vence mais ou menos 70% das vezes?") aparecem embaixo de cada previsão. Para as previsões do site, os pesos são aprendidos com todas as lutas.</p>
+  <p>O modelo não sabe de lesões, preparação, troca de categoria, estilo ou motivação. O Elo de quem tem poucas lutas no UFC ainda diz pouco, e o de quem está parado é o da última luta. A previsão serve como ponto de partida, não como palpite certo.</p>
+
   <h2>O que os números não dizem</h2>
   <ul>
     <li><strong>Associação não é causa.</strong> Vencedores acertam mais knockdowns, mas o knockdown muitas vezes já é o começo do fim da luta.</li>
