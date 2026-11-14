@@ -25,6 +25,7 @@ VARIAVEIS = ["elo", "idade", "env"]  # ordem das colunas de X e dos pesos no JSO
 # Faixas da chance dada ao favorito, para conferir se "70%" acontece mesmo ~70% das vezes
 FAIXAS_CALIBRACAO = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75]
 L2 = 1.0
+ZEBRA = 0.5  # vencedor com chance abaixo disso na véspera = zebra
 
 
 def confrontos_do_resumo(df, datas_eventos, lutadores):
@@ -112,13 +113,30 @@ def avaliar(p, y):
             "brier": round(float(np.mean((p - y) ** 2)), 4), "calibracao": calibracao}
 
 
+def zebras(decididas, p, limite=ZEBRA):
+    """Vitórias de quem tinha chance < `limite` (p = chance de a, em `decididas`, só lutas W/L)."""
+    lista = []
+    for luta, chance_a in zip(decididas.itertuples(index=False), p):
+        venceu_a = luta.resultado_a == "W"
+        chance_v = chance_a if venceu_a else 1 - chance_a
+        if chance_v >= limite:
+            continue
+        v, d = (luta.a, luta.b) if venceu_a else (luta.b, luta.a)
+        elo_v, elo_d = (luta.elo_a, luta.elo_b) if venceu_a else (luta.elo_b, luta.elo_a)
+        lista.append([luta.data, v, d, round(float(chance_v), 3), round(elo_v), round(elo_d)])
+    return sorted(lista, key=lambda z: (z[3], z[0]))
+
+
 def montar_previsao(confrontos, corte=CORTE):
     """Tudo o que o site precisa para prever (dados/previsao.json).
 
     {"pesos": {elo, idade, env} (todas as lutas), "corte": data,
      "teste": {lutas, acerto, log_loss, brier, calibracao: [[faixa, chance média, acerto, lutas], ...],
                "so_elo": acerto/log_loss do Elo sozinho, "treino": lutas do treino},
-     "elo": {nome: [Elo hoje, lutas, data da última luta]}}
+     "elo": {nome: [Elo hoje, lutas, data da última luta]},
+     "zebras": [[data, vencedor, perdedor, chance do vencedor, Elo do vencedor, Elo do perdedor], ...]}
+    Zebras: lutas em que o vencedor tinha chance abaixo de `ZEBRA` na véspera, com os pesos de todas as
+    lutas e o Elo, a idade e a envergadura daquele dia; da mais improvável para a menos.
     """
     confrontos, final = percorrer_elo(confrontos)
     decididas = confrontos[confrontos["resultado_a"].isin(["W", "L"])].reset_index(drop=True)
@@ -136,5 +154,6 @@ def montar_previsao(confrontos, corte=CORTE):
                               "so_elo": {"acerto": base["acerto"], "log_loss": base["log_loss"]}}
     pesos = regressao_logistica(X, y, l2=L2) if len(y) else np.zeros(len(VARIAVEIS))
     resultado["pesos"] = {nome: round(float(v), 5) for nome, v in zip(VARIAVEIS, pesos)}
+    resultado["zebras"] = zebras(decididas, chance(X, pesos))
     resultado["elo"] = {nome: [round(e), n, ultima] for nome, (e, n, ultima) in sorted(final.items())}
     return resultado

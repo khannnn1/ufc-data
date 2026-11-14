@@ -152,7 +152,7 @@ Definido em `src/visualizacao.py`:
   (Jon Jones usa o headshot de 2024-11; o de 2025-10 corta a cabeça).
 
 ## Testes
-`python -m pytest` na raiz (94 testes, ~6 s, sem rede e sem data/). `tests/conftest.py`
+`python -m pytest` na raiz (95 testes, ~6 s, sem rede e sem data/). `tests/conftest.py`
 tem um mini-dataset sintético (3 lutas, 2 eventos, 4 lutadores) no formato dos CSVs
 limpos; `test_atualizar_historico.py` roda `atualizar(historico=True)` com um navegador falso; `test_banco_sql.py` monta o SQLite em memória com o `schema.sql` real (FK ligada)
 e roda TODAS as consultas nomeadas, então consulta nova já é testada contra o schema.
@@ -512,6 +512,10 @@ teste em 3.465 lutas, favorito venceu 61,8% (só Elo 57,6%), log-loss 0,654; cal
 Pesos: Elo 0,468 por 100 pontos, idade −0,067 por ano, envergadura 0,009 por cm. Site: caixa `#previsao` no
 comparador (`chanceDeVencer`/`desenharPrevisao` em interativo.js, mesma conta do Python), idade e envergadura de
 lutadores*.json; avisos para < 3 lutas e parado há 2+ anos; explicação em sobre.html#previsao.
+Zebras (2026-11-14): `zebras` em previsao.json = [[data, vencedor, perdedor, chance do vencedor, Elo v, Elo p]] das
+vitórias com chance < `ZEBRA` (0,5) na véspera, com os pesos de todas as lutas (3.457; menor: Modafferi × Barber,
+10%). No site é a lista "Zebras" da seção #atuacoes (URL `lista=zebras`; `zebrasComLuta` junta com lutas.json pela
+data + nomes; filtros de período/categoria/estilo do vencedor/método).
 
 ## Próximos passos / direção atual
 Ordem combinada (2026-11-08) para o site profissional: 1 estrutura comum + 2 perfil (feitos, PR #4);
