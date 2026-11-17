@@ -516,6 +516,9 @@ Zebras (2026-11-14): `zebras` em previsao.json = [[data, vencedor, perdedor, cha
 vitórias com chance < `ZEBRA` (0,5) na véspera, com os pesos de todas as lutas (3.457; menor: Modafferi × Barber,
 10%). No site é a lista "Zebras" da seção #atuacoes (URL `lista=zebras`; `zebrasComLuta` junta com lutas.json pela
 data + nomes; filtros de período/categoria/estilo do vencedor/método).
+Filtro "ranqueado" das listas (2026-11-17, `#ranqueado-atuacoes`, URL `rqa=sim`, `RANQUEADO_ATUACOES` em interativo.js):
+top 15 pelo Elo na véspera (lado[10] de lutas.json) de quem é avaliado: melhores/piores = o lutador, apertadas = o vencedor,
+zebras = o perdedor; "#N" ao lado do nome nas 4 listas. Só no site: a posição não está no SQLite/Power BI.
 
 ## Próximos passos / direção atual
 Ordem combinada (2026-11-08) para o site profissional: 1 estrutura comum + 2 perfil (feitos, PR #4);
