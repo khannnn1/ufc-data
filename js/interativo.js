@@ -144,6 +144,23 @@ const LISTAS_ATUACOES = {
   },
 };
 const LISTA_PADRAO = "melhores";
+// Filtro "Ranqueado" das listas (#ranqueado-atuacoes, URL `rqa=sim`): quem precisa estar no top 15 pelo Elo na véspera
+// da luta em cada lista. Melhores/piores: o próprio lutador avaliado; apertadas: o vencedor; zebras: o perdedor
+// (a zebra é vencer um ranqueado).
+const RANQUEADO_ATUACOES = {
+  melhores: { rotulo: "Lutador ranqueado", pos: (a) => a.pos },
+  piores: { rotulo: "Lutador ranqueado", pos: (a) => a.pos },
+  apertadas: { rotulo: "Vencedor ranqueado", pos: (v) => v.posV },
+  zebras: { rotulo: "Perdedor ranqueado", pos: (v) => v.posP },
+};
+// "#N" ao lado do nome: posição no top 15 da categoria pelo Elo na véspera da luta (não é o ranking oficial)
+function etiquetaPosicao(pos) {
+  const etiqueta = document.createElement("span");
+  etiqueta.className = "posicao-elo";
+  etiqueta.textContent = ` #${pos}`;
+  etiqueta.title = `${pos}º da categoria pelo Elo do site na véspera da luta (não é o ranking oficial)`;
+  return etiqueta;
+}
 let porNome = new Map();
 let previsao = null; // dados/previsao.json (src/previsao.py): pesos do modelo, Elo de hoje e acerto testado
 let vantagens = null; // % histórico de vitórias de quem é mais novo / tem mais envergadura, por faixa (JSON)
@@ -995,6 +1012,7 @@ function lerEstadoDaUrl() {
     ate: /^\d{4}$/.test(p.get("ate") || "") ? p.get("ate") : PADROES.ate,
     rq: { sim: "sim", todos: "" }[p.get("rq")] ?? PADROES.rq, // padrão = só top 15; "todos" desliga
     lista: p.get("lista") in LISTAS_ATUACOES ? p.get("lista") : LISTA_PADRAO,
+    rqa: p.get("rqa") === "sim" ? "sim" : "",
     p: periodoDaUrl(),
   };
 }
@@ -1031,6 +1049,7 @@ function atualizarUrl() {
   if (rq !== PADROES.rq) p.set("rq", rq || "todos");
   const lista = document.getElementById("lista-atuacoes").value;
   if (lista !== LISTA_PADRAO) p.set("lista", lista);
+  if (document.getElementById("ranqueado-atuacoes").value) p.set("rqa", "sim");
   // replaceState: atualiza o endereço sem criar uma entrada nova no histórico a cada mudança
   history.replaceState(null, "", `${location.pathname}?${p}${location.hash}`);
 
@@ -1111,7 +1130,7 @@ function anexarNotas(dados) {
       s.n += 1;
       soma.set(eu[0], s);
       atuacoes.push({ nome: eu[0], nota: eu[8], partes: eu[9], resultado: eu[1], adv: adv[0], evento: nomeEvento, idEvento, data,
-        cat: luta[1], metodo: luta[2], round: luta[3], tempo: luta[4] });
+        cat: luta[1], metodo: luta[2], round: luta[3], tempo: luta[4], pos: eu[10] || null });
     }
   }
   const melhor = melhoresPosicoes(dadosLutas); // carreira inteira, fora do recorte de período
@@ -1151,7 +1170,7 @@ function vitoriasComNota(dados, inicio = "") {
     if (data < inicio || venc[1] !== "W" || venc[8] == null || perd[8] == null) continue;
     lista.push({ venc: venc[0], perd: perd[0], notaV: venc[8], notaP: perd[8], partesV: venc[9], partesP: perd[9],
       dif: Math.round((venc[8] - perd[8]) * 10) / 10, difDesempenho: venc[9][1] - perd[9][1],
-      evento: nomeEvento, idEvento, data, cat: luta[1], metodo: luta[2], round: luta[3], tempo: luta[4] });
+      posV: venc[10] || null, posP: perd[10] || null, evento: nomeEvento, idEvento, data, cat: luta[1], metodo: luta[2], round: luta[3], tempo: luta[4] });
   }
   return lista.sort((x, y) => x.dif - y.dif || x.difDesempenho - y.difDesempenho || y.data.localeCompare(x.data));
 }
@@ -1171,6 +1190,7 @@ function zebrasComLuta(dados, prev, inicio = "") {
     if (!achada) continue;
     const { luta, nomeEvento, idEvento } = achada;
     lista.push({ venc, perd, chance, eloV, eloP, notaV: luta[8][8], partesV: luta[8][9], notaP: luta[9][8], partesP: luta[9][9],
+      posV: luta[8][10] || null, posP: luta[9][10] || null,
       evento: nomeEvento, idEvento, data, cat: luta[1], metodo: luta[2], round: luta[3], tempo: luta[4] });
   }
   return lista; // já vem da menor chance para a maior
@@ -1189,8 +1209,12 @@ function desenharAtuacoes() {
   const categoria = document.getElementById("categoria-atuacoes").value;
   const estilo = document.getElementById("estilo-atuacoes").value;
   const metodo = document.getElementById("metodo-atuacoes").value;
+  const soRanqueados = document.getElementById("ranqueado-atuacoes").value === "sim";
+  const ranqueado = RANQUEADO_ATUACOES[qual];
+  document.getElementById("rotulo-ranqueado-atuacoes").textContent = ranqueado.rotulo;
   const estilos = dadosLutas?.estilos || {};
-  const filtro = (a, nome) => (!categoria || a.cat === categoria) && (!estilo || estilos[nome] === estilo) && (!metodo || grupoMetodo(a.metodo) === metodo);
+  const filtro = (a, nome) => (!categoria || a.cat === categoria) && (!estilo || estilos[nome] === estilo) && (!metodo || grupoMetodo(a.metodo) === metodo)
+    && (!soRanqueados || ranqueado.pos(a));
   if (confronto) desenharConfrontos(qual, (qual === "zebras" ? zebrasDoPeriodo : vitoriasNaNota).filter((v) => filtro(v, v.venc)).slice(0, 20), estilos);
   else desenharListaAtuacoes(qual, (qual === "piores" ? atuacoesPiores : atuacoes).filter((a) => filtro(a, a.nome)).slice(0, 20), estilos);
   const nota = document.getElementById("nota-atuacoes");
@@ -1227,7 +1251,11 @@ function desenharListaAtuacoes(qual, lista, estilos) {
     evento.href = linkEventoUrl(a.idEvento);
     evento.textContent = a.evento;
     sub.append(`contra ${a.adv} · `, evento, ` · ${fmtData(a.data)}`);
-    id.append(linkNome(a.nome), sub);
+    const nome = document.createElement("span");
+    nome.className = "nome-lutador";
+    nome.append(linkNome(a.nome, ""));
+    if (a.pos) nome.append(etiquetaPosicao(a.pos));
+    id.append(nome, sub);
     linha.querySelector(".lutador-linha").append(avatar(l), id);
     linha.querySelector(".celula-nota").appendChild(seloNota(a.nota, a.partes, { nome: a.nome, estilo: estilos[a.nome] }));
     const met = linha.querySelector(".col-metodo");
@@ -1262,7 +1290,15 @@ function desenharConfrontos(qual, lista, estilos) {
     const vs = document.createElement("span");
     vs.className = "vs";
     vs.textContent = " × ";
-    nomes.append(linkNome(v.venc, ""), vs, linkNome(v.perd, "perdedor"));
+    // cada lado num span (no celular, um por linha), com o "#N" de quem era top 15 na véspera
+    const lado = (nome, classe, pos) => {
+      const span = document.createElement("span");
+      span.className = "lado";
+      span.append(linkNome(nome, classe));
+      if (pos) span.append(etiquetaPosicao(pos));
+      return span;
+    };
+    nomes.append(lado(v.venc, "", v.posV), vs, lado(v.perd, "perdedor", v.posP));
     const sub = document.createElement("span");
     sub.className = "sub-lutador";
     const evento = document.createElement("a");
@@ -1361,7 +1397,7 @@ async function iniciar() {
   preencher("categoria-atuacoes", CATEGORIAS_RANKING.map((c) => [c, CATEGORIAS[c]]));
   preencher("metodo-atuacoes", GRUPOS);
   preencher("lista-atuacoes", Object.entries(LISTAS_ATUACOES).map(([k, l]) => [k, l.rotulo]));
-  ["lista-atuacoes", "categoria-atuacoes", "estilo-atuacoes", "metodo-atuacoes"].forEach((id) => document.getElementById(id).addEventListener("change", desenharAtuacoes));
+  ["lista-atuacoes", "categoria-atuacoes", "estilo-atuacoes", "metodo-atuacoes", "ranqueado-atuacoes"].forEach((id) => document.getElementById(id).addEventListener("change", desenharAtuacoes));
   preencher("idade", Object.entries(FAIXAS_IDADE).map(([k, f]) => [k, f.rotulo]));
 
   const estado = lerEstadoDaUrl();
@@ -1374,6 +1410,7 @@ async function iniciar() {
   document.getElementById("ranqueado").value = estado.rq;
   document.getElementById("idade").value = estado.idade;
   document.getElementById("lista-atuacoes").value = estado.lista;
+  document.getElementById("ranqueado-atuacoes").value = estado.rqa;
   seletorRound.value = estado.rm;
   seletor.value = estado.m;
   document.getElementById("min-lutas").value = estado.min;

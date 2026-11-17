@@ -194,6 +194,7 @@
   table.atuacoes td.diferenca { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
   table.atuacoes td.diferenca.negativa { color: var(--vermelho); }
   table.atuacoes td.chance { color: var(--amarelo); font-size: 1.05rem; }
+  table.atuacoes .posicao-elo { color: var(--muted); font-weight: 600; font-size: 0.85em; font-variant-numeric: tabular-nums; }
   table.atuacoes .col-elo { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
   .cartao .nota-cartao { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
 
@@ -203,7 +204,7 @@
     table.atuacoes .col-metodo, table.atuacoes .col-elo { display: none; }
     /* Vitórias com menor diferença: sem foto, um nome por linha e as duas notas empilhadas */
     table.apertadas .avatar, table.apertadas .vs { display: none; }
-    table.apertadas .nome-lutador a { display: block; overflow: hidden; text-overflow: ellipsis; }
+    table.apertadas .nome-lutador .lado { display: block; overflow: hidden; text-overflow: ellipsis; }
     table.apertadas td.celula-notas .selo-nota { display: block; }
     table.apertadas td.celula-notas .selo-nota + .selo-nota { margin: 4px 0 0; }
     table.apertadas th, table.apertadas td { padding-left: 6px; padding-right: 6px; }
@@ -385,6 +386,13 @@
         <label for="metodo-atuacoes">Método</label>
         <select id="metodo-atuacoes"><option value="">Todos</option></select>
       </div>
+      <div class="campo">
+        <label for="ranqueado-atuacoes" id="rotulo-ranqueado-atuacoes">Lutador ranqueado</label>
+        <select id="ranqueado-atuacoes" title="Top 15 da categoria pelo Elo do site na véspera da luta (não é o ranking oficial)">
+          <option value="">Todos</option>
+          <option value="sim">Só top 15</option>
+        </select>
+      </div>
       <div class="compartilhar">
         <button type="button" class="copiar" data-secao="atuacoes">Copiar link</button>
         <span class="copiado" role="status"></span>
@@ -403,6 +411,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <!-- ?v=N: aumente a cada mudança no JS, para o navegador não usar a versão antiga em cache -->
 <script src="js/site.js?v=8"></script>
-<script src="js/interativo.js?v=30"></script>
+<script src="js/interativo.js?v=31"></script>
 </body>
 </html>
