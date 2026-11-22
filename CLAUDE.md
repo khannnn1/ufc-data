@@ -528,7 +528,8 @@ elite = Elo médio de quem estava no top 5 (lado[10]) em média móvel de 3 anos
 (`lutadoras`: quem lutou em categoria Women's; peso casado entre elas conta como feminino). Pontos: vitória =
 dificuldade (chance da força vencer Elo 1600), derrota = −(1 − dificuldade), empate = metade; cinturão ×1,25 (não final
 do TUF), KO/finalização ×1,1, dividida/majoritária ×0,75; DQ e NC fora. Visões: Qualidade = soma/(lutas+2), Longevidade
-= soma, Auge = melhor janela de 10 lutas ÷ 10; mín. 8 lutas (10 no Auge); homens e mulheres separados. O Elo reproduz
+= soma, Auge = melhor janela de 10 lutas ÷ 10, Geral (padrão do site, `anexar_geral`) = média dos z das três, por gênero,
+só quem tem as três (correlação entre as visões no top 100: 0,53–0,69, por isso pesos iguais); mín. 8 lutas (10 no Auge); homens e mulheres separados. O Elo reproduz
 exatamente o de previsao.json. Site: seção `#cartel` de interativo.html (`js/cartel.js`, carregado depois de
 interativo.js, que chama `iniciarCartel()` e `parametrosCartel(p)`; URL cv/cg/cc/ca/ct; estado inicial lido ao carregar
 o script porque a página reescreve a URL antes de cartel.json chegar); cartel exibido = o oficial de lutadores.json.
