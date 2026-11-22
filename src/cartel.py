@@ -21,6 +21,7 @@ Três visões, cada uma responde a uma pergunta:
 - Qualidade = soma ÷ (lutas + `LUTAS_FANTASMAS`): o cartel mais forte por luta.
 - Longevidade = soma: quem acumulou mais.
 - Auge = melhor trecho de `JANELA_AUGE` lutas seguidas ÷ `JANELA_AUGE`: o melhor período.
+- Geral = média das três em desvios-padrão (`anexar_geral`): quem é forte em todas.
 Homens e mulheres em rankings separados.
 
 Entrada: o dicionário de dados/lutas.json (`montar_lutas` em exportar.py). `python -m src.cartel` regenera
@@ -238,11 +239,30 @@ def resumo_do_lutador(nome, lutas):
     return linha
 
 
+VISOES = ("qual", "long", "auge")
+
+
+def anexar_geral(lutadores):
+    """Visão Geral: média das três visões em desvios-padrão (z), entre os do mesmo gênero que têm as três
+    (as escalas são diferentes: ~0,8 por luta × ~19 na soma). Pesos iguais: entre os 100 melhores, as visões
+    concordam só em parte (correlação 0,53 a 0,69), então cada uma traz informação própria, e o Auge fica
+    entre as outras duas. Quem não tem o Auge (menos de JANELA_AUGE lutas) fica sem Geral."""
+    for genero in ("M", "F"):
+        grupo = [l for l in lutadores if l["g"] == genero and all(l.get(v) is not None for v in VISOES)]
+        if len(grupo) < 2:
+            continue
+        valores = np.array([[l[v] for v in VISOES] for l in grupo], dtype=float)
+        z = (valores - valores.mean(axis=0)) / valores.std(axis=0)
+        for l, linha in zip(grupo, z.mean(axis=1)):
+            l["geral"] = round(float(linha), 3)
+    return lutadores
+
+
 def montar_cartel(dados_lutas, min_lutas=MIN_LUTAS):
     """Conteúdo de dados/cartel.json: parâmetros, nível da elite por ano e um resumo por lutador com
     `min_lutas`+ lutas que contam. As posições de cada visão são calculadas no navegador (por gênero e filtro)."""
     por, niveis = lutas_por_lutador(dados_lutas)
-    lutadores = [resumo_do_lutador(nome, lutas) for nome, lutas in sorted(por.items()) if len(lutas) >= min_lutas]
+    lutadores = anexar_geral([resumo_do_lutador(nome, lutas) for nome, lutas in sorted(por.items()) if len(lutas) >= min_lutas])
     return {
         "parametros": {"peso_epoca": PESO_EPOCA, "referencia": REFERENCIA, "inicio_ajuste": INICIO_AJUSTE,
                        "elite": ELITE, "min_lutas": min_lutas, "janela_auge": JANELA_AUGE,

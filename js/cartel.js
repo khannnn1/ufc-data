@@ -4,6 +4,10 @@
 // Carregado depois de interativo.js, que chama iniciarCartel() e parametrosCartel(p) (link compartilhável).
 
 const VISOES_CARTEL = {
+  geral: {
+    rotulo: "Geral", campo: "geral", formato: (v) => fmt2.format(v), minimo: "auge",
+    intro: "Quem é forte nas três visões ao mesmo tempo: a média de Qualidade, Longevidade e Auge, cada uma medida em desvios-padrão em relação à média (0 = lutador médio do índice; 2 = dois desvios acima). Só entra quem tem as três, ou seja, 10 lutas ou mais.",
+  },
   qual: {
     rotulo: "Qualidade", campo: "qual", formato: (v) => fmt2.format(v),
     intro: "O cartel mais forte por luta: a soma dos pontos dividida pelo número de lutas (mais 2, para que poucas lutas boas não passem à frente de carreiras longas).",
@@ -13,14 +17,14 @@ const VISOES_CARTEL = {
     intro: "Quem acumulou mais: a soma dos pontos de todas as lutas. Favorece carreiras longas contra adversários fortes.",
   },
   auge: {
-    rotulo: "Auge", campo: "auge", formato: (v) => fmt2.format(v),
+    rotulo: "Auge", campo: "auge", formato: (v) => fmt2.format(v), minimo: "auge",
     intro: "O melhor período: a média das 10 lutas seguidas que mais valeram, sem o começo e o fim da carreira.",
   },
 };
 const GENEROS_CARTEL = { M: "Masculino", F: "Feminino" };
 const ATIVIDADE_DIAS = 730; // "em atividade" = lutou nos últimos 2 anos (o mesmo corte do top 15 pelo Elo)
 const TAMANHOS_CARTEL = [10, 20, 50];
-const PADROES_CARTEL = { cv: "qual", cg: "M", cc: "", ca: "", ct: 20 };
+const PADROES_CARTEL = { cv: "geral", cg: "M", cc: "", ca: "", ct: 20 };
 
 let dadosCartel = null; // dados/cartel.json
 let lutadoresCartel = []; // um por lutador de cartel.json, juntado com foto/categoria de lutadores.json
@@ -133,7 +137,7 @@ function desenharCartel() {
   desenharTabelaCartel(visao, top);
 
   const p = dadosCartel.parametros;
-  const minimo = visao.campo === "auge" ? p.janela_auge : p.min_lutas;
+  const minimo = visao.minimo === "auge" ? p.janela_auge : p.min_lutas;
   const doPeso = categoria ? ` do ${CATEGORIAS[categoria].toLowerCase()}` : "";
   document.getElementById("nota-cartel").textContent =
     `${fmt0.format(elegiveis.length)} ${genero === "F" ? "lutadoras" : "lutadores"}${doPeso} com pelo menos ${minimo} lutas no UFC`

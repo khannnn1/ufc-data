@@ -280,12 +280,13 @@ function historicoDeLutas(historico, porNome, estilos, nomeLutador) {
 }
 
 // Lutas do lutador, da mais recente à mais antiga, já "do ponto de vista" dele
-// Qualidade do cartel (dados/cartel.json, src/cartel.py): índice nas três visões, posição entre os do mesmo
+// Qualidade do cartel (dados/cartel.json, src/cartel.py): índice nas quatro visões (Geral = média das outras três em z), posição entre os do mesmo
 // gênero (mesma ordem do ranking de interativo.html#cartel) e os destaques. null se o arquivo não carregou.
 const VISOES_CARTEL = [
+  ["geral", "Geral", "média das três", (v) => fmt2.format(v)],
   ["qual", "Qualidade", "por luta", (v) => fmt2.format(v)],
-  ["long", "Longevidade", "soma da carreira", (v) => fmt1.format(v)],
-  ["auge", "Auge", "melhor trecho de 10 lutas", (v) => fmt2.format(v)],
+  ["long", "Longevidade", "soma", (v) => fmt1.format(v)],
+  ["auge", "Auge", "melhor trecho", (v) => fmt2.format(v)],
 ];
 
 function posicaoNoCartel(c, todos, campo) {

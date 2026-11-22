@@ -109,3 +109,20 @@ def test_montar_cartel(monkeypatch):
     assert a["auge"] > 0 and a["trecho"][2] == "3-0"
     assert m["pior"][0] == "W9" and "pior" not in a
     assert saida["parametros"]["peso_epoca"] == cartel.PESO_EPOCA
+
+
+def test_geral_e_a_media_dos_z():
+    import numpy as np
+
+    lutadores = [{"nome": n, "g": "M", "qual": q, "long": lo, "auge": a}
+                 for n, q, lo, a in [("A", 0.8, 19, 1.0), ("B", 0.5, 10, 0.7), ("C", 0.2, 3, 0.3)]]
+    lutadores += [{"nome": "D", "g": "M", "qual": 0.9, "long": 7}]  # sem Auge: sem Geral
+    lutadores += [{"nome": f"F{i}", "g": "F", "qual": 0.1 * i, "long": i, "auge": 0.1 * i} for i in range(1, 4)]
+    cartel.anexar_geral(lutadores)
+    por = {l["nome"]: l for l in lutadores}
+    assert "geral" not in por["D"]
+    valores = np.array([[0.8, 19, 1.0], [0.5, 10, 0.7], [0.2, 3, 0.3]])
+    z = ((valores - valores.mean(0)) / valores.std(0)).mean(1)
+    assert [por[n]["geral"] for n in "ABC"] == pytest.approx(z, abs=1e-3)
+    assert por["F3"]["geral"] > por["F1"]["geral"]  # mulheres padronizadas entre elas
+    assert sum(por[n]["geral"] for n in "ABC") == pytest.approx(0, abs=1e-2)

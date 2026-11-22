@@ -54,7 +54,7 @@
 
   /* Qualidade do cartel (dados/cartel.json) */
   .qualidade-cartel { margin-bottom: 16px; }
-  .visoes-cartel { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+  .visoes-cartel { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
   .visao-cartel { display: block; border: 1px solid var(--grid-line); border-radius: var(--raio); padding: 12px 14px; color: inherit; text-decoration: none; }
   .visao-cartel:hover, .visao-cartel:focus-visible { border-color: var(--muted); outline: none; }
   .visao-cartel .rotulo, .destaque .rotulo { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -109,7 +109,7 @@
   @media (max-width: 860px) {
     .fatos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .grade { grid-template-columns: minmax(0, 1fr); }
-    .destaques-cartel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .destaques-cartel, .visoes-cartel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   @media (max-width: 560px) {
     .perfil-topo { gap: 16px; align-items: flex-start; flex-wrap: wrap; }
@@ -121,7 +121,7 @@
     .col-golpes { display: none; }
     .perfil-topo .cartel-grande small { display: none; }
     .cartao-p { padding: 14px; }
-    .visoes-cartel { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+    .visoes-cartel { gap: 8px; }
     .visao-cartel .valor { font-size: 1.35rem; }
   }
 </style>
@@ -137,6 +137,6 @@
 </footer>
 
 <script src="js/site.js?v=8"></script>
-<script src="js/lutador.js?v=8"></script>
+<script src="js/lutador.js?v=9"></script>
 </body>
 </html>
