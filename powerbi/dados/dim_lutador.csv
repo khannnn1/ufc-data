@@ -230,7 +230,7 @@
 229;Abdul Hussein;170,2;170,2;Ortodoxo;1997-08-02;Completo
 230;Dricus Du Plessis;185,4;193,0;Troca de base;1994-01-14;Completo
 231;Kamaru Usman;182,9;193,0;Troca de base;1987-05-11;Wrestler
-232;Jared Cannonier;180,3;195,6;Troca de base;1984-03-16;Completo
+232;Jared Cannonier;180,3;195,6;Troca de base;1984-03-16;Striker
 233;Christian Leroy Duncan;188,0;200,7;Troca de base;1995-07-24;Completo
 234;Chase Hooper;185,4;188,0;Canhoto;1999-09-13;Finalizador
 235;Mitch Ramirez;180,3;177,8;Ortodoxo;1992-11-03;Striker
@@ -273,7 +273,7 @@
 272;Farid Basharat;172,7;180,3;Ortodoxo;1997-08-02;Wrestler
 273;John Garza;170,2;172,7;Ortodoxo;2002-10-30;Completo
 274;Zach Reese;193,0;195,6;Troca de base;1994-03-24;Completo
-275;Alessandro Costa;162,6;170,2;Ortodoxo;1996-01-28;Striker
+275;Alessandro Costa;162,6;170,2;Ortodoxo;1996-01-28;Completo
 276;Cody Durden;170,2;170,2;Canhoto;1991-03-29;Wrestler
 277;Rafael Fiziev;172,7;180,3;Troca de base;1993-03-05;Completo
 278;Manuel Torres;177,8;185,4;Troca de base;1995-03-25;Completo
@@ -350,7 +350,7 @@
 349;Deiveson Figueiredo;165,1;172,7;Ortodoxo;1987-12-18;Completo
 350;Zhang Mingyang;188,0;190,5;Ortodoxo;1998-08-16;Completo
 351;Sergei Pavlovich;190,5;213,4;Canhoto;1992-05-13;Completo
-352;Tallison Teixeira;200,7;210,8;Ortodoxo;1999-12-07;Wrestler
+352;Tallison Teixeira;200,7;210,8;Ortodoxo;1999-12-07;Completo
 353;Cameron Smotherman;175,3;175,3;Ortodoxo;1997-09-17;Striker
 354;Jake Matthews;180,3;185,4;Ortodoxo;1994-08-19;Completo
 355;Carlston Harris;182,9;193,0;Ortodoxo;1987-07-09;Completo
@@ -457,7 +457,7 @@
 456;Jamey-Lyn Horth;170,2;167,6;Ortodoxo;1990-03-30;Completo
 457;John Castaneda;167,6;180,3;Troca de base;1991-12-18;Completo
 458;Jamie Siraj;170,2;167,6;Ortodoxo;1994-06-28;Completo
-459;Jiri Prochazka;190,5;203,2;Ortodoxo;1992-10-14;Completo
+459;Jiri Prochazka;190,5;203,2;Ortodoxo;1992-10-14;Striker
 460;Carlos Ulberg;193,0;195,6;Ortodoxo;1990-11-07;Striker
 461;Azamat Murzakanov;177,8;180,3;Canhoto;1989-04-12;Striker
 462;Paulo Costa;185,4;182,9;Ortodoxo;1991-04-21;Striker
@@ -507,7 +507,7 @@
 506;Shem Rock;180,3;185,4;Canhoto;1993-11-05;Completo
 507;Abdul-Kareem Al-Selwady;172,7;175,3;Ortodoxo;1995-04-10;Completo
 508;Josh Emmett;167,6;177,8;Ortodoxo;1985-03-04;Completo
-509;Kevin Vallejos;170,2;172,7;Troca de base;2001-12-08;Completo
+509;Kevin Vallejos;170,2;172,7;Troca de base;2001-12-08;Striker
 510;Harry Hardwick;172,7;180,3;Troca de base;1994-09-29;Completo
 511;Chris Curtis;177,8;190,5;Ortodoxo;1987-07-15;Striker
 512;Elijah Smith;175,3;180,3;Ortodoxo;2002-09-05;Wrestler
@@ -648,7 +648,7 @@
 647;Trey Waters;195,6;195,6;Ortodoxo;1995-02-21;Striker
 648;Andreas Gustafsson;185,4;185,4;Ortodoxo;1991-02-20;Completo
 649;Rinat Fakhretdinov;182,9;188,0;Ortodoxo;1991-09-28;Wrestler
-650;Brian Ortega;172,7;175,3;Troca de base;1991-02-21;Striker
+650;Brian Ortega;172,7;175,3;Troca de base;1991-02-21;Completo
 651;Taiyilake Nueraji;188,0;190,5;Canhoto;2001-01-12;Completo
 652;Kiefer Crosbie;180,3;177,8;Troca de base;1990-04-05;Striker
 653;Maheshate;182,9;180,3;Ortodoxo;1999-12-01;Striker
@@ -2779,3 +2779,6 @@
 2778;Gabriel Lorenco;188,0;193,0;Ortodoxo;1999-09-30;Completo
 2779;Carlos Calderon;175,3;180,3;Troca de base;1996-02-10;Completo
 2780;Samuel Sanches;177,8;188,0;Ortodoxo;2003-01-28;Completo
+2781;Alik Lorenz;188,0;195,6;Ortodoxo;1997-01-25;Completo
+2782;Shoaib Yousaf;177,8;182,9;Ortodoxo;1995-08-07;Completo
+2783;John Mitchell;180,3;188,0;Ortodoxo;1995-07-21;Completo
