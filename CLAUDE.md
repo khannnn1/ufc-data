@@ -532,7 +532,9 @@ do TUF), KO/finalização ×1,1, dividida/majoritária ×0,75; DQ e NC fora. Vis
 exatamente o de previsao.json. Site: seção `#cartel` de interativo.html (`js/cartel.js`, carregado depois de
 interativo.js, que chama `iniciarCartel()` e `parametrosCartel(p)`; URL cv/cg/cc/ca/ct; estado inicial lido ao carregar
 o script porque a página reescreve a URL antes de cartel.json chegar); cartel exibido = o oficial de lutadores.json.
-Explicação em sobre.html#cartel. Protótipo e debate (Khabib, Anderson, Gaethje) no Claude Doc "Índice de Cartel".
+Explicação em sobre.html#cartel. Perfil (lutador.html): bloco "Qualidade do cartel" (`qualidadeDoCartel` em lutador.js)
+com valor e posição nas 3 visões entre os do mesmo gênero (`posicaoNoCartel`, mesma ordem do ranking), trecho do auge,
+vitórias sobre elite, força média, melhor vitória e pior derrota; sem o mínimo de lutas, só uma nota. Protótipo e debate (Khabib, Anderson, Gaethje) no Claude Doc "Índice de Cartel".
 
 ## Próximos passos / direção atual
 Ordem combinada (2026-11-08) para o site profissional: 1 estrutura comum + 2 perfil (feitos, PR #4);
