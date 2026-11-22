@@ -1031,6 +1031,7 @@ function atualizarUrl() {
   if (rq !== PADROES.rq) p.set("rq", rq || "todos");
   const lista = document.getElementById("lista-atuacoes").value;
   if (lista !== LISTA_PADRAO) p.set("lista", lista);
+  parametrosCartel(p); // seção "Qualidade do cartel" (js/cartel.js)
   // replaceState: atualiza o endereço sem criar uma entrada nova no histórico a cada mudança
   history.replaceState(null, "", `${location.pathname}?${p}${location.hash}`);
 
@@ -1393,6 +1394,7 @@ async function iniciar() {
   desenharAtuacoes();
   urlPronta = true;
   atualizarUrl();
+  iniciarCartel(); // seção "Qualidade do cartel" (js/cartel.js): busca dados/cartel.json à parte
 
   // Com o conteúdo desenhado, a âncora do link (#comparador ou #ranking) já cai no lugar certo
   if (location.hash) document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView();

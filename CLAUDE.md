@@ -35,6 +35,7 @@ ProjetoUFC/
 │   ├── exportar.py       # gera dados/lutadores.json para o site interativo
 │   ├── analises.py       # números das análises da página inicial (chamado pelo exportar)
 │   ├── rating.py         # nota 0–10 de cada lutador em cada luta (estilo + regressão + Elo)
+│   ├── cartel.py         # Índice de Cartel (força dos adversários) -> dados/cartel.json; `python -m src.cartel`
 │   ├── previsao.py       # chance de vencer (Elo + idade + envergadura), testada em 2020+ -> dados/previsao.json
 │   ├── banco.py          # monta data/ufc.db (SQLite) a partir dos CSVs limpos
 │   ├── consultas.py      # lê e executa as consultas de sql/consultas.sql
@@ -45,6 +46,7 @@ ProjetoUFC/
 │   ├── lutadores*.json  # totais por lutador, um por período (VERSIONADO: o site lê daqui)
 │   ├── lutas.json      # histórico de todas as lutas, para perfil e eventos (VERSIONADO)
 │   ├── analises.json   # análises da página inicial, um bloco por período (VERSIONADO)
+│   ├── cartel.json     # Índice de Cartel por lutador (VERSIONADO)
 │   └── previsao.json   # pesos da previsão, Elo de hoje de cada lutador e acerto testado (VERSIONADO)
 ├── css/
 │   └── site.css        # estilo comum (cores, barra do topo, avatar, tabelas, cartões)
@@ -516,6 +518,21 @@ Zebras (2026-11-14): `zebras` em previsao.json = [[data, vencedor, perdedor, cha
 vitórias com chance < `ZEBRA` (0,5) na véspera, com os pesos de todas as lutas (3.457; menor: Modafferi × Barber,
 10%). No site é a lista "Zebras" da seção #atuacoes (URL `lista=zebras`; `zebrasComLuta` junta com lutas.json pela
 data + nomes; filtros de período/categoria/estilo do vencedor/método).
+
+## Índice de Cartel (desde 2026-11-22)
+`src/cartel.py` (`montar_cartel(dados_lutas)`, entrada = o dict de lutas.json; chamado por `exportar_lutadores` e por
+`python -m src.cartel`, que regenera dados/cartel.json a partir de dados/lutas.json, sem data/). Mede QUEM o lutador
+venceu, não como lutou. Força do adversário = 0,75 × Elo na véspera + 0,25 × maior Elo dele dali em diante (decisão do
+usuário: "misto"), com AJUSTE DE ÉPOCA a partir de 2001: soma (elite masculina do último ano − elite do ano da luta);
+elite = Elo médio de quem estava no top 5 (lado[10]) em média móvel de 3 anos, medida à parte para mulheres
+(`lutadoras`: quem lutou em categoria Women's; peso casado entre elas conta como feminino). Pontos: vitória =
+dificuldade (chance da força vencer Elo 1600), derrota = −(1 − dificuldade), empate = metade; cinturão ×1,25 (não final
+do TUF), KO/finalização ×1,1, dividida/majoritária ×0,75; DQ e NC fora. Visões: Qualidade = soma/(lutas+2), Longevidade
+= soma, Auge = melhor janela de 10 lutas ÷ 10; mín. 8 lutas (10 no Auge); homens e mulheres separados. O Elo reproduz
+exatamente o de previsao.json. Site: seção `#cartel` de interativo.html (`js/cartel.js`, carregado depois de
+interativo.js, que chama `iniciarCartel()` e `parametrosCartel(p)`; URL cv/cg/cc/ca/ct; estado inicial lido ao carregar
+o script porque a página reescreve a URL antes de cartel.json chegar); cartel exibido = o oficial de lutadores.json.
+Explicação em sobre.html#cartel. Protótipo e debate (Khabib, Anderson, Gaethje) no Claude Doc "Índice de Cartel".
 
 ## Próximos passos / direção atual
 Ordem combinada (2026-11-08) para o site profissional: 1 estrutura comum + 2 perfil (feitos, PR #4);

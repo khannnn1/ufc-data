@@ -74,6 +74,8 @@ def test_exportar_um_json_por_periodo(resumo, por_round, datas_eventos, lutadore
     a = {l["nome"]: l for l in corte["lutadores"]}["A"]
     assert (a["n"], a["w"]) == (1, 1)
     assert len(a["r"]) == 1  # rounds só das lutas do recorte
+    cartel = json.loads((tmp_path / "cartel.json").read_text(encoding="utf-8"))
+    assert cartel["lutadores"] == []  # ninguém com o mínimo de lutas no mini-dataset
 
 
 def test_inicio_do_periodo_relativo_a_hoje():

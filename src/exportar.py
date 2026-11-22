@@ -7,6 +7,7 @@ from pathlib import Path
 import pandas as pd
 
 from src.analises import montar_analises
+from src.cartel import exportar_cartel
 from src.previsao import confrontos_do_resumo, montar_previsao
 from src.limpeza import adicionar_duracao, separar_finais_de_torneio, tipo_de_disputa
 from src.rating import calcular_notas, posicoes_no_ranking
@@ -322,8 +323,10 @@ def exportar_lutadores(caminho_csv=ARQUIVO_RESUMO, caminho_round=ARQUIVO_ROUND, 
     with open(Path(pasta_saida) / "analises.json", "w", encoding="utf-8") as f:
         json.dump({"gerado_em": date.today().isoformat(), "periodos": {c: p["rotulo"] for c, p in PERIODOS.items()},
                    **analises}, f, ensure_ascii=False, separators=(",", ":"))
+    dados_lutas = montar_lutas(df, datas_eventos, notas, info["estilos"], posicoes_no_ranking(df, datas_eventos))
     with open(Path(pasta_saida) / "lutas.json", "w", encoding="utf-8") as f:
-        json.dump(montar_lutas(df, datas_eventos, notas, info["estilos"], posicoes_no_ranking(df, datas_eventos)), f, ensure_ascii=False, separators=(",", ":"))
+        json.dump(dados_lutas, f, ensure_ascii=False, separators=(",", ":"))
+    exportar_cartel(dados_lutas, pasta_saida)  # Índice de Cartel (src/cartel.py) -> dados/cartel.json
     # previsão de luta (src/previsao.py): Elo de hoje de cada lutador, pesos do modelo e o acerto testado
     previsao = montar_previsao(confrontos_do_resumo(df, datas_eventos, lutadores))
     with open(Path(pasta_saida) / "previsao.json", "w", encoding="utf-8") as f:

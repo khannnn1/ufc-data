@@ -103,6 +103,17 @@
   <p>O peso de cada item sai de uma regressão logística. Para medir o acerto sem trapaça, o modelo foi treinado só com as lutas até 2019 e testado nas lutas de 2020 em diante, que ele não tinha visto. O acerto e a conferência das faixas ("quando o modelo dá 70%, o favorito vence mais ou menos 70% das vezes?") aparecem embaixo de cada previsão. Para as previsões do site, os pesos são aprendidos com todas as lutas.</p>
   <p>O modelo não sabe de lesões, preparação, troca de categoria, estilo ou motivação. O Elo de quem tem poucas lutas no UFC ainda diz pouco, e o de quem está parado é o da última luta. A previsão serve como ponto de partida, não como palpite certo.</p>
 
+  <h2 id="cartel">Como a qualidade do cartel é calculada</h2>
+  <p>A qualidade do cartel (nos <a href="interativo.html#cartel">rankings</a>) mede <strong>quem</strong> cada lutador venceu e para quem perdeu, e não <strong>como</strong> lutou, que é o papel da nota. Responde ao debate de sempre: um cartel invicto contra adversários medianos vale mais que um com derrotas, mas cheio de vitórias sobre a elite?</p>
+  <ul>
+    <li><strong>Força do adversário:</strong> 75% do Elo dele na véspera da luta mais 25% do maior Elo que ele teve depois. Vencer alguém que mais tarde virou elite rende um pouco mais, mas continua valendo menos do que vencê-lo no auge. Uma lenda em fim de carreira vale pelo Elo baixo que tinha naquele dia, e não pelo nome.</li>
+    <li><strong>Ajuste de época:</strong> o Elo de quem está no topo sobe com os anos, porque as lutas se acumulam. Por isso, o Elo de cada luta é levado à escala de hoje: ser top 5 em 2006 vale o mesmo que ser top 5 agora. O ajuste começa em 2001, porque nos torneios dos primeiros anos havia pouca gente e o nível da elite não dá para medir.</li>
+    <li><strong>Pontos de cada luta:</strong> a vitória vale a chance que esse adversário teria de vencer um lutador um pouco acima da média: perto de 1 contra a elite, perto de 0,3 contra um estreante. A derrota tira o contrário: perder para o campeão custa cerca de 0,15, e perder para alguém fraco, 0,6 ou mais. O empate vale metade de cada lado.</li>
+    <li><strong>Ajustes:</strong> vitória em disputa de cinturão vale 25% a mais (final do TUF não conta), e nocaute ou finalização, 10% a mais. Decisão dividida ou majoritária vale 25% a menos, tanto na vitória quanto na derrota. Desclassificações e lutas sem resultado ficam de fora.</li>
+  </ul>
+  <p>São três visões. A <strong>Qualidade</strong> divide a soma dos pontos pelo número de lutas mais 2, para que três vitórias boas não passem à frente de uma carreira longa. A <strong>Longevidade</strong> é a soma de todas as lutas. O <strong>Auge</strong> é a média das 10 lutas seguidas que mais valeram. Homens e mulheres ficam em rankings separados, e a elite feminina é medida à parte. Entra quem tem pelo menos 8 lutas no UFC (10 no Auge).</p>
+  <p>Os limites: só contam as lutas do UFC, então quem chega de outro evento começa do zero no Elo. Os pesos dos ajustes são escolhas do projeto, não saem de estatística. E, para quem ainda luta, o retrospecto não terminou: uma vitória recente pode valer mais daqui a alguns anos.</p>
+
   <h2>O que os números não dizem</h2>
   <ul>
     <li><strong>Associação não é causa.</strong> Vencedores acertam mais knockdowns, mas o knockdown muitas vezes já é o começo do fim da luta.</li>

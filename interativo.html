@@ -195,12 +195,22 @@
   table.atuacoes td.diferenca.negativa { color: var(--vermelho); }
   table.atuacoes td.chance { color: var(--amarelo); font-size: 1.05rem; }
   table.atuacoes .col-elo { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  table.cartel .col-adversario .nome-lutador, table.cartel .sub-lutador { display: block; }
+  table.cartel .col-adversario, table.cartel .col-extra { white-space: nowrap; }
+  table.cartel .col-extra { color: var(--muted); font-variant-numeric: tabular-nums; }
+  table.cartel .col-barra { width: 16%; }
+  table.cartel .barra { min-width: 36px; }
+  table.cartel .barra-valor strong { min-width: 2.6em; }
+  table.cartel th, table.cartel td { padding-left: 8px; padding-right: 8px; }
+  @media (max-width: 1100px) { table.cartel th.col-extra + th.col-extra, table.cartel td.col-extra + td.col-extra { display: none; } }
+  table.cartel td.vazio { color: var(--muted); }
   .cartao .nota-cartao { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
 
   .cartao .topo-cartao { display: flex; align-items: center; gap: 14px; margin-bottom: 4px; }
 
   @media (max-width: 700px) {
     table.atuacoes .col-metodo, table.atuacoes .col-elo { display: none; }
+    table.cartel .col-adversario, table.cartel .col-extra, table.cartel .col-cartel { display: none; }
     /* Vitórias com menor diferença: sem foto, um nome por linha e as duas notas empilhadas */
     table.apertadas .avatar, table.apertadas .vs { display: none; }
     table.apertadas .nome-lutador a { display: block; overflow: hidden; text-overflow: ellipsis; }
@@ -365,6 +375,48 @@
     </div>
   </section>
 
+  <section id="cartel">
+    <h2>Qualidade do cartel</h2>
+    <p class="intro">Quem cada lutador venceu, e para quem perdeu. Cada luta vale pontos pela força do adversário naquele dia: vencer alguém forte vale muito, perder para alguém fraco custa muito. A força é o Elo do adversário na véspera, com um pouco de crédito se ele ficou mais forte depois, e ajustada pela época, para que ser top 5 em 2006 valha o mesmo que hoje. Vale a carreira inteira no UFC (não muda com o período do topo). <a href="sobre.html#cartel">Como é calculado</a>.</p>
+    <p class="intro" id="intro-visao-cartel"></p>
+
+    <div class="controles">
+      <div class="campo">
+        <label for="visao-cartel">Visão</label>
+        <select id="visao-cartel"></select>
+      </div>
+      <div class="campo">
+        <label for="genero-cartel">Divisão</label>
+        <select id="genero-cartel"></select>
+      </div>
+      <div class="campo categoria">
+        <label for="categoria-cartel">Categoria</label>
+        <select id="categoria-cartel"><option value="">Todas</option></select>
+      </div>
+      <div class="campo">
+        <label for="ativos-cartel">Situação</label>
+        <select id="ativos-cartel"><option value="">Todos</option><option value="sim">Em atividade (lutou nos últimos 2 anos)</option></select>
+      </div>
+      <div class="campo numero">
+        <label for="tamanho-cartel">Top</label>
+        <select id="tamanho-cartel">
+          <option value="10">10</option>
+          <option value="20" selected>20</option>
+          <option value="50">50</option>
+        </select>
+      </div>
+      <div class="compartilhar">
+        <button type="button" class="copiar" data-secao="cartel">Copiar link</button>
+        <span class="copiado" role="status"></span>
+      </div>
+    </div>
+
+    <div class="grafico-ranking">
+      <div class="tabela-wrap"><table id="tabela-cartel" class="atuacoes cartel"></table></div>
+      <p class="nota" id="nota-cartel"></p>
+    </div>
+  </section>
+
   <section id="atuacoes">
     <h2 id="titulo-atuacoes">Melhores atuações</h2>
     <p class="intro" id="intro-atuacoes">As maiores notas em uma única luta no período escolhido. Clique na nota para ver como ela foi calculada e no evento para ver o card completo.</p>
@@ -403,6 +455,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <!-- ?v=N: aumente a cada mudança no JS, para o navegador não usar a versão antiga em cache -->
 <script src="js/site.js?v=8"></script>
-<script src="js/interativo.js?v=30"></script>
+<script src="js/interativo.js?v=31"></script>
+<script src="js/cartel.js?v=1"></script>
 </body>
 </html>
