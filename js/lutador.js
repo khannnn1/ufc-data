@@ -280,6 +280,85 @@ function historicoDeLutas(historico, porNome, estilos, nomeLutador) {
 }
 
 // Lutas do lutador, da mais recente à mais antiga, já "do ponto de vista" dele
+// Qualidade do cartel (dados/cartel.json, src/cartel.py): índice nas três visões, posição entre os do mesmo
+// gênero (mesma ordem do ranking de interativo.html#cartel) e os destaques. null se o arquivo não carregou.
+const VISOES_CARTEL = [
+  ["qual", "Qualidade", "por luta", (v) => fmt2.format(v)],
+  ["long", "Longevidade", "soma da carreira", (v) => fmt1.format(v)],
+  ["auge", "Auge", "melhor trecho de 10 lutas", (v) => fmt2.format(v)],
+];
+
+function posicaoNoCartel(c, todos, campo) {
+  if (c[campo] == null) return null;
+  const pares = todos.filter((x) => x.g === c.g && x[campo] != null);
+  const antes = pares.filter((x) => x[campo] > c[campo] || (x[campo] === c[campo] && (x.n > c.n || (x.n === c.n && x.nome.localeCompare(c.nome) < 0)))).length;
+  return { pos: antes + 1, de: pares.length };
+}
+
+function qualidadeDoCartel(l, cartelJson) {
+  if (!cartelJson) return null;
+  const cartao = elemento("section", "cartao-p qualidade-cartel");
+  const titulo = elemento("h2", "", "Qualidade do cartel");
+  cartao.appendChild(titulo);
+  const c = cartelJson.lutadores.find((x) => x.nome === l.nome);
+  const p = cartelJson.parametros;
+  const comoCalcula = () => {
+    const a = elemento("a", "", "Como é calculado");
+    a.href = "sobre.html#cartel";
+    return a;
+  };
+  if (!c) {
+    const nota = elemento("p", "nota", `Entra no índice quem tem pelo menos ${p.min_lutas} lutas no UFC que contam (desclassificações e lutas sem resultado ficam de fora). `);
+    nota.appendChild(comoCalcula());
+    cartao.appendChild(nota);
+    return cartao;
+  }
+  const genero = c.g === "F" ? "lutadoras" : "lutadores";
+  const visoes = elemento("div", "visoes-cartel");
+  for (const [campo, rotulo, explicacao, formatar] of VISOES_CARTEL) {
+    const caixa = elemento("a", "visao-cartel");
+    caixa.href = `interativo.html?cv=${campo}${c.g === "F" ? "&cg=F" : ""}#cartel`;
+    caixa.title = `Ver o ranking de ${rotulo.toLowerCase()}`;
+    const posicao = posicaoNoCartel(c, cartelJson.lutadores, campo);
+    caixa.append(elemento("div", "rotulo", `${rotulo} · ${explicacao}`));
+    if (!posicao) {
+      caixa.append(elemento("div", "valor", "—"), elemento("div", "posicao", `precisa de ${p.janela_auge} lutas`));
+    } else {
+      caixa.append(elemento("div", "valor", formatar(c[campo])),
+        elemento("div", "posicao", `${posicao.pos}º de ${posicao.de.toLocaleString("pt-BR")} ${genero}`));
+    }
+    if (campo === "auge" && c.trecho) {
+      const [de, ate, cartelTrecho] = c.trecho;
+      caixa.append(elemento("div", "detalhe", `${de.slice(0, 4)}–${ate.slice(0, 4)} · ${cartelTrecho}`));
+    }
+    visoes.appendChild(caixa);
+  }
+  cartao.appendChild(visoes);
+
+  const destaques = elemento("div", "destaques-cartel");
+  const destaque = (rotulo, valor, detalhe) => {
+    const d = elemento("div", "destaque");
+    d.append(elemento("div", "rotulo", rotulo));
+    const v = elemento("div", "valor");
+    v.append(valor);
+    d.appendChild(v);
+    if (detalhe) d.appendChild(elemento("div", "detalhe", detalhe));
+    destaques.appendChild(d);
+  };
+  const adversario = (info) => (info ? linkNome(info[0], "") : "—");
+  const detalheAdv = (info) => (info ? `força ${info[1].toLocaleString("pt-BR")} · ${info[2].slice(0, 4)}` : "");
+  destaque("Vitórias sobre a elite", String(c.elite), `adversário com força de ${p.elite.toLocaleString("pt-BR")} ou mais`);
+  destaque("Força média dos adversários", c.forca.toLocaleString("pt-BR"), `em ${c.n} lutas que contam`);
+  destaque("Melhor vitória", adversario(c.melhor), detalheAdv(c.melhor));
+  destaque("Pior derrota", adversario(c.pior), c.pior ? detalheAdv(c.pior) : "nenhuma derrota que conte");
+  cartao.appendChild(destaques);
+
+  const nota = elemento("p", "nota", "Quem o lutador venceu e para quem perdeu, pela força de cada adversário naquele dia (Elo da véspera com um pouco do que ele fez depois, na escala de hoje). Só lutas do UFC. ");
+  nota.appendChild(comoCalcula());
+  cartao.appendChild(nota);
+  return cartao;
+}
+
 function montarHistorico(nome, dadosLutas) {
   const historico = [];
   for (const luta of dadosLutas.lutas) {
@@ -299,11 +378,13 @@ async function iniciar() {
     principal.innerHTML = '<p class="erro">Escolha um lutador na busca do topo.</p>';
     return;
   }
-  let dados, dadosLutas;
+  let dados, dadosLutas, cartelJson;
   try {
-    [dados, dadosLutas] = await Promise.all([
+    [dados, dadosLutas, cartelJson] = await Promise.all([
       carregarLutadoresTudo(),
       carregarLutas(),
+      // opcional: sem ele, o perfil sai sem o bloco de qualidade do cartel
+      fetch("dados/cartel.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).catch((erro) => { console.error(erro); return null; }),
     ]);
   } catch (erro) {
     principal.innerHTML = '<p class="erro">Não foi possível carregar os dados. Se abriu o arquivo direto do disco, rode um servidor local (python -m http.server).</p>';
@@ -327,6 +408,8 @@ async function iniciar() {
   principal.append(topo(l, historico, estilos[l.nome]), fatos(l, historico));
   const notas = notasPorLuta(historico, estilos);
   if (notas) principal.appendChild(notas);
+  const blocoCartel = qualidadeDoCartel(l, cartelJson);
+  if (blocoCartel) principal.appendChild(blocoCartel);
   principal.append(grade, historicoDeLutas(historico, porNome, estilos, l.nome));
 }
 
